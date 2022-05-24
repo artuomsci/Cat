@@ -5,7 +5,9 @@ project(cat LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_library(cat SHARED cat.h cat.cpp str_utils.h str_utils.cpp)
+file(GLOB SRCS *.cpp *.h)
+
+add_library(cat SHARED ${SRCS})
 
 add_executable(app main.cpp test.h)
 
