@@ -10,6 +10,7 @@
 #include <set>
 #include <algorithm>
 
+#include "cat_export.h"
 #include "str_utils.h"
 
 namespace cat
@@ -24,12 +25,12 @@ namespace cat
       eConsole
    };
 
-   void set_log_mode(ELogMode mode_);
-   ELogMode get_log_mode();
-   void print_error(const std::string& msg_);
-   void print_info(const std::string& msg_);
+   CAT_EXPORT void set_log_mode(ELogMode mode_);
+   CAT_EXPORT ELogMode get_log_mode();
+   CAT_EXPORT void print_error(const std::string& msg_);
+   CAT_EXPORT void print_info(const std::string& msg_);
 
-   class Obj
+   class CAT_EXPORT Obj
    {
    public:
 
@@ -50,7 +51,7 @@ namespace cat
       const std::string m_name;
    };
 
-   struct ObjKeyHasher
+   struct CAT_EXPORT ObjKeyHasher
    {
      std::size_t operator()(const Obj& k_) const
      {
@@ -58,7 +59,7 @@ namespace cat
      }
    };
 
-   struct MorphDef
+   struct CAT_EXPORT MorphDef
    {
       explicit MorphDef(const Obj& start_, const Obj& end_, const std::string& morph_name_) :
          start       (start_)
@@ -88,7 +89,7 @@ namespace cat
    using MorphSet    = std::set<MorphDef>;
    using ObjVec      = std::vector<Obj>;
 
-   class Cat
+   class CAT_EXPORT Cat
    {
    public:
 
@@ -187,14 +188,14 @@ namespace cat
     * @param cats_ - resulting categories
     * @return Parsing result
     */
-   bool parse_source(const std::string& source_, std::vector<Cat>& cats_);
+   CAT_EXPORT bool parse_source(const std::string& source_, std::vector<Cat>& cats_);
 
    /**
     * @brief Load text file into string
     * @param filename_ - path to file
     * @return String with contents of file
     */
-   std::optional<std::string> get_description(const std::string& filename_);
+   CAT_EXPORT std::optional<std::string> get_description(const std::string& filename_);
 
    /**
     * @brief Find any sequence of objects between two given objects
@@ -203,7 +204,7 @@ namespace cat
     * @param to_ - terminal object of sequence
     * @return Sequence of objects
     */
-   ObjVec solve_sequence(const Cat& cat_, const Obj& from_, const Obj& to_);
+   CAT_EXPORT ObjVec solve_sequence(const Cat& cat_, const Obj& from_, const Obj& to_);
 
    /**
     * @brief Find all sequences of objects between two given objects
@@ -212,7 +213,7 @@ namespace cat
     * @param to_ - terminal object of sequences
     * @return Sequences of objects
     */
-   std::vector<ObjVec> solve_sequences(const Cat& cat_, const Obj& from_, const Obj& to_);
+   CAT_EXPORT std::vector<ObjVec> solve_sequences(const Cat& cat_, const Obj& from_, const Obj& to_);
 
    /**
     * @brief Map sequence of objects onto sequence of morphisms
@@ -220,18 +221,18 @@ namespace cat
     * @param cat_ - category to find morphisms in
     * @return Sequence of morphisms
     */
-   StringVec map_obj2morphism(const ObjVec& objs_, const Cat& cat_);
+   CAT_EXPORT StringVec map_obj2morphism(const ObjVec& objs_, const Cat& cat_);
 
    /**
     * @brief Find all compositions
     * @param cat_ - category to find compositions in
     */
-   void solve_compositions(Cat& cat_);
+   CAT_EXPORT void solve_compositions(Cat& cat_);
 
    /**
     * @brief Return identity morphism name
     * @param obj_ - object for identity morphism
     * @return Identity morphism name
     */
-   std::string id_morph_name(const Obj& obj_);
+   CAT_EXPORT std::string id_morph_name(const Obj& obj_);
 }

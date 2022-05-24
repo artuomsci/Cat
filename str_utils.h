@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 
+#include "cat_export.h"
+
 namespace cat
 {
    using StringPair  = std::pair<std::string, std::string>;
@@ -14,7 +16,7 @@ namespace cat
     * @param symbol_ - symbol to remove
     * @return Resulting string
     */
-   std::string remove(const std::string& string_, std::string::value_type symbol_);
+   CAT_EXPORT std::string remove(const std::string& string_, std::string::value_type symbol_);
 
    /**
     * @brief Remove symbol repetitions
@@ -22,7 +24,7 @@ namespace cat
     * @param symbol_ - symbol to remove repetitions
     * @return Resulting string
     */
-   std::string remove_rep(const std::string& string_, std::string::value_type symbol_);
+   CAT_EXPORT std::string remove_rep(const std::string& string_, std::string::value_type symbol_);
 
    /**
     * @brief Split string by symbol
@@ -31,7 +33,7 @@ namespace cat
     * @param keep_empty_ - flag to keep empty strings in result
     * @return Splitted string
     */
-   StringVec split(const std::string& string_, std::string::value_type symbol_, bool keep_empty_ = true);
+   CAT_EXPORT StringVec split(const std::string& string_, std::string::value_type symbol_, bool keep_empty_ = true);
 
    /**
     * @brief Split string by string
@@ -40,5 +42,5 @@ namespace cat
     * @param keep_empty_ - flag to keep empty strings in result
     * @return String split into chunks
     */
-   StringVec split(const std::string& string_, const std::string& splitter_, bool keep_empty_ = true);
+   CAT_EXPORT StringVec split(const std::string& string_, const std::string& splitter_, bool keep_empty_ = true);
 }
