@@ -193,6 +193,10 @@ namespace cat
          assert(morphs[0] == MorphDef(a, b).morph_name);
          assert(morphs[1] == MorphDef(b, d).morph_name);
          assert(morphs[2] == MorphDef(d, e).morph_name);
+
+         seq = solve_sequence(cat, e, a);
+
+         assert(seq.size() == 0);
       }
 
       //============================================================
@@ -239,6 +243,10 @@ namespace cat
             assert(morphs[1] == MorphDef(c, f).morph_name);
             assert(morphs[2] == MorphDef(f, e).morph_name);
          }
+
+         seqs = solve_sequences(cat, e, a);
+
+         assert(seqs.size() == 0);
       }
 
       print_info("End test");
