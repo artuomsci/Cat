@@ -81,6 +81,11 @@ namespace cat
       {
          return std::tie(start, end, morph_name) < std::tie(morph_.start, morph_.end, morph_.morph_name);
       }
+
+      bool operator==(const MorphDef& morph_) const
+      {
+         return start == morph_.start && end == morph_.end && morph_name == morph_.morph_name;
+      }
    };
 
    using ObjSet      = std::set<Obj>;
@@ -221,7 +226,7 @@ namespace cat
     * @param cat_ - category to find morphisms in
     * @return Sequence of morphisms
     */
-   CAT_EXPORT StringVec map_obj2morphism(const ObjVec& objs_, const Cat& cat_);
+   CAT_EXPORT std::vector<MorphDef> map_obj2morphism(const ObjVec& objs_, const Cat& cat_);
 
    /**
     * @brief Find all compositions

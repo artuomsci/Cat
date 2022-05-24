@@ -488,9 +488,9 @@ std::vector<ObjVec> cat::solve_sequences(const Cat& cat_, const Obj& from_, cons
 }
 
 //-----------------------------------------------------------------------------------------
-StringVec cat::map_obj2morphism(const ObjVec& objs_, const Cat& cat_)
+std::vector<MorphDef> cat::map_obj2morphism(const ObjVec& objs_, const Cat& cat_)
 {
-   StringVec ret;
+   std::vector<MorphDef> ret;
 
    const MorphSet& morphisms = cat_.GetMorphisms();
 
@@ -501,7 +501,7 @@ StringVec cat::map_obj2morphism(const ObjVec& objs_, const Cat& cat_)
          return objs_[i + 0] == elem_.start && objs_[i + 1] == elem_.end;
       });
 
-      ret.push_back(it != morphisms.end() ? (*it).morph_name : "");
+      ret.push_back(it != morphisms.end() ? *it : MorphDef(Obj(""), Obj("")));
    }
 
    return ret;

@@ -189,10 +189,10 @@ namespace cat
 
          assert(seq.size() == 4);
 
-         StringVec morphs = map_obj2morphism(seq, cat);
-         assert(morphs[0] == MorphDef(a, b).morph_name);
-         assert(morphs[1] == MorphDef(b, d).morph_name);
-         assert(morphs[2] == MorphDef(d, e).morph_name);
+         std::vector<MorphDef> morphs = map_obj2morphism(seq, cat);
+         assert(morphs[0] == MorphDef(a, b));
+         assert(morphs[1] == MorphDef(b, d));
+         assert(morphs[2] == MorphDef(d, e));
 
          seq = solve_sequence(cat, e, a);
 
@@ -224,24 +224,24 @@ namespace cat
          assert(seqs.size() == 3);
 
          {
-            StringVec morphs = map_obj2morphism(seqs[0], cat);
-            assert(morphs[0] == MorphDef(a, b).morph_name);
-            assert(morphs[1] == MorphDef(b, d).morph_name);
-            assert(morphs[2] == MorphDef(d, e).morph_name);
+            std::vector<MorphDef> morphs = map_obj2morphism(seqs[0], cat);
+            assert(morphs[0] == MorphDef(a, b));
+            assert(morphs[1] == MorphDef(b, d));
+            assert(morphs[2] == MorphDef(d, e));
          }
 
          {
-            StringVec morphs = map_obj2morphism(seqs[1], cat);
-            assert(morphs[0] == MorphDef(a, c).morph_name);
-            assert(morphs[1] == MorphDef(c, d).morph_name);
-            assert(morphs[2] == MorphDef(d, e).morph_name);
+            std::vector<MorphDef> morphs = map_obj2morphism(seqs[1], cat);
+            assert(morphs[0] == MorphDef(a, c));
+            assert(morphs[1] == MorphDef(c, d));
+            assert(morphs[2] == MorphDef(d, e));
          }
 
          {
-            StringVec morphs = map_obj2morphism(seqs[2], cat);
-            assert(morphs[0] == MorphDef(a, c).morph_name);
-            assert(morphs[1] == MorphDef(c, f).morph_name);
-            assert(morphs[2] == MorphDef(f, e).morph_name);
+            std::vector<MorphDef> morphs = map_obj2morphism(seqs[2], cat);
+            assert(morphs[0] == MorphDef(a, c));
+            assert(morphs[1] == MorphDef(c, f));
+            assert(morphs[2] == MorphDef(f, e));
          }
 
          seqs = solve_sequences(cat, e, a);
