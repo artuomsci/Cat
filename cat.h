@@ -1,9 +1,6 @@
 #pragma once
 
-#include <iostream>
-#include <fstream>
 #include <vector>
-#include <sstream>
 #include <optional>
 #include <unordered_map>
 #include <map>
@@ -15,10 +12,6 @@
 
 namespace cat
 {
-   // Keywords
-   static const char* const sObj = "obj";
-   static const char* const sCat = "cat";
-
    enum class ELogMode
    {
       eQuiet,
@@ -53,39 +46,20 @@ namespace cat
 
    struct CAT_EXPORT ObjKeyHasher
    {
-     std::size_t operator()(const Obj& k_) const
-     {
-       return std::hash<std::string>{}(k_.GetName());
-     }
+     std::size_t operator()(const Obj& k_) const;
    };
 
    struct CAT_EXPORT MorphDef
    {
-      explicit MorphDef(const Obj& start_, const Obj& end_, const std::string& morph_name_) :
-         start       (start_)
-       , end         (end_)
-       , morph_name  (morph_name_)
-      {};
-
-      explicit MorphDef(const Obj& start_, const Obj& end_) :
-         start       (start_)
-       , end         (end_)
-       , morph_name  (start.GetName() + end.GetName())
-      {};
+      explicit MorphDef(const Obj& start_, const Obj& end_, const std::string& morph_name_);
+      explicit MorphDef(const Obj& start_, const Obj& end_);
 
       Obj         start;
       Obj         end;
       std::string morph_name;
 
-      bool operator<(const MorphDef& morph_) const
-      {
-         return std::tie(start, end, morph_name) < std::tie(morph_.start, morph_.end, morph_.morph_name);
-      }
-
-      bool operator==(const MorphDef& morph_) const
-      {
-         return start == morph_.start && end == morph_.end && morph_name == morph_.morph_name;
-      }
+      bool operator<(const MorphDef& morph_) const;
+      bool operator==(const MorphDef& morph_) const;
    };
 
    using ObjSet      = std::set<Obj>;

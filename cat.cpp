@@ -1,6 +1,13 @@
 #include "cat.h"
 
+#include <fstream>
+#include <sstream>
+
 using namespace cat;
+
+// Keywords
+static const char* const sObj = "obj";
+static const char* const sCat = "cat";
 
 ELogMode g_log_mode { ELogMode::eConsole };
 
@@ -61,6 +68,41 @@ const std::string& Obj::GetName() const
    return m_name;
 }
 
+//-----------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------
+std::size_t ObjKeyHasher::operator()(const Obj& k_) const
+{
+ return std::hash<std::string>{}(k_.GetName());
+}
+
+//-----------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------
+MorphDef::MorphDef(const Obj& start_, const Obj& end_, const std::string& morph_name_) :
+   start       (start_)
+ , end         (end_)
+ , morph_name  (morph_name_)
+{};
+
+//-----------------------------------------------------------------------------------------
+MorphDef::MorphDef(const Obj& start_, const Obj& end_) :
+   start       (start_)
+ , end         (end_)
+ , morph_name  (start.GetName() + end.GetName())
+{};
+
+//-----------------------------------------------------------------------------------------
+bool MorphDef::operator<(const MorphDef& morph_) const
+{
+   return std::tie(start, end, morph_name) < std::tie(morph_.start, morph_.end, morph_.morph_name);
+}
+
+//-----------------------------------------------------------------------------------------
+bool MorphDef::operator==(const MorphDef& morph_) const
+{
+   return start == morph_.start && end == morph_.end && morph_name == morph_.morph_name;
+}
+
+//-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
 Cat::Cat(const std::string& name_) : m_name(name_) {};
 
