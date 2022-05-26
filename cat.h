@@ -130,11 +130,16 @@ namespace cat
       }
 
       /**
-       * @brief Delete morphism
+       * @brief Erase morphism
        * @param morph_name_ - morphism name
-       * @return Result of deleting morphism
+       * @return Result of erasure
        */
-      bool DelMorphism(const std::string& morph_name_);
+      bool EraseMorphism(const std::string& morph_name_);
+
+      /**
+       * @brief Erase all morphisms
+       */
+      void EraseMorphisms();
 
       /**
        * @brief Add object to category
@@ -157,11 +162,11 @@ namespace cat
       }
 
       /**
-       * @brief Delete object from category
-       * @param obj_ - object to delete
-       * @return Result of deleting object
+       * @brief Erase object from category
+       * @param obj_ - object to erase
+       * @return Result of erasure
        */
-      bool DelObject(const Obj& obj_);
+      bool EraseObject(const Obj& obj_);
 
       /**
        * @brief Return category name
@@ -240,4 +245,10 @@ namespace cat
     * @return Identity morphism name
     */
    CAT_EXPORT std::string id_morph_name(const Obj& obj_);
+
+   /**
+    * @brief Inverse category morphisms
+    * @param cat_ - category to inverse morphisms
+    */
+   CAT_EXPORT void inverse(Cat& cat_);
 }

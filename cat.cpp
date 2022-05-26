@@ -127,7 +127,7 @@ bool Cat::AddMorphism(const MorphDef& morph_)
 }
 
 //-----------------------------------------------------------------------------------------
-bool Cat::DelMorphism(const std::string& morph_name_)
+bool Cat::EraseMorphism(const std::string& morph_name_)
 {
    auto it = std::find_if(m_morphisms.begin(), m_morphisms.end(), [&](const MorphSet::value_type& elem_) {
       return elem_.morph_name == morph_name_;
@@ -154,6 +154,15 @@ bool Cat::DelMorphism(const std::string& morph_name_)
 }
 
 //-----------------------------------------------------------------------------------------
+void Cat::EraseMorphisms()
+{
+   m_morphisms.clear();
+
+   for (auto& [obj, objset] : m_objects)
+      objset.clear();
+}
+
+//-----------------------------------------------------------------------------------------
 bool Cat::AddObject(const Obj& obj_)
 {
    if (obj_.GetName().empty())
@@ -175,7 +184,7 @@ bool Cat::AddObject(const Obj& obj_)
 }
 
 //-----------------------------------------------------------------------------------------
-bool Cat::DelObject(const Obj& obj_)
+bool Cat::EraseObject(const Obj& obj_)
 {
    auto it = m_objects.find(obj_);
    if (it != m_objects.end())
@@ -552,4 +561,15 @@ void cat::solve_compositions(Cat& cat_)
 std::string cat::id_morph_name(const Obj& obj_)
 {
    return obj_.GetName() + obj_.GetName();
+}
+
+//-----------------------------------------------------------------------------------------
+void cat::inverse(Cat& cat_)
+{
+   MorphSet morphs = cat_.GetMorphisms();
+
+   cat_.EraseMorphisms();
+
+   for (const MorphDef& morph : morphs)
+      cat_.AddMorphism(morph.end, morph.start, morph.morph_name);
 }

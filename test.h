@@ -43,15 +43,15 @@ namespace cat
 
          cat.AddMorphism(MorphDef(a, b));
 
-         assert(cat.DelObject(a) == true);
+         assert(cat.EraseObject(a) == true);
 
          assert(cat.GetMorphisms().size() == 1);
 
-         assert(cat.DelObject(b) == true);
+         assert(cat.EraseObject(b) == true);
 
          assert(cat.GetMorphisms().size() == 0);
 
-         assert(cat.DelObject(c) == false);
+         assert(cat.EraseObject(c) == false);
 
          assert(cat.GetObjects().size() == 0);
       }
@@ -104,11 +104,11 @@ namespace cat
          // Deleting morphisms one at a time
          {
             auto prev_count = cat.GetMorphisms().size();
-            assert(cat.DelMorphism("f0") == true);
+            assert(cat.EraseMorphism("f0") == true);
             assert(cat.GetMorphisms().find(MorphDef(a, b, "f0")) == cat.GetMorphisms().end());
             assert(prev_count = cat.GetMorphisms().size() - 1);
 
-            assert(cat.DelMorphism("f1") == true);
+            assert(cat.EraseMorphism("f1") == true);
             assert(cat.GetMorphisms().find(MorphDef(a, c, "f1")) == cat.GetMorphisms().end());
             assert(prev_count = cat.GetMorphisms().size() - 2);
          }
@@ -117,7 +117,7 @@ namespace cat
          // before the object has been removed
          {
             auto prev_count = cat.GetMorphisms().size();
-            assert(cat.DelMorphism(id_morph_name(a)) == false);
+            assert(cat.EraseMorphism(id_morph_name(a)) == false);
             auto new_count = cat.GetMorphisms().size();
             assert(prev_count == new_count);
             assert(cat.GetMorphisms().find(MorphDef(a, a, id_morph_name(a))) != cat.GetMorphisms().end());
@@ -126,7 +126,7 @@ namespace cat
          // Non existent morphism can't be deleted
          {
             auto prev_count = cat.GetMorphisms().size();
-            assert(cat.DelMorphism("Fake") == false);
+            assert(cat.EraseMorphism("Fake") == false);
             auto new_count = cat.GetMorphisms().size();
             assert(prev_count == new_count);
          }
@@ -247,6 +247,31 @@ namespace cat
          seqs = solve_sequences(cat, e, a);
 
          assert(seqs.size() == 0);
+      }
+
+      //============================================================
+      // Testing of inversion
+      //============================================================
+      {
+         Cat cat("cat");
+
+         Obj a("a"), b("b"), c("c"), d("d");
+
+         cat.AddObjects(a, b, c, d);
+
+         cat.AddMorphism(a, b, "f0");
+         cat.AddMorphism(a, c, "f1");
+
+         cat.AddMorphism(b, d, "f2");
+         cat.AddMorphism(c, d, "f3");
+
+         inverse(cat);
+
+         assert(cat.GetMorphisms().find(MorphDef(b, a, "f0")) != cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(MorphDef(c, a, "f1")) != cat.GetMorphisms().end());
+
+         assert(cat.GetMorphisms().find(MorphDef(d, b, "f2")) != cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(MorphDef(d, c, "f3")) != cat.GetMorphisms().end());
       }
 
       print_info("End test");
