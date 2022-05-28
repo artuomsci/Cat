@@ -16,7 +16,7 @@ obj a, b, c, d
 
 ### Finding compositions of morphisms
 
-The goal is to find all possible compositions in the given category:
+The goal is to find all possible compositions in the given category
 
 ```haskell
 -- Category
@@ -40,7 +40,7 @@ Calling function *solve_compositions* gives us the following result:
 
 ### Finding sequences of intermediate objects between two given objects
 
-Let's find a set of objects/morphisms leading from one object to another.
+Let's find a set of objects/morphisms leading from one object to another
 
 ```haskell
 -- Category
@@ -95,4 +95,43 @@ We can get the opposite category by *inversion* :
 
 <p align="center">
 <img src="https://github.com/artuomsci/Cat/blob/main/imgs/7.png" width="256" height="256">
+</p>
+
+### Initial / Terminal objects
+
+Given the following category, find initial and terminal objects
+
+```haskell
+-- Category
+cat Demo
+
+-- Objects
+obj a0, a1, b, c, d
+
+-- Morphisms
+f0 :: a0 -> a1
+f1 :: a1 -> a0
+
+f2 :: a0 -> b
+f3 :: a0 -> c
+
+f4 :: a1 -> b
+f5 :: a1 -> c
+
+f6 :: b -> d
+f7 :: c -> d
+```
+
+<p align="center">
+<img src="https://github.com/artuomsci/Cat/blob/main/imgs/8.png" width="256" height="256">
+</p>
+
+For initial objects we call *initial* :
+<p align="center">
+<img src="https://github.com/artuomsci/Cat/blob/main/imgs/9.png" width="256" height="256">
+</p>
+
+And for terminal objects we call *terminal* :
+<p align="center">
+<img src="https://github.com/artuomsci/Cat/blob/main/imgs/10.png" width="256" height="256">
 </p>
