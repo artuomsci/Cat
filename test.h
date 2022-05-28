@@ -54,6 +54,13 @@ namespace cat
          assert(cat.EraseObject(c) == false);
 
          assert(cat.GetObjects().size() == 0);
+
+         cat.AddObjects(a, b);
+
+         cat.EraseObjects();
+
+         assert(cat.GetObjects().size() == 0);
+         assert(cat.GetMorphisms().size() == 0);
       }
 
       //============================================================
@@ -272,6 +279,53 @@ namespace cat
 
          assert(cat.GetMorphisms().find(MorphDef(d, b, "f2")) != cat.GetMorphisms().end());
          assert(cat.GetMorphisms().find(MorphDef(d, c, "f3")) != cat.GetMorphisms().end());
+      }
+
+      //============================================================
+      // Testing of initial/terminal objects
+      //============================================================
+      {
+         Cat cat("cat");
+
+         Obj a0("a0"), a1("a1"), b("b"), c("c"), d0("d0"), d1("d1");
+
+         cat.AddObjects(a0, a1, b, c, d0, d1);
+
+         cat.AddMorphisms(MorphDef(a0, a1), MorphDef(a1, a0));
+
+         cat.AddMorphism(MorphDef(a0, b));
+         cat.AddMorphism(MorphDef(a0, c));
+
+         cat.AddMorphism(MorphDef(a1, b));
+         cat.AddMorphism(MorphDef(a1, c));
+
+         cat.AddMorphism(MorphDef(b, d0));
+         cat.AddMorphism(MorphDef(c, d0));
+
+         cat.AddMorphism(MorphDef(b, d1));
+         cat.AddMorphism(MorphDef(c, d1));
+
+         cat.AddMorphisms(MorphDef(d0, d1), MorphDef(d1, d0));
+
+         solve_compositions(cat);
+
+         ObjVec initial_obj = initial(cat);
+         assert(initial_obj.size() == 2);
+         assert(initial_obj[0] == a1);
+         assert(initial_obj[1] == a0);
+
+         ObjVec terminal_obj = terminal(cat);
+         assert(terminal_obj.size() == 2);
+         assert(terminal_obj[0] == d1);
+         assert(terminal_obj[1] == d0);
+
+         cat.EraseObjects();
+
+         cat.AddObject(a0);
+         initial_obj = initial(cat);
+         terminal_obj = terminal(cat);
+         assert(initial_obj.size() == terminal_obj.size() == 1);
+         assert(initial_obj[0] == terminal_obj[0]);
       }
 
       print_info("End test");

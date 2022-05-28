@@ -143,6 +143,11 @@ namespace cat
       bool EraseObject(const Obj& obj_);
 
       /**
+       * @brief Erase all objects
+       */
+      void EraseObjects();
+
+      /**
        * @brief Return category name
        * @return Name of the category
        */
@@ -225,4 +230,20 @@ namespace cat
     * @param cat_ - category to inverse morphisms
     */
    CAT_EXPORT void inverse(Cat& cat_);
+
+   /**
+    * @brief Find initial objects. All morphism compositions
+    * must be resolved before calling this method i.e. call "solve_compositions" first
+    * @param cat_ - category to find initial objects in
+    * @return Initial objects
+    */
+   CAT_EXPORT ObjVec initial(Cat& cat_);
+
+   /**
+    * @brief Find terminal objects. All morphism compositions
+    * must be resolved before calling this method i.e. call "solve_compositions" first
+    * @param cat_ - category to find terminal objects in
+    * @return Terminal objects
+    */
+   CAT_EXPORT ObjVec terminal(Cat& cat_);
 }

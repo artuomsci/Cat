@@ -254,6 +254,13 @@ bool Cat::EraseObject(const Obj& obj_)
 }
 
 //-----------------------------------------------------------------------------------------
+void Cat::EraseObjects()
+{
+   m_objects   .clear();
+   m_morphisms .clear();
+}
+
+//-----------------------------------------------------------------------------------------
 const std::string& Cat::GetName() const
 {
    return m_name;
@@ -614,4 +621,45 @@ void cat::inverse(Cat& cat_)
 
    for (const MorphDef& morph : morphs)
       cat_.AddMorphism(morph.end, morph.start, morph.morph_name);
+}
+
+//-----------------------------------------------------------------------------------------
+ObjVec cat::initial(Cat& cat_)
+{
+   ObjVec ret;
+
+   const ObjUMap& objs = cat_.GetObjects();
+
+   for (const auto& [obj, objset] : objs)
+   {
+      if (objs.size() == objset.size())
+         ret.push_back(obj);
+   }
+
+   return ret;
+}
+
+//-----------------------------------------------------------------------------------------
+CAT_EXPORT ObjVec cat::terminal(Cat& cat_)
+{
+   ObjVec ret;
+
+   for (const auto& [obj, objset] : cat_.GetObjects())
+   {
+      bool is_terminal { true };
+
+      for (const auto& [obj_int, objset_int] : cat_.GetObjects())
+      {
+         if (std::find_if(objset_int.begin(), objset_int.end(), [&](const Obj& obj_){ return obj == obj_; }) == objset_int.end())
+         {
+            is_terminal = false;
+            break;
+         }
+      }
+
+      if (is_terminal)
+         ret.push_back(obj);
+   }
+
+   return ret;
 }
