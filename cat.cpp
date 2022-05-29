@@ -87,7 +87,7 @@ MorphDef::MorphDef(const Obj& start_, const Obj& end_, const std::string& morph_
 MorphDef::MorphDef(const Obj& start_, const Obj& end_) :
    start       (start_)
  , end         (end_)
- , morph_name  (start.GetName() + end.GetName())
+ , morph_name  (default_morph_name(start, end))
 {};
 
 //-----------------------------------------------------------------------------------------
@@ -388,7 +388,7 @@ bool cat::parse_source(const std::string& source_, std::vector<Cat>& cats_)
                         Obj start(mr_objects[i + 0]);
                         Obj end  (mr_objects[i + 1]);
 
-                        if (!cats_.back().AddMorphism(start, end, start.GetName() + end.GetName()))
+                        if (!cats_.back().AddMorphism(start, end, default_morph_name(start, end)))
                            return false;
                      }
                   }
@@ -613,6 +613,12 @@ std::string cat::id_morph_name(const Obj& obj_)
 }
 
 //-----------------------------------------------------------------------------------------
+std::string cat::default_morph_name(const Obj& start_, const Obj& end_)
+{
+   return start_.GetName() + end_.GetName();
+}
+
+//-----------------------------------------------------------------------------------------
 void cat::inverse(Cat& cat_)
 {
    MorphSet morphs = cat_.GetMorphisms();
@@ -620,7 +626,10 @@ void cat::inverse(Cat& cat_)
    cat_.EraseMorphisms();
 
    for (const MorphDef& morph : morphs)
-      cat_.AddMorphism(morph.end, morph.start, morph.morph_name);
+   {
+      std::string name = default_morph_name(morph.start, morph.end) == morph.morph_name ? default_morph_name(morph.end, morph.start) : morph.morph_name;
+      cat_.AddMorphism(morph.end, morph.start, name);
+   }
 }
 
 //-----------------------------------------------------------------------------------------

@@ -221,9 +221,17 @@ namespace cat
    /**
     * @brief Return identity morphism name
     * @param obj_ - object for identity morphism
-    * @return Identity morphism name
+    * @return Morphism name
     */
    CAT_EXPORT std::string id_morph_name(const Obj& obj_);
+
+   /**
+    * @brief Return default morphism name
+    * @param start_ - morphism start object
+    * @param end_ - morphism end object
+    * @return Morphism name
+    */
+   CAT_EXPORT std::string default_morph_name(const Obj& start_, const Obj& end_);
 
    /**
     * @brief Inverse category morphisms
