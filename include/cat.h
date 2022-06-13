@@ -181,6 +181,14 @@ namespace cat
    CAT_EXPORT bool parse_source(const std::string& source_, std::vector<Cat>& cats_);
 
    /**
+    * @brief Load source file
+    * @param path_ - path to source file
+    * @param cats_ - resulting categories
+    * @return Result of loading
+    */
+   CAT_EXPORT bool load_source(const std::string& path_, std::vector<Cat>& cats_);
+
+   /**
     * @brief Load text file into string
     * @param filename_ - path to file
     * @return String with contents of file

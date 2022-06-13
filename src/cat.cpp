@@ -415,6 +415,21 @@ bool cat::parse_source(const std::string& source_, std::vector<Cat>& cats_)
 }
 
 //-----------------------------------------------------------------------------------------
+bool cat::load_source(const std::string& path_, std::vector<Cat>& cats_)
+{
+   std::ifstream input(path_);
+   if (input.is_open())
+   {
+      std::stringstream descr;
+      descr << input.rdbuf();
+
+      return parse_source(descr.str(), cats_);
+   }
+
+   return false;
+}
+
+//-----------------------------------------------------------------------------------------
 ObjVec cat::solve_sequence(const Cat& cat_, const Obj& from_, const Obj& to_)
 {
    ObjVec ret;
