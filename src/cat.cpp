@@ -423,6 +423,8 @@ bool cat::load_source(const std::string& path_, std::vector<Cat>& cats_)
       std::stringstream descr;
       descr << input.rdbuf();
 
+      input.close();
+
       return parse_source(descr.str(), cats_);
    }
 
