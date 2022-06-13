@@ -7,7 +7,7 @@ namespace cat
    /**
     * @brief Export data to Cytoscape
     * @param cat_ - export category
-    * @param path_ - export path
+    * @param path_ - export folder path
     * @param skip_identity_ - flag to skip identity morphisms
     * @param show_morphisms_ - flag to show morphisms as objects
     */

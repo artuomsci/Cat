@@ -10,7 +10,7 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, bool skip_
          <html>
 
            <head>
-             <title>Graph</title>
+             <title>$(title)</title>
              <script src="cytoscape.min.js"></script>
 
              <style>
@@ -29,7 +29,7 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, bool skip_
            <body>
              <div id="cy"></div>
              <script>
-                     let data = {};
+                     let data = {$(data)};
                      var cy = cytoscape({
                          container: document.getElementById('cy'),
                          elements: data,
@@ -141,11 +141,14 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, bool skip_
    std::string data = "nodes: [" + nodes + "]" + "," + "edges: [" + edges + "]";
 
    // filling template
-   auto ind = srctemplate.find("{}");
-   srctemplate.insert(ind + 1, data);
+   auto ind = srctemplate.find("$(title)");
+   srctemplate.replace(ind, std::string("$(title)").length(), cat_.GetName());
+
+   ind = srctemplate.find("$(data)");
+   srctemplate.replace(ind, std::string("$(data)").length(), data);
 
    // file dumping
-   std::ofstream file(path_ + "/index.html", std::ofstream::out);
+   std::ofstream file(path_ + "/" + cat_.GetName() +  ".html", std::ofstream::out);
    if (file.is_open())
    {
       file << srctemplate;
