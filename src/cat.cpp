@@ -3,6 +3,8 @@
 #include <fstream>
 #include <sstream>
 
+#include "str_utils.h"
+
 using namespace cat;
 
 // Keywords

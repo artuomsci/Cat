@@ -8,7 +8,8 @@
 #include <algorithm>
 
 #include "cat_export.h"
-#include "str_utils.h"
+
+#include "types.h"
 
 namespace cat
 {

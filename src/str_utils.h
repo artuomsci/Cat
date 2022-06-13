@@ -5,11 +5,10 @@
 
 #include "cat_export.h"
 
+#include "types.h"
+
 namespace cat
 {
-   using StringPair  = std::pair<std::string, std::string>;
-   using StringVec   = std::vector<std::string>;
-
    /**
     * @brief Remove specified symbol from string
     * @param string_ - string to remove symbol from
