@@ -24,6 +24,7 @@ namespace cat
    CAT_EXPORT void print_error(const std::string& msg_);
    CAT_EXPORT void print_info(const std::string& msg_);
 
+   // Object class
    class CAT_EXPORT Obj
    {
    public:
@@ -42,7 +43,7 @@ namespace cat
       const std::string& GetName() const;
 
    private:
-      const std::string m_name;
+      std::string m_name;
    };
 
    struct CAT_EXPORT ObjKeyHasher
@@ -52,11 +53,11 @@ namespace cat
 
    struct CAT_EXPORT MorphDef
    {
-      explicit MorphDef(const Obj& start_, const Obj& end_, const std::string& morph_name_);
-      explicit MorphDef(const Obj& start_, const Obj& end_);
+      explicit MorphDef(const Obj& source_, const Obj& target_, const std::string& morph_name_);
+      explicit MorphDef(const Obj& source_, const Obj& target_);
 
-      Obj         start;
-      Obj         end;
+      Obj         source;
+      Obj         target;
       std::string morph_name;
 
       bool operator<(const MorphDef& morph_) const;
@@ -69,20 +70,25 @@ namespace cat
    using MorphSet    = std::set<MorphDef>;
    using ObjVec      = std::vector<Obj>;
 
+   // Category class
    class CAT_EXPORT Cat
    {
    public:
 
-      explicit Cat(const std::string& name_);
+      using CatName = std::string;
+
+      explicit Cat(const CatName& name_);
+
+      bool operator < (const Cat& cat_) const;
 
       /**
        * @brief Add morphism to the category
-       * @param start_ - start object
-       * @param end_ - end object
+       * @param source_ - source object
+       * @param target_ - target object
        * @param morph_name_ - morphism name
        * @return Result of adding morphism
        */
-      bool AddMorphism(const Obj& start_, const Obj& end_, const std::string& morph_name_);
+      bool AddMorphism(const Obj& source_, const Obj& target_, const std::string& morph_name_);
 
       /**
        * @brief Add morphism to the category
@@ -96,8 +102,6 @@ namespace cat
        * @param morph_ morphism to add
        * @return Result of adding morphism
        */
-      bool AddMorphisms() { return true; }
-
       template <typename T, typename... TArgs>
       bool AddMorphisms(const T& morph_, const TArgs&... args_)
       {
@@ -128,8 +132,6 @@ namespace cat
        * @param obj_ - object to add
        * @return Result of adding object
        */
-      bool AddObjects() { return true; }
-
       template <typename T, typename... TArgs>
       bool AddObjects(const T& obj_, const TArgs&... objs_)
       {
@@ -152,7 +154,7 @@ namespace cat
        * @brief Return category name
        * @return Name of the category
        */
-      const std::string& GetName() const;
+      const CatName& GetName() const;
 
       /**
        * @brief Return category morphisms
@@ -167,31 +169,70 @@ namespace cat
       const ObjUMap& GetObjects() const;
 
    private:
-      const std::string m_name;
-      ObjUMap           m_objects;
-      MorphSet          m_morphisms;
+      // terminal condition
+      bool AddMorphisms() { return true; }
+      // terminal condition
+      bool AddObjects() { return true; }
+
+      CatName     m_name;
+      ObjUMap     m_objects;
+      MorphSet    m_morphisms;
+   };
+
+   // Functor class
+   struct CAT_EXPORT Func
+   {
+      using FuncName = std::string;
+
+      explicit Func(const Cat::CatName& source_, const Cat::CatName& target_, const FuncName& name_) :
+            source   (source_)
+         ,  target   (target_)
+         ,  name     (name_)
+      {}
+
+      Cat::CatName   source;
+      Cat::CatName   target;
+      FuncName       name;
+      MorphSet       morphisms;
+
+      bool operator < (const Func& func_) const;
+   };
+
+   // Category of categories
+   class CAT_EXPORT CACat
+   {
+   public:
+
+      void AddCategory(const Cat& cat_);
+      void AddFunctor(const Func& func_);
+      const std::set<Cat>& Categories() const;
+      const std::set<Func>& Functors() const;
+
+   private:
+      std::set<Cat>  m_cats;
+      std::set<Func> m_funcs;
    };
 
    /**
     * @brief Parse the contents of string
     * @param source_ - string to parse
-    * @param cats_ - resulting categories
-    * @return Parsing result
+    * @param ccat_ - category of categories
+    * @return True if string was successfully parsed
     */
-   CAT_EXPORT bool parse_source(const std::string& source_, std::vector<Cat>& cats_);
+   CAT_EXPORT bool parse_source(const std::string& source_, CACat& ccat_);
 
    /**
     * @brief Load source file
     * @param path_ - path to source file
-    * @param cats_ - resulting categories
-    * @return Result of loading
+    * @param ccat_ - category of categories
+    * @return True if file was successfully loaded
     */
-   CAT_EXPORT bool load_source(const std::string& path_, std::vector<Cat>& cats_);
+   CAT_EXPORT bool load_source(const std::string& path_, CACat& ccat_);
 
    /**
     * @brief Load text file into string
     * @param filename_ - path to file
-    * @return String with contents of file
+    * @return String with contents of the file
     */
    CAT_EXPORT std::optional<std::string> get_description(const std::string& filename_);
 
@@ -236,11 +277,19 @@ namespace cat
 
    /**
     * @brief Return default morphism name
-    * @param start_ - morphism start object
-    * @param end_ - morphism end object
+    * @param source_ - morphism source object
+    * @param target_ - morphism target object
     * @return Morphism name
     */
-   CAT_EXPORT std::string default_morph_name(const Obj& start_, const Obj& end_);
+   CAT_EXPORT std::string default_morph_name(const Obj& source_, const Obj& target_);
+
+   /**
+    * @brief Return default functor name
+    * @param source_ - functor source
+    * @param target_ - functor target
+    * @return Functor name
+    */
+   CAT_EXPORT Func::FuncName default_functor_name(const Cat::CatName& source_, const Cat::CatName& target_);
 
    /**
     * @brief Inverse category morphisms

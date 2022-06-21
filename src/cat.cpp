@@ -8,8 +8,12 @@
 using namespace cat;
 
 // Keywords
-static const char* const sObj = "obj";
+// Category
 static const char* const sCat = "cat";
+// Object
+static const char* const sObj = "obj";
+// Any
+static const char* const sAny = "*";
 
 ELogMode g_log_mode { ELogMode::eConsole };
 
@@ -79,62 +83,68 @@ std::size_t ObjKeyHasher::operator()(const Obj& k_) const
 
 //-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
-MorphDef::MorphDef(const Obj& start_, const Obj& end_, const std::string& morph_name_) :
-   start       (start_)
- , end         (end_)
+MorphDef::MorphDef(const Obj& source_, const Obj& target_, const std::string& morph_name_) :
+   source      (source_)
+ , target      (target_)
  , morph_name  (morph_name_)
 {};
 
 //-----------------------------------------------------------------------------------------
-MorphDef::MorphDef(const Obj& start_, const Obj& end_) :
-   start       (start_)
- , end         (end_)
- , morph_name  (default_morph_name(start, end))
+MorphDef::MorphDef(const Obj& source_, const Obj& target_) :
+   source      (source_)
+ , target      (target_)
+ , morph_name  (default_morph_name(source_, target_))
 {};
 
 //-----------------------------------------------------------------------------------------
 bool MorphDef::operator<(const MorphDef& morph_) const
 {
-   return std::tie(start, end, morph_name) < std::tie(morph_.start, morph_.end, morph_.morph_name);
+   return std::tie(source, target, morph_name) < std::tie(morph_.source, morph_.target, morph_.morph_name);
 }
 
 //-----------------------------------------------------------------------------------------
 bool MorphDef::operator==(const MorphDef& morph_) const
 {
-   return start == morph_.start && end == morph_.end && morph_name == morph_.morph_name;
+   return source == morph_.source && target == morph_.target && morph_name == morph_.morph_name;
 }
 
 //-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
-Cat::Cat(const std::string& name_) : m_name(name_) {};
+Cat::Cat(const CatName& name_) : m_name(name_) {};
 
 //-----------------------------------------------------------------------------------------
-bool Cat::AddMorphism(const Obj& start_, const Obj& end_, const std::string& morph_name_)
+bool Cat::operator < (const Cat& cat_) const
 {
-   if (m_objects.find(start_) == m_objects.end())
+   return m_name < cat_.m_name;
+}
+
+//-----------------------------------------------------------------------------------------
+bool Cat::AddMorphism(const Obj& source_, const Obj& target_, const std::string& morph_name_)
+{
+   if (m_objects.find(source_) == m_objects.end())
    {
-      print_error("No such object: " + start_.GetName());
+      print_error("No such object: " + source_.GetName());
       return false;
    }
 
-   if (m_objects.find(end_) == m_objects.end())
+   if (m_objects.find(target_) == m_objects.end())
    {
-      print_error("No such object: " + end_.GetName());
+      print_error("No such object: " + target_.GetName());
       return false;
    }
 
-   for (auto & [obj_start, obj_end, morph_name_value] : m_morphisms)
+   for (auto & [obj_source, obj_target, morph_name_value] : m_morphisms)
    {
-      if (morph_name_ == morph_name_value && (obj_start != start_ || obj_end != end_))
+      if (morph_name_ == morph_name_value && (obj_source != source_ || obj_target != target_))
       {
          print_error("Morphism redefinition: " + morph_name_);
          return false;
       }
    }
 
-   m_objects[start_].insert(end_);
+   m_objects[source_].insert(target_);
 
-   m_morphisms.insert(MorphDef(start_, end_, morph_name_));
+   m_morphisms.insert(MorphDef(source_, target_, morph_name_));
 
    return true;
 }
@@ -142,28 +152,28 @@ bool Cat::AddMorphism(const Obj& start_, const Obj& end_, const std::string& mor
 //-----------------------------------------------------------------------------------------
 bool Cat::AddMorphism(const MorphDef& morph_)
 {
-   if (m_objects.find(morph_.start) == m_objects.end())
+   if (m_objects.find(morph_.source) == m_objects.end())
    {
-      print_error("No such object: " + morph_.start.GetName());
+      print_error("No such object: " + morph_.source.GetName());
       return false;
    }
 
-   if (m_objects.find(morph_.end) == m_objects.end())
+   if (m_objects.find(morph_.target) == m_objects.end())
    {
-      print_error("No such object: " + morph_.end.GetName());
+      print_error("No such object: " + morph_.target.GetName());
       return false;
    }
 
-   for (auto & [obj_start, obj_end, morph_name_value] : m_morphisms)
+   for (auto & [obj_source, obj_target, morph_name_value] : m_morphisms)
    {
-      if (morph_.morph_name == morph_name_value && (obj_start != morph_.start || obj_end != morph_.end))
+      if (morph_.morph_name == morph_name_value && (obj_source != morph_.source || obj_target != morph_.target))
       {
          print_error("Morphism redefinition: " + morph_.morph_name);
          return false;
       }
    }
 
-   m_objects[morph_.start].insert(morph_.end);
+   m_objects[morph_.source].insert(morph_.target);
 
    m_morphisms.insert(morph_);
 
@@ -180,14 +190,14 @@ bool Cat::EraseMorphism(const std::string& morph_name_)
    if (it == m_morphisms.end())
       return false;
 
-   bool isIdentity = (*it).start == (*it).end;
+   bool isIdentity = (*it).source == (*it).target;
 
    if (!isIdentity)
       m_morphisms.erase(it);
    else
    {
       // removing identity morphism for missing object only
-      bool isObjectPresent = m_objects.find((*it).start) != m_objects.end();
+      bool isObjectPresent = m_objects.find((*it).source) != m_objects.end();
       if (!isObjectPresent)
          m_morphisms.erase(it);
       else
@@ -239,7 +249,7 @@ bool Cat::EraseObject(const Obj& obj_)
 
       for (MorphSet::iterator it = m_morphisms.begin(); it != m_morphisms.end(); ++it)
       {
-         if (((*it).start == obj_) || ((*it).end == obj_))
+         if (((*it).source == obj_) || ((*it).target == obj_))
             morphs.push_back(it);
       }
 
@@ -263,7 +273,7 @@ void Cat::EraseObjects()
 }
 
 //-----------------------------------------------------------------------------------------
-const std::string& Cat::GetName() const
+const Cat::CatName& Cat::GetName() const
 {
    return m_name;
 }
@@ -293,6 +303,12 @@ static bool is_morphism(const std::string& string_)
 }
 
 //-----------------------------------------------------------------------------------------
+static bool is_functor(const std::string& string_)
+{
+   return (string_.find("::") != -1) && (string_.find("=>") != -1);
+}
+
+//-----------------------------------------------------------------------------------------
 static std::optional<StringPair> get_morphism_sections(const std::string& string_)
 {
    StringVec subsections = split(remove(string_, ' '), "::");
@@ -300,10 +316,366 @@ static std::optional<StringPair> get_morphism_sections(const std::string& string
 }
 
 //-----------------------------------------------------------------------------------------
-static std::optional<StringVec> get_morphism_objects(const std::string& string_)
+static std::optional<StringVec> get_morphism_objects(const StringPair& pair_)
 {
-   StringVec ret = split(string_, "->", false);
+   StringVec ret = split(pair_.second, "->", false);
    return ret.size() < 2 ? std::optional<StringVec>() : ret;
+}
+
+//-----------------------------------------------------------------------------------------
+static std::optional<StringPair> get_functor_sections(const std::string& string_)
+{
+   StringVec subsections = split(remove(string_, ' '), "::");
+   return subsections.size() == 2 ? StringPair(subsections[0], subsections[1]) : std::optional<StringPair>();
+}
+
+//-----------------------------------------------------------------------------------------
+static std::optional<StringVec> get_functor_categories(const StringPair& pair_)
+{
+   StringVec ret = split(pair_.second, "=>", false);
+   return ret.size() < 2 ? std::optional<StringVec>() : ret;
+}
+
+//-----------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------
+bool Func::operator < (const Func& func_) const
+{
+   return std::tuple(source, target) < std::tuple(func_.source, func_.target);
+}
+
+//-----------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------
+void CACat::AddCategory(const Cat& cat_)
+{
+   m_cats.insert(cat_);
+}
+
+//-----------------------------------------------------------------------------------------
+void CACat::AddFunctor(const Func& func_)
+{
+   m_funcs.insert(func_);
+}
+
+//-----------------------------------------------------------------------------------------
+const std::set<Cat>& CACat::Categories() const
+{
+   return m_cats;
+}
+
+//-----------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------
+const std::set<Func>& CACat::Functors() const
+{
+   return m_funcs;
+}
+
+//-----------------------------------------------------------------------------------------
+static bool fill_functor_morphisms(Func& func_, const std::set<Cat>& cats_)
+{
+   auto itSourceCat = cats_.find(Cat(func_.source));
+   auto itTargetCat = cats_.find(Cat(func_.target));
+
+   if (itSourceCat != cats_.end() && itTargetCat != cats_.end())
+   {
+      const Cat& source_cat = *itSourceCat;
+      const Cat& target_cat = *itTargetCat;
+
+      for (const auto & [obj, _] : source_cat.GetObjects())
+      {
+         if (target_cat.GetObjects().find(obj) == target_cat.GetObjects().end())
+         {
+            print_error("No such object '" + obj.GetName() + "' in target category '" + target_cat.GetName() + "'");
+            return false;
+         }
+
+         func_.morphisms.insert(MorphDef(obj, obj));
+      }
+   }
+
+   return true;
+}
+
+//-----------------------------------------------------------------------------------------
+bool cat::parse_source(const std::string& source_, CACat& ccat_)
+{
+   enum class ECurrentEntity
+   {
+         eCategory
+      ,  eFunctor
+      ,  eNone
+   };
+
+   ECurrentEntity process_entity { ECurrentEntity::eNone };
+
+   ObjUMap objMap;
+
+   std::optional<Cat> crt_cat;
+   std::optional<Func> crt_func;
+
+   auto lines = split(source_, '\n');
+   for (const std::string& line : lines)
+   {
+      if (line.empty())
+         continue;
+
+      auto sections = split(line, ' ', false);
+      if (sections.size() < 2)
+      {
+         print_error("Invalid record: " + line);
+         return false;
+      }
+
+      const std::string& col0 = remove(sections[0], ' ');
+      const std::string& col1 = remove(sections[1], ' ');
+
+      // Comment
+      if (is_comment(col0))
+      {
+         continue;
+      }
+      // Category
+      else if (col0 == sCat)
+      {
+         if (crt_cat)
+            ccat_.AddCategory(crt_cat.value());
+         crt_cat.reset();
+
+         crt_cat.emplace(Cat(col1));
+
+         if (crt_func)
+         {
+            if (!fill_functor_morphisms(crt_func.value(), ccat_.Categories()))
+               return false;
+
+            ccat_.AddFunctor(crt_func.value());
+
+            crt_func.reset();
+         }
+
+         process_entity = ECurrentEntity::eCategory;
+      }
+      // Object
+      else if (process_entity == ECurrentEntity::eCategory && col0 == sObj)
+      {
+         if (crt_cat)
+         {
+            for (int i = 1; i < (int)sections.size(); ++i)
+            {
+               StringVec arr_objs = split(remove(sections[i], ' '), ',', false);
+
+               for (auto& itObjName : arr_objs)
+               {
+                  if (!crt_cat.value().AddObject(Obj(itObjName)))
+                  {
+                     print_error("Failure to add object: " + itObjName);
+                     return false;
+                  }
+               }
+            }
+         }
+         else
+         {
+            print_error("No category to add object: " + col1);
+            return false;
+         }
+      }
+      // Morphism
+      else if (process_entity == ECurrentEntity::eCategory && is_morphism(line))
+      {
+         if (crt_cat)
+         {
+            if (auto subsections_opt = get_morphism_sections(line))
+            {
+               StringPair& subsections = subsections_opt.value();
+
+               if (auto mr_objects_opt = get_morphism_objects(subsections))
+               {
+                  StringVec& mr_objects = mr_objects_opt.value();
+
+                  Obj source(mr_objects.front());
+                  Obj target(mr_objects.back ());
+
+                  std::string name = subsections.first == sAny ? default_morph_name(source, target) : subsections.first;
+                  if (!crt_cat.value().AddMorphism(Obj(source), Obj(target), name))
+                     return false;
+
+                  // In case of a chain of morphisms
+                  if (mr_objects.size() > 2)
+                  {
+                     for (int i = 0; i < mr_objects.size() - 1; ++i)
+                     {
+                        Obj source(mr_objects[i + 0]);
+                        Obj target(mr_objects[i + 1]);
+
+                        if (!crt_cat.value().AddMorphism(source, target, default_morph_name(source, target)))
+                           return false;
+                     }
+                  }
+               }
+               else
+               {
+                  print_error("Error in morphism definition: " + line);
+                  return false;
+               }
+            }
+            else
+            {
+               print_error("Error in morphism definition: " + line);
+               return false;
+            }
+         }
+         else
+         {
+            print_error("No category to add morphism: " + line);
+            return false;
+         }
+      }
+      // Functor
+      else if (is_functor(line))
+      {
+         process_entity = ECurrentEntity::eFunctor;
+
+         if (crt_cat)
+            ccat_.AddCategory(crt_cat.value());
+         crt_cat.reset();
+
+         if (auto subsections_opt = get_functor_sections(line))
+         {
+            StringPair& subsections = subsections_opt.value();
+
+            if (auto func_categories_opt = get_functor_categories(subsections))
+            {
+               StringVec& func_categories = func_categories_opt.value();
+               if (func_categories.size() > 2)
+               {
+                  print_error("Functor definition can only have two end points: " + line);
+                  return false;
+               }
+
+               Cat::CatName& source = func_categories.front();
+               Cat::CatName& target = func_categories.back ();
+
+               if (ccat_.Categories().find(Cat(source)) == ccat_.Categories().end())
+               {
+                  print_error("No such source category: " + source);
+                  return false;
+               }
+
+               if (ccat_.Categories().find(Cat(target)) == ccat_.Categories().end())
+               {
+                  print_error("No such target category: " + target);
+                  return false;
+               }
+
+               if (crt_func)
+               {
+                  if (!fill_functor_morphisms(crt_func.value(), ccat_.Categories()))
+                     return false;
+
+                  ccat_.AddFunctor(crt_func.value());
+
+                  crt_func.reset();
+               }
+
+               std::string name = subsections.first == sAny ? default_functor_name(source, target) : subsections.first;
+               crt_func.emplace(Func(source, target, name));
+            }
+            else
+            {
+               print_error("Error in functor definition: " + line);
+               return false;
+            }
+         }
+         else
+         {
+            print_error("Error in functor definition: " + line);
+            return false;
+         }
+      }
+      // Functor morphism
+      else if (process_entity == ECurrentEntity::eFunctor && is_morphism(line))
+      {
+         if (auto subsections_opt = get_morphism_sections(line))
+         {
+            StringPair& subsections = subsections_opt.value();
+
+            if (auto mr_objects_opt = get_morphism_objects(subsections))
+            {
+               StringVec& mr_objects = mr_objects_opt.value();
+               if (mr_objects.size() > 2)
+               {
+                  print_error("Functor morphism definition can only have two end points: " + line);
+                  return false;
+               }
+
+               Obj source(mr_objects.front());
+               Obj target(mr_objects.back ());
+
+               if (target.GetName() == sAny)
+               {
+                  auto it = ccat_.Categories().find(Cat(crt_func.value().target));
+                  if (it != ccat_.Categories().end())
+                  {
+                     const Cat& cat = *it;
+
+                  }
+                  else
+                  {
+                     print_error("No such target category: " + crt_func.value().target);
+                     return false;
+                  }
+               }
+
+               std::string name = subsections.first == sAny ? default_morph_name(source, target) : subsections.first;
+               crt_func.value().morphisms.insert(MorphDef(source, target, name));
+            }
+            else
+            {
+               print_error("Error in morphism definition: " + line);
+               return false;
+            }
+         }
+         else
+         {
+            print_error("Error in morphism definition: " + line);
+            return false;
+         }
+      }
+   }
+
+   if (crt_cat)
+      ccat_.AddCategory(crt_cat.value());
+   crt_cat.reset();
+
+   if (crt_func)
+   {
+      if (!fill_functor_morphisms(crt_func.value(), ccat_.Categories()))
+         return false;
+
+      ccat_.AddFunctor(crt_func.value());
+
+      crt_func.reset();
+   }
+
+
+   return true;
+}
+
+//-----------------------------------------------------------------------------------------
+bool cat::load_source(const std::string& path_, CACat& ccat_)
+{
+   std::ifstream input(path_);
+   if (input.is_open())
+   {
+      std::stringstream descr;
+      descr << input.rdbuf();
+
+      input.close();
+
+      return parse_source(descr.str(), ccat_);
+   }
+
+   return false;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -321,114 +693,6 @@ std::optional<std::string> cat::get_description(const std::string& filename_)
    }
 
    return std::optional<std::string>();
-}
-
-//-----------------------------------------------------------------------------------------
-bool cat::parse_source(const std::string& source_, std::vector<Cat>& cats_)
-{
-   ObjUMap objMap;
-
-   auto lines = split(source_, '\n');
-   for (const std::string& line : lines)
-   {
-      auto sections = split(line, ' ', false);
-      if (sections.size() < 2)
-         continue;
-
-      const std::string& col0 = remove(sections[0], ' ');
-      const std::string& col1 = remove(sections[1], ' ');
-
-      // Comment
-      if (is_comment(col0))
-      {
-      }
-      // Category
-      else if (col0 == sCat)
-      {
-         cats_.push_back(Cat(col1));
-      }
-      // Object
-      else if (col0 == sObj)
-      {
-         if (!cats_.empty())
-         {
-            for (int i = 1; i < (int)sections.size(); ++i)
-            {
-               StringVec arr_objs = split(remove(sections[i], ' '), ',', false);
-
-               for (auto& itObjName : arr_objs)
-                  cats_.back().AddObject(Obj(itObjName));
-            }
-         }
-         else
-         {
-            print_error("No category to add object: " + col1);
-            return false;
-         }
-      }
-      // Morphism
-      else if (is_morphism(line))
-      {
-         if (!cats_.empty())
-         {
-            auto subsections_opt = get_morphism_sections(line);
-            if (subsections_opt)
-            {
-               StringPair& subsections = subsections_opt.value();
-
-               if (auto mr_objects_opt = get_morphism_objects(subsections.second))
-               {
-                  StringVec& mr_objects = mr_objects_opt.value();
-
-                  if (!cats_.back().AddMorphism(Obj(mr_objects.front()), Obj(mr_objects.back()), subsections.first))
-                     return false;
-
-                  if (mr_objects.size() > 2)
-                  {
-                     for (int i = 0; i < mr_objects.size() - 1; ++i)
-                     {
-                        Obj start(mr_objects[i + 0]);
-                        Obj end  (mr_objects[i + 1]);
-
-                        if (!cats_.back().AddMorphism(start, end, default_morph_name(start, end)))
-                           return false;
-                     }
-                  }
-               }
-            }
-            else
-            {
-               print_error("Error in morphism definition: " + line);
-               return false;
-            }
-
-         }
-         else
-         {
-            print_error("No category to add morphism: " + line);
-            return false;
-         }
-      }
-   }
-
-   return true;
-}
-
-//-----------------------------------------------------------------------------------------
-bool cat::load_source(const std::string& path_, std::vector<Cat>& cats_)
-{
-   std::ifstream input(path_);
-   if (input.is_open())
-   {
-      std::stringstream descr;
-      descr << input.rdbuf();
-
-      input.close();
-
-      return parse_source(descr.str(), cats_);
-   }
-
-   return false;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -575,7 +839,7 @@ std::vector<MorphDef> cat::map_obj2morphism(const ObjVec& objs_, const Cat& cat_
    {
       auto it = std::find_if(morphisms.begin(), morphisms.end(), [&](const MorphSet::value_type& elem_)
       {
-         return objs_[i + 0] == elem_.start && objs_[i + 1] == elem_.end;
+         return objs_[i + 0] == elem_.source && objs_[i + 1] == elem_.target;
       });
 
       ret.push_back(it != morphisms.end() ? *it : MorphDef(Obj(""), Obj("")));
@@ -628,13 +892,19 @@ void cat::solve_compositions(Cat& cat_)
 //-----------------------------------------------------------------------------------------
 std::string cat::id_morph_name(const Obj& obj_)
 {
-   return obj_.GetName() + obj_.GetName();
+   return default_morph_name(obj_, obj_);
 }
 
 //-----------------------------------------------------------------------------------------
-std::string cat::default_morph_name(const Obj& start_, const Obj& end_)
+std::string cat::default_morph_name(const Obj& source_, const Obj& target_)
 {
-   return start_.GetName() + end_.GetName();
+   return source_.GetName() + "-" + target_.GetName();
+}
+
+//-----------------------------------------------------------------------------------------
+Func::FuncName cat::default_functor_name(const Cat::CatName& source_, const Cat::CatName& target_)
+{
+   return source_ + "-" + target_;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -646,8 +916,8 @@ void cat::inverse(Cat& cat_)
 
    for (const MorphDef& morph : morphs)
    {
-      std::string name = default_morph_name(morph.start, morph.end) == morph.morph_name ? default_morph_name(morph.end, morph.start) : morph.morph_name;
-      cat_.AddMorphism(morph.end, morph.start, name);
+      std::string name = default_morph_name(morph.source, morph.target) == morph.morph_name ? default_morph_name(morph.target, morph.source) : morph.morph_name;
+      cat_.AddMorphism(morph.target, morph.source, name);
    }
 }
 

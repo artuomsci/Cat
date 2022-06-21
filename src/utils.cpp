@@ -8,7 +8,7 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, bool skip_
 {
    std::string srctemplate = R"(<!DOCTYPE>
          <html>
-
+           <meta charset="UTF-8">
            <head>
              <title>$(title)</title>
              <script src="cytoscape.min.js"></script>
@@ -85,7 +85,7 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, bool skip_
    {
       for (const MorphDef& mrph : cat_.GetMorphisms())
       {
-         if (skip_identity_ && mrph.start == mrph.end)
+         if (skip_identity_ && mrph.source == mrph.target)
             continue;
 
          // nodes
@@ -121,17 +121,17 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, bool skip_
    {
       for (const MorphDef& mrph : cat_.GetMorphisms())
       {
-         if (skip_identity_ & mrph.start == mrph.end)
+         if (skip_identity_ & mrph.source == mrph.target)
             continue;
 
          // edges
          char buffere[256];
 
-         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", mrph.start.GetName().c_str(), mrph.morph_name.c_str());
+         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", mrph.source.GetName().c_str(), mrph.morph_name.c_str());
 
          edges += (edges.empty() ? "" : ",") +  std::string(buffere) + "\n";
 
-         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", mrph.morph_name.c_str(), mrph.end.GetName().c_str());
+         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", mrph.morph_name.c_str(), mrph.target.GetName().c_str());
 
          edges += (edges.empty() ? "" : ",") +  std::string(buffere) + "\n";
       }
