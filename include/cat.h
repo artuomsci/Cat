@@ -168,6 +168,14 @@ namespace cat
        */
       const ObjUMap& GetObjects() const;
 
+      /**
+      * @brief Checking for morphism
+      * @param source_ - source object
+      * @param target_ - target object
+      * @return True if morphism exists
+      */
+      bool MatchMorphism(const Obj& source_, const Obj& target_) const;
+
    private:
       // terminal condition
       bool AddMorphisms() { return true; }
@@ -207,9 +215,11 @@ namespace cat
       void AddFunctor(const Func& func_);
       const std::set<Cat>& Categories() const;
       const std::set<Func>& Functors() const;
+      std::optional<Obj> MapObject(const Func& func_, const Obj& obj_) const;
+      bool Validate(Func& func_) const;
 
    private:
-      std::set<Cat>  m_cats;
+      std::set<Cat> m_cats;
       std::set<Func> m_funcs;
    };
 

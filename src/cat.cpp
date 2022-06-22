@@ -291,6 +291,18 @@ const ObjUMap& Cat::GetObjects() const
 }
 
 //-----------------------------------------------------------------------------------------
+bool Cat::MatchMorphism(const Obj& source_, const Obj& target_) const
+{
+   auto it = m_objects.find(source_);
+   if (it == m_objects.end())
+      return false;
+
+   const auto& [_, codomain] = *it;
+
+   return codomain.find(target_) != codomain.end();
+}
+
+//-----------------------------------------------------------------------------------------
 static bool is_comment(const std::string& string_)
 {
    return string_.find("--") == 0;
@@ -311,7 +323,7 @@ static bool is_functor(const std::string& string_)
 //-----------------------------------------------------------------------------------------
 static std::optional<StringPair> get_morphism_sections(const std::string& string_)
 {
-   StringVec subsections = split(remove(string_, ' '), "::");
+   StringVec subsections = split(remove(remove(string_, ' '), '\t'), "::");
    return subsections.size() == 2 ? StringPair(subsections[0], subsections[1]) : std::optional<StringPair>();
 }
 
@@ -325,7 +337,7 @@ static std::optional<StringVec> get_morphism_objects(const StringPair& pair_)
 //-----------------------------------------------------------------------------------------
 static std::optional<StringPair> get_functor_sections(const std::string& string_)
 {
-   StringVec subsections = split(remove(string_, ' '), "::");
+   StringVec subsections = split(remove(remove(string_, ' '), '\t'), "::");
    return subsections.size() == 2 ? StringPair(subsections[0], subsections[1]) : std::optional<StringPair>();
 }
 
@@ -370,17 +382,64 @@ const std::set<Func>& CACat::Functors() const
 }
 
 //-----------------------------------------------------------------------------------------
-static bool fill_functor_morphisms(Func& func_, const std::set<Cat>& cats_)
+std::optional<Obj> CACat::MapObject(const Func& func_, const Obj& obj_) const
 {
-   auto itSourceCat = cats_.find(Cat(func_.source));
-   auto itTargetCat = cats_.find(Cat(func_.target));
+   for (const MorphDef& morph : func_.morphisms)
+   {
+      if (morph.source == obj_)
+      {
+         return std::optional<Obj>(morph.target);
+      }
+   }
 
-   if (itSourceCat != cats_.end() && itTargetCat != cats_.end())
+   return std::optional<Obj>();
+}
+
+//-----------------------------------------------------------------------------------------
+bool CACat::Validate(Func& func_) const
+{
+   auto itSourceCat = m_cats.find(Cat(func_.source));
+   auto itTargetCat = m_cats.find(Cat(func_.target));
+
+   if (itSourceCat != m_cats.end() && itTargetCat != m_cats.end())
    {
       const Cat& source_cat = *itSourceCat;
       const Cat& target_cat = *itTargetCat;
 
-      for (const auto & [obj, _] : source_cat.GetObjects())
+      for (const MorphDef& morph : source_cat.GetMorphisms())
+      {
+         auto objs = MapObject(func_, morph.source);
+         auto objt = MapObject(func_, morph.target);
+
+         if (objs && objt)
+         {
+            if (!target_cat.MatchMorphism(objs.value(), objt.value()))
+               return false;
+         }
+         else
+            return false;
+      }
+   }
+   else
+      return false;
+
+   return true;
+}
+
+//-----------------------------------------------------------------------------------------
+static bool fill_functor_morphisms(Func& func_, CACat& ccat_)
+{
+   const std::set<Cat>& cats = ccat_.Categories();
+
+   auto itSourceCat = cats.find(Cat(func_.source));
+   auto itTargetCat = cats.find(Cat(func_.target));
+
+   if (itSourceCat != cats.end() && itTargetCat != cats.end())
+   {
+      const Cat& source_cat = *itSourceCat;
+      const Cat& target_cat = *itTargetCat;
+
+      for (const auto& [obj, _] : source_cat.GetObjects())
       {
          if (target_cat.GetObjects().find(obj) == target_cat.GetObjects().end())
          {
@@ -391,6 +450,8 @@ static bool fill_functor_morphisms(Func& func_, const std::set<Cat>& cats_)
          func_.morphisms.insert(MorphDef(obj, obj));
       }
    }
+   else
+      return false;
 
    return true;
 }
@@ -425,8 +486,8 @@ bool cat::parse_source(const std::string& source_, CACat& ccat_)
          return false;
       }
 
-      const std::string& col0 = remove(sections[0], ' ');
-      const std::string& col1 = remove(sections[1], ' ');
+      std::string col0 = remove(remove(sections[0], ' '), '\t');
+      std::string col1 = remove(remove(sections[1], ' '), '\t');
 
       // Comment
       if (is_comment(col0))
@@ -444,8 +505,14 @@ bool cat::parse_source(const std::string& source_, CACat& ccat_)
 
          if (crt_func)
          {
-            if (!fill_functor_morphisms(crt_func.value(), ccat_.Categories()))
+            if (!fill_functor_morphisms(crt_func.value(), ccat_))
                return false;
+
+            if (!ccat_.Validate(crt_func.value()))
+            {
+               print_error("Incorrect functor: " + crt_func.value().name);
+               return false;
+            }
 
             ccat_.AddFunctor(crt_func.value());
 
@@ -461,7 +528,7 @@ bool cat::parse_source(const std::string& source_, CACat& ccat_)
          {
             for (int i = 1; i < (int)sections.size(); ++i)
             {
-               StringVec arr_objs = split(remove(sections[i], ' '), ',', false);
+               StringVec arr_objs = split(remove(remove(sections[i], ' '), '\t'), ',', false);
 
                for (auto& itObjName : arr_objs)
                {
@@ -569,8 +636,14 @@ bool cat::parse_source(const std::string& source_, CACat& ccat_)
 
                if (crt_func)
                {
-                  if (!fill_functor_morphisms(crt_func.value(), ccat_.Categories()))
+                  if (!fill_functor_morphisms(crt_func.value(), ccat_))
                      return false;
+
+                  if (!ccat_.Validate(crt_func.value()))
+                  {
+                     print_error("Incorrect functor: " + crt_func.value().name);
+                     return false;
+                  }
 
                   ccat_.AddFunctor(crt_func.value());
 
@@ -649,14 +722,19 @@ bool cat::parse_source(const std::string& source_, CACat& ccat_)
 
    if (crt_func)
    {
-      if (!fill_functor_morphisms(crt_func.value(), ccat_.Categories()))
+      if (!fill_functor_morphisms(crt_func.value(), ccat_))
          return false;
+
+      if (!ccat_.Validate(crt_func.value()))
+      {
+         print_error("Incorrect functor: " + crt_func.value().name);
+         return false;
+      }
 
       ccat_.AddFunctor(crt_func.value());
 
       crt_func.reset();
    }
-
 
    return true;
 }
