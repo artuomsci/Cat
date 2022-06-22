@@ -323,7 +323,7 @@ static bool is_functor(const std::string& string_)
 //-----------------------------------------------------------------------------------------
 static std::optional<StringPair> get_morphism_sections(const std::string& string_)
 {
-   StringVec subsections = split(remove(remove(string_, ' '), '\t'), "::");
+   StringVec subsections = split(remove(string_, ' '), "::");
    return subsections.size() == 2 ? StringPair(subsections[0], subsections[1]) : std::optional<StringPair>();
 }
 
@@ -337,7 +337,7 @@ static std::optional<StringVec> get_morphism_objects(const StringPair& pair_)
 //-----------------------------------------------------------------------------------------
 static std::optional<StringPair> get_functor_sections(const std::string& string_)
 {
-   StringVec subsections = split(remove(remove(string_, ' '), '\t'), "::");
+   StringVec subsections = split(remove(string_, ' '), "::");
    return subsections.size() == 2 ? StringPair(subsections[0], subsections[1]) : std::optional<StringPair>();
 }
 
@@ -477,6 +477,10 @@ bool cat::parse_source(const std::string& source_, CACat& ccat_)
    auto eol = source_.find("\r\n") == -1 ? "\n" : "\r\n";
 
    auto lines = split(source_, eol);
+
+   for (std::string& line : lines)
+      std::replace(line.begin(), line.end(), '\t', ' ');
+
    for (const std::string& line : lines)
    {
       if (line.empty())
@@ -489,8 +493,8 @@ bool cat::parse_source(const std::string& source_, CACat& ccat_)
          return false;
       }
 
-      std::string col0 = remove(remove(sections[0], ' '), '\t');
-      std::string col1 = remove(remove(sections[1], ' '), '\t');
+      std::string col0 = remove(sections[0], ' ');
+      std::string col1 = remove(sections[1], ' ');
 
       // Comment
       if (is_comment(col0))
@@ -531,7 +535,7 @@ bool cat::parse_source(const std::string& source_, CACat& ccat_)
          {
             for (int i = 1; i < (int)sections.size(); ++i)
             {
-               StringVec arr_objs = split(remove(remove(sections[i], ' '), '\t'), ',', false);
+               StringVec arr_objs = split(remove(sections[i], ' '), ',', false);
 
                for (auto& itObjName : arr_objs)
                {
