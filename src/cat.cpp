@@ -473,13 +473,22 @@ bool cat::parse_source(const std::string& source_, CACat& ccat_)
    std::optional<Cat> crt_cat;
    std::optional<Func> crt_func;
 
-   // Determine end of line type
-   auto eol = source_.find("\r\n") == -1 ? "\n" : "\r\n";
+   std::string preprocessed = source_;
 
-   auto lines = split(source_, eol);
+   std::replace(preprocessed.begin(), preprocessed.end(), '\t', ' ');
 
-   for (std::string& line : lines)
-      std::replace(line.begin(), line.end(), '\t', ' ');
+   int eol_ind {};
+   do
+   {
+      eol_ind = preprocessed.find("\r\n", eol_ind);
+      if (eol_ind != -1)
+      {
+         preprocessed.replace(eol_ind, sizeof("\r\n") - 1, "\n");
+      }
+   }
+   while (eol_ind != -1);
+
+   auto lines = split(preprocessed, '\n');
 
    for (const std::string& line : lines)
    {
