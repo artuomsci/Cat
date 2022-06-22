@@ -473,7 +473,10 @@ bool cat::parse_source(const std::string& source_, CACat& ccat_)
    std::optional<Cat> crt_cat;
    std::optional<Func> crt_func;
 
-   auto lines = split(source_, '\n');
+   // Determine end of line type
+   auto eol = source_.find("\r\n") == -1 ? "\n" : "\r\n";
+
+   auto lines = split(source_, eol);
    for (const std::string& line : lines)
    {
       if (line.empty())
