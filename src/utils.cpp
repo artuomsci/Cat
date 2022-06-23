@@ -4,7 +4,7 @@
 
 using namespace cat;
 
-void cat::export_cytoscape(const Cat& cat_, const std::string& path_, bool skip_identity_, bool show_morphisms_)
+void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std::string& prefix_, const TCoords& coords_, bool skip_identity_, bool show_morphisms_)
 {
    std::string srctemplate = R"(<!DOCTYPE>
          <html>
@@ -61,7 +61,7 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, bool skip_
                                  }
                          ],
                          layout: {
-                             name: 'breadthfirst'
+                             name: '$(pattern)'
                          }
                      });
 
@@ -76,7 +76,13 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, bool skip_
    {
       // nodes
       char buffern[256];
-      sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", obj.GetName().c_str(), obj.GetName().c_str(), "Obj");
+      if (coords_.empty())
+         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", obj.GetName().c_str(), obj.GetName().c_str(), "Obj");
+      else
+      {
+         const TVec2& crd = coords_.at(obj);
+         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", obj.GetName().c_str(), obj.GetName().c_str(), "Obj", crd.first, crd.second);
+      }
 
       nodes += (nodes.empty() ? "" : ",") +  std::string(buffern) + "\n";
    }
@@ -90,7 +96,18 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, bool skip_
 
          // nodes
          char buffern[256];
-         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", mrph.morph_name.c_str(), mrph.morph_name.c_str(), "Morph");
+         if (coords_.empty())
+            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", mrph.morph_name.c_str(), mrph.morph_name.c_str(), "Morph");
+         else
+         {
+            const TVec2& source_crd = coords_.at(mrph.source);
+            const TVec2& target_crd = coords_.at(mrph.target);
+
+            int x = (source_crd.first + target_crd.first) * 0.5;
+            int y = (source_crd.second + target_crd.second) * 0.5;
+
+            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", mrph.morph_name.c_str(), mrph.morph_name.c_str(), "Morph", x, y);
+         }
 
          nodes += (nodes.empty() ? "" : ",") +  std::string(buffern) + "\n";
       }
@@ -147,8 +164,11 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, bool skip_
    ind = srctemplate.find("$(data)");
    srctemplate.replace(ind, std::string("$(data)").length(), data);
 
+   ind = srctemplate.find("$(pattern)");
+   srctemplate.replace(ind, std::string("$(pattern)").length(), coords_.empty() ? "circle" : "preset");
+   
    // file dumping
-   std::ofstream file(path_ + "/" + cat_.GetName() +  ".html", std::ofstream::out);
+   std::ofstream file(path_ + "/" + prefix_ + cat_.GetName() +  ".html", std::ofstream::out);
    if (file.is_open())
    {
       file << srctemplate;

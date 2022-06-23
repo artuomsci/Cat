@@ -352,7 +352,7 @@ static std::optional<StringVec> get_functor_categories(const StringPair& pair_)
 //-----------------------------------------------------------------------------------------
 bool Func::operator < (const Func& func_) const
 {
-   return std::tuple(source, target) < std::tuple(func_.source, func_.target);
+   return std::tuple(source, target, name) < std::tuple(func_.source, func_.target, name);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -411,12 +411,19 @@ bool CACat::Validate(Func& func_) const
          auto objs = MapObject(func_, morph.source);
          auto objt = MapObject(func_, morph.target);
 
-         if (objs && objt)
+         if (!objs)
          {
-            if (!target_cat.MatchMorphism(objs.value(), objt.value()))
-               return false;
+            print_error("Failure to map object: " + morph.source.GetName());
+            return false;
          }
-         else
+
+         if (!objt)
+         {
+            print_error("Failure to map object: " + morph.target.GetName());
+            return false;
+         }
+
+         if (!target_cat.MatchMorphism(objs.value(), objt.value()))
             return false;
       }
    }
@@ -424,6 +431,18 @@ bool CACat::Validate(Func& func_) const
       return false;
 
    return true;
+}
+
+//-----------------------------------------------------------------------------------------
+std::optional<Func> CACat::MatchFunctor(const Cat::CatName& source_, const Cat::CatName& target_)
+{
+   for (const Func& func : m_funcs)
+   {
+      if (func.source == source_ && func.target == target_)
+         return std::optional<Func>(func);
+   }
+
+   return std::optional<Func>();
 }
 
 //-----------------------------------------------------------------------------------------
@@ -521,8 +540,11 @@ bool cat::parse_source(const std::string& source_, CACat& ccat_)
 
          if (crt_func)
          {
-            if (!fill_functor_morphisms(crt_func.value(), ccat_))
-               return false;
+            if (crt_func.value().morphisms.empty())
+            {
+               if (!fill_functor_morphisms(crt_func.value(), ccat_))
+                  return false;
+            }
 
             if (!ccat_.Validate(crt_func.value()))
             {
@@ -573,25 +595,46 @@ bool cat::parse_source(const std::string& source_, CACat& ccat_)
 
                if (auto mr_objects_opt = get_morphism_objects(subsections))
                {
+                  std::string morph_name = subsections.first;
+
                   StringVec& mr_objects = mr_objects_opt.value();
 
                   Obj source(mr_objects.front());
                   Obj target(mr_objects.back ());
 
-                  std::string name = subsections.first == sAny ? default_morph_name(source, target) : subsections.first;
-                  if (!crt_cat.value().AddMorphism(Obj(source), Obj(target), name))
-                     return false;
+                  const ObjUMap& objs = crt_cat.value().GetObjects();
 
-                  // In case of a chain of morphisms
-                  if (mr_objects.size() > 2)
+                  if (morph_name == sAny && source.GetName() == sAny && (target.GetName() == sAny))
                   {
-                     for (int i = 0; i < mr_objects.size() - 1; ++i)
+                     for (const auto& [idomain, icodomain] : objs)
                      {
-                        Obj source(mr_objects[i + 0]);
-                        Obj target(mr_objects[i + 1]);
+                        for (const auto& [jdomain, jcodomain] : objs)
+                        {
+                           if (idomain == jdomain)
+                              continue;
 
-                        if (!crt_cat.value().AddMorphism(source, target, default_morph_name(source, target)))
-                           return false;
+                           if (!crt_cat.value().AddMorphism(MorphDef(idomain, jdomain)))
+                              return false;
+                        }
+                     }
+                  }
+                  else
+                  {
+                     std::string name = morph_name == sAny ? default_morph_name(source, target) : subsections.first;
+                     if (!crt_cat.value().AddMorphism(Obj(source), Obj(target), name))
+                        return false;
+
+                     // In case of a chain of morphisms
+                     if (mr_objects.size() > 2)
+                     {
+                        for (int i = 0; i < mr_objects.size() - 1; ++i)
+                        {
+                           Obj source(mr_objects[i + 0]);
+                           Obj target(mr_objects[i + 1]);
+
+                           if (!crt_cat.value().AddMorphism(source, target, default_morph_name(source, target)))
+                              return false;
+                        }
                      }
                   }
                }
@@ -652,8 +695,11 @@ bool cat::parse_source(const std::string& source_, CACat& ccat_)
 
                if (crt_func)
                {
-                  if (!fill_functor_morphisms(crt_func.value(), ccat_))
-                     return false;
+                  if (crt_func.value().morphisms.empty())
+                  {
+                     if (!fill_functor_morphisms(crt_func.value(), ccat_))
+                        return false;
+                  }
 
                   if (!ccat_.Validate(crt_func.value()))
                   {
@@ -738,8 +784,11 @@ bool cat::parse_source(const std::string& source_, CACat& ccat_)
 
    if (crt_func)
    {
-      if (!fill_functor_morphisms(crt_func.value(), ccat_))
-         return false;
+      if (crt_func.value().morphisms.empty())
+      {
+         if (!fill_functor_morphisms(crt_func.value(), ccat_))
+            return false;
+      }
 
       if (!ccat_.Validate(crt_func.value()))
       {

@@ -217,6 +217,7 @@ namespace cat
       const std::set<Func>& Functors() const;
       std::optional<Obj> MapObject(const Func& func_, const Obj& obj_) const;
       bool Validate(Func& func_) const;
+      std::optional<Func> MatchFunctor(const Cat::CatName& source_, const Cat::CatName& target_);
 
    private:
       std::set<Cat> m_cats;
