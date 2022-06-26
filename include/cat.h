@@ -24,7 +24,7 @@ namespace cat
    CAT_EXPORT void print_error(const std::string& msg_);
    CAT_EXPORT void print_info(const std::string& msg_);
 
-   // Object class
+   // Object
    class CAT_EXPORT Obj
    {
    public:
@@ -51,6 +51,7 @@ namespace cat
      std::size_t operator()(const Obj& k_) const;
    };
 
+   // Morphism
    struct CAT_EXPORT MorphDef
    {
       explicit MorphDef(const Obj& source_, const Obj& target_, const std::string& morph_name_);
@@ -58,7 +59,7 @@ namespace cat
 
       Obj         source;
       Obj         target;
-      std::string morph_name;
+      std::string name;
 
       bool operator<(const MorphDef& morph_) const;
       bool operator==(const MorphDef& morph_) const;
@@ -70,7 +71,7 @@ namespace cat
    using MorphSet    = std::set<MorphDef>;
    using ObjVec      = std::vector<Obj>;
 
-   // Category class
+   // Category
    class CAT_EXPORT Cat
    {
    public:
@@ -187,7 +188,7 @@ namespace cat
       MorphSet    m_morphisms;
    };
 
-   // Functor class
+   // Functor
    struct CAT_EXPORT Func
    {
       using FuncName = std::string;
@@ -223,104 +224,4 @@ namespace cat
       std::set<Cat> m_cats;
       std::set<Func> m_funcs;
    };
-
-   /**
-    * @brief Parse the contents of string
-    * @param source_ - string to parse
-    * @param ccat_ - category of categories
-    * @return True if string was successfully parsed
-    */
-   CAT_EXPORT bool parse_source(const std::string& source_, CACat& ccat_);
-
-   /**
-    * @brief Load source file
-    * @param path_ - path to source file
-    * @param ccat_ - category of categories
-    * @return True if file was successfully loaded
-    */
-   CAT_EXPORT bool load_source(const std::string& path_, CACat& ccat_);
-
-   /**
-    * @brief Load text file into string
-    * @param filename_ - path to file
-    * @return String with contents of the file
-    */
-   CAT_EXPORT std::optional<std::string> get_description(const std::string& filename_);
-
-   /**
-    * @brief Find any sequence of objects between two given objects
-    * @param cat_ - category to find sequence of objects in
-    * @param from_ - initial object of sequence
-    * @param to_ - terminal object of sequence
-    * @return Sequence of objects
-    */
-   CAT_EXPORT ObjVec solve_sequence(const Cat& cat_, const Obj& from_, const Obj& to_);
-
-   /**
-    * @brief Find all sequences of objects between two given objects
-    * @param cat_ - category to find sequences of objects in
-    * @param from_ - initial object of sequences
-    * @param to_ - terminal object of sequences
-    * @return Sequences of objects
-    */
-   CAT_EXPORT std::vector<ObjVec> solve_sequences(const Cat& cat_, const Obj& from_, const Obj& to_);
-
-   /**
-    * @brief Map sequence of objects onto sequence of morphisms
-    * @param objs_ - sequence of objects
-    * @param cat_ - category to find morphisms in
-    * @return Sequence of morphisms
-    */
-   CAT_EXPORT std::vector<MorphDef> map_obj2morphism(const ObjVec& objs_, const Cat& cat_);
-
-   /**
-    * @brief Find all compositions
-    * @param cat_ - category to find compositions in
-    */
-   CAT_EXPORT void solve_compositions(Cat& cat_);
-
-   /**
-    * @brief Return identity morphism name
-    * @param obj_ - object for identity morphism
-    * @return Morphism name
-    */
-   CAT_EXPORT std::string id_morph_name(const Obj& obj_);
-
-   /**
-    * @brief Return default morphism name
-    * @param source_ - morphism source object
-    * @param target_ - morphism target object
-    * @return Morphism name
-    */
-   CAT_EXPORT std::string default_morph_name(const Obj& source_, const Obj& target_);
-
-   /**
-    * @brief Return default functor name
-    * @param source_ - functor source
-    * @param target_ - functor target
-    * @return Functor name
-    */
-   CAT_EXPORT Func::FuncName default_functor_name(const Cat::CatName& source_, const Cat::CatName& target_);
-
-   /**
-    * @brief Inverse category morphisms
-    * @param cat_ - category to inverse morphisms
-    */
-   CAT_EXPORT void inverse(Cat& cat_);
-
-   /**
-    * @brief Find initial objects. All morphism compositions
-    * must be resolved before calling this method i.e. call "solve_compositions" first
-    * @param cat_ - category to find initial objects in
-    * @return Initial objects
-    */
-   CAT_EXPORT ObjVec initial(Cat& cat_);
-
-   /**
-    * @brief Find terminal objects. All morphism compositions
-    * must be resolved before calling this method i.e. call "solve_compositions" first
-    * @param cat_ - category to find terminal objects in
-    * @return Terminal objects
-    */
-   CAT_EXPORT ObjVec terminal(Cat& cat_);
 }

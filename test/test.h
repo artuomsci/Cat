@@ -1,6 +1,7 @@
 #include <assert.h>
 
-#include "cat.h"
+#include "../include/cat.h"
+#include "../include/common.h"
 
 namespace cat
 {

@@ -97,7 +97,7 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std:
          // nodes
          char buffern[256];
          if (coords_.empty())
-            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", mrph.morph_name.c_str(), mrph.morph_name.c_str(), "Morph");
+            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", mrph.name.c_str(), mrph.name.c_str(), "Morph");
          else
          {
             const TVec2& source_crd = coords_.at(mrph.source);
@@ -106,7 +106,7 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std:
             int x = (source_crd.first + target_crd.first) * 0.5;
             int y = (source_crd.second + target_crd.second) * 0.5;
 
-            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", mrph.morph_name.c_str(), mrph.morph_name.c_str(), "Morph", x, y);
+            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", mrph.name.c_str(), mrph.name.c_str(), "Morph", x, y);
          }
 
          nodes += (nodes.empty() ? "" : ",") +  std::string(buffern) + "\n";
@@ -144,11 +144,11 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std:
          // edges
          char buffere[256];
 
-         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", mrph.source.GetName().c_str(), mrph.morph_name.c_str());
+         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", mrph.source.GetName().c_str(), mrph.name.c_str());
 
          edges += (edges.empty() ? "" : ",") +  std::string(buffere) + "\n";
 
-         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", mrph.morph_name.c_str(), mrph.target.GetName().c_str());
+         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", mrph.name.c_str(), mrph.target.GetName().c_str());
 
          edges += (edges.empty() ? "" : ",") +  std::string(buffere) + "\n";
       }
