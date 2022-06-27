@@ -42,4 +42,20 @@ namespace cat
     * @return String split into chunks
     */
    CAT_EXPORT StringVec split(const std::string& string_, const std::string& splitter_, bool keep_empty_ = true);
+
+   /**
+    * @brief Trim from left
+    * @param string_ - string to trim
+    * @param symbol_ - symbol to trim
+    * @return Trimmed string
+    */
+   CAT_EXPORT std::string trim_left(const std::string& string_, std::string::value_type symbol_);
+
+   /**
+    * @brief Trim from right
+    * @param string_ - string to trim
+    * @param symbol_ - symbol to trim
+    * @return Trimmed string
+    */
+   CAT_EXPORT std::string trim_right(const std::string& string_, std::string::value_type symbol_);
 }

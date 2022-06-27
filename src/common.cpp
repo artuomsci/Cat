@@ -36,7 +36,9 @@ static bool is_functor(const std::string& string_)
 //-----------------------------------------------------------------------------------------
 static std::optional<StringPair> get_morphism_sections(const std::string& string_)
 {
-   StringVec subsections = split(remove(string_, ' '), "::");
+   StringVec subsections = split(string_, "::");
+   for (auto& str : subsections)
+      str = trim_right(trim_left(str, ' '), ' ');
    return subsections.size() == 2 ? StringPair(subsections[0], subsections[1]) : std::optional<StringPair>();
 }
 
@@ -44,13 +46,17 @@ static std::optional<StringPair> get_morphism_sections(const std::string& string
 static std::optional<StringVec> get_morphism_objects(const StringPair& pair_)
 {
    StringVec ret = split(pair_.second, "->", false);
+   for (auto& str : ret)
+      str = trim_right(trim_left(str, ' '), ' ');
    return ret.size() < 2 ? std::optional<StringVec>() : ret;
 }
 
 //-----------------------------------------------------------------------------------------
 static std::optional<StringPair> get_functor_sections(const std::string& string_)
 {
-   StringVec subsections = split(remove(string_, ' '), "::");
+   StringVec subsections = split(string_, "::");
+   for (auto& str : subsections)
+      str = trim_right(trim_left(str, ' '), ' ');
    return subsections.size() == 2 ? StringPair(subsections[0], subsections[1]) : std::optional<StringPair>();
 }
 
@@ -58,6 +64,8 @@ static std::optional<StringPair> get_functor_sections(const std::string& string_
 static std::optional<StringVec> get_functor_categories(const StringPair& pair_)
 {
    StringVec ret = split(pair_.second, "=>", false);
+   for (auto& str : ret)
+      str = trim_right(trim_left(str, ' '), ' ');
    return ret.size() < 2 ? std::optional<StringVec>() : ret;
 }
 
@@ -101,6 +109,9 @@ bool parse_source(const std::string& source_, CACat& ccat_)
       ,  eNone
    };
 
+   std::string test = "hello";
+   auto result = trim_right(trim_left(test, '-'), '-');
+
    ECurrentEntity process_entity { ECurrentEntity::eNone };
 
    ObjUMap objMap;
@@ -110,8 +121,10 @@ bool parse_source(const std::string& source_, CACat& ccat_)
 
    std::string preprocessed = source_;
 
+   // Get rid of tabs
    std::replace(preprocessed.begin(), preprocessed.end(), '\t', ' ');
 
+   // Get rid of win eol's
    int eol_ind {};
    do
    {
@@ -137,22 +150,32 @@ bool parse_source(const std::string& source_, CACat& ccat_)
          return false;
       }
 
-      std::string col0 = remove(sections[0], ' ');
-      std::string col1 = remove(sections[1], ' ');
+      std::string head = sections[0];
+
+      int tail_start = line.find(head) + head.length();
+      while (true)
+      {
+         if (line.at(tail_start) != ' ')
+            break;
+
+         tail_start++;
+      }
+
+      std::string tail = line.substr(tail_start, line.length());
 
       // Comment
-      if (is_comment(col0))
+      if (is_comment(head))
       {
          continue;
       }
       // Category
-      else if (col0 == sCat)
+      else if (head == sCat)
       {
          if (crt_cat)
             ccat_.AddCategory(crt_cat.value());
          crt_cat.reset();
 
-         crt_cat.emplace(Cat(col1));
+         crt_cat.emplace(Cat(tail));
 
          if (crt_func)
          {
@@ -176,27 +199,26 @@ bool parse_source(const std::string& source_, CACat& ccat_)
          process_entity = ECurrentEntity::eCategory;
       }
       // Object
-      else if (process_entity == ECurrentEntity::eCategory && col0 == sObj)
+      else if (process_entity == ECurrentEntity::eCategory && head == sObj)
       {
          if (crt_cat)
          {
-            for (int i = 1; i < (int)sections.size(); ++i)
-            {
-               StringVec arr_objs = split(remove(sections[i], ' '), ',', false);
+            StringVec arr_objs = split(tail, ',', false);
 
-               for (auto& itObjName : arr_objs)
+            for (auto& itObjName : arr_objs)
+            {
+               auto objName = trim_left(trim_right(itObjName, ' '), ' ');
+
+               if (!crt_cat.value().AddObject(Obj(objName)))
                {
-                  if (!crt_cat.value().AddObject(Obj(itObjName)))
-                  {
-                     print_error("Failure to add object: " + itObjName);
-                     return false;
-                  }
+                  print_error("Failure to add object: " + objName);
+                  return false;
                }
             }
          }
          else
          {
-            print_error("No category to add object: " + col1);
+            print_error("No category to add object: " + tail);
             return false;
          }
       }
