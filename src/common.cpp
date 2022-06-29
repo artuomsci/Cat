@@ -109,9 +109,6 @@ bool parse_source(const std::string& source_, CACat& ccat_)
       ,  eNone
    };
 
-   std::string test = "hello";
-   auto result = trim_right(trim_left(test, '-'), '-');
-
    ECurrentEntity process_entity { ECurrentEntity::eNone };
 
    ObjUMap objMap;
