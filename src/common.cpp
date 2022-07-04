@@ -12,14 +12,13 @@ static const char* const sCat = "cat";
 static const char* const sObj = "obj";
 // Any
 static const char* const sAny = "*";
+// Comment
+static const char* const sComment = "--";
+// Expressions type
+static const char* const sStatement = "statement";
+static const char* const sProof     = "proof";
 
 using namespace cat;
-
-//-----------------------------------------------------------------------------------------
-static bool is_comment(const std::string& string_)
-{
-   return string_.find("--") == 0;
-}
 
 //-----------------------------------------------------------------------------------------
 static bool is_morphism(const std::string& string_)
@@ -70,36 +69,6 @@ static std::optional<StringVec> get_functor_categories(const StringPair& pair_)
 }
 
 //-----------------------------------------------------------------------------------------
-static bool fill_functor_morphisms(Func& func_, CACat& ccat_)
-{
-   const std::set<Cat>& cats = ccat_.Categories();
-
-   auto itSourceCat = cats.find(Cat(func_.source));
-   auto itTargetCat = cats.find(Cat(func_.target));
-
-   if (itSourceCat != cats.end() && itTargetCat != cats.end())
-   {
-      const Cat& source_cat = *itSourceCat;
-      const Cat& target_cat = *itTargetCat;
-
-      for (const auto& [obj, _] : source_cat.GetObjects())
-      {
-         if (target_cat.GetObjects().find(obj) == target_cat.GetObjects().end())
-         {
-            print_error("No such object '" + obj.GetName() + "' in target category '" + target_cat.GetName() + "'");
-            return false;
-         }
-
-         func_.morphisms.insert(MorphDef(obj, obj));
-      }
-   }
-   else
-      return false;
-
-   return true;
-}
-
-//-----------------------------------------------------------------------------------------
 bool parse_source(const std::string& source_, CACat& ccat_)
 {
    enum class ECurrentEntity
@@ -107,13 +76,17 @@ bool parse_source(const std::string& source_, CACat& ccat_)
          eCategory
       ,  eFunctor
       ,  eNone
-   };
+   }
+   process_entity { ECurrentEntity::eNone };
 
-   ECurrentEntity process_entity { ECurrentEntity::eNone };
+   enum class EExpType
+   {
+         eStatement
+      ,  eProof
+   }
+   expr_type { EExpType::eProof };
 
-   ObjUMap objMap;
-
-   std::optional<Cat> crt_cat;
+   std::optional<Cat > crt_cat;
    std::optional<Func> crt_func;
 
    std::string preprocessed = source_;
@@ -122,7 +95,7 @@ bool parse_source(const std::string& source_, CACat& ccat_)
    std::replace(preprocessed.begin(), preprocessed.end(), '\t', ' ');
 
    // Get rid of win eol's
-   int eol_ind {};
+   size_t eol_ind {};
    do
    {
       eol_ind = preprocessed.find("\r\n", eol_ind);
@@ -135,21 +108,100 @@ bool parse_source(const std::string& source_, CACat& ccat_)
 
    auto lines = split(preprocessed, '\n');
 
-   for (const std::string& line : lines)
+   for (const std::string& iline : lines)
    {
-      if (line.empty())
+      if (iline.empty())
          continue;
 
-      auto sections = split(line, ' ', false);
-      if (sections.size() < 2)
+      std::string line = trim_left(trim_right(iline, ' '), ' ');
+
+      StringVec sections;
+
+      if (line == sStatement)
       {
-         print_error("Invalid record: " + line);
-         return false;
+         if (crt_cat)
+            ccat_.AddCategory(crt_cat.value());
+         crt_cat.reset();
+
+         if (crt_func)
+         {
+            Func& func = crt_func.value();
+
+            if (func.morphisms.empty())
+            {
+               print_error("Morphisms are not defined in functor: " + func.name);
+               return false;
+            }
+
+            if (expr_type == EExpType::eProof)
+            {
+               if (!ccat_.Proof(func))
+               {
+                  print_error("Incorrect functor: " + func.name);
+                  return false;
+               }
+            }
+            else if (expr_type == EExpType::eStatement)
+               if (!ccat_.Statement(func))
+                  return false;
+
+            ccat_.AddFunctor(func);
+
+            crt_func.reset();
+         }
+
+         expr_type = EExpType::eStatement;
+         continue;
+      }
+      else if (line == sProof)
+      {
+         if (crt_cat)
+            ccat_.AddCategory(crt_cat.value());
+         crt_cat.reset();
+
+         if (crt_func)
+         {
+            Func& func = crt_func.value();
+
+            if (func.morphisms.empty())
+            {
+               print_error("Morphisms are not defined in functor: " + func.name);
+               return false;
+            }
+
+            if (expr_type == EExpType::eProof)
+            {
+               if (!ccat_.Proof(func))
+               {
+                  print_error("Incorrect functor: " + func.name);
+                  return false;
+               }
+            }
+            else if (expr_type == EExpType::eStatement)
+               if (!ccat_.Statement(func))
+                  return false;
+
+            ccat_.AddFunctor(func);
+
+            crt_func.reset();
+         }
+
+         expr_type = EExpType::eProof;
+         continue;
+      }
+      else
+      {
+         sections = split(line, ' ', false);
+         if (sections.size() < 2)
+         {
+            print_error("Invalid record: " + line);
+            return false;
+         }
       }
 
-      std::string head = sections[0];
+      const std::string& head = sections[0];
 
-      int tail_start = line.find(head) + head.length();
+      size_t tail_start = head.length();
       while (true)
       {
          if (line.at(tail_start) != ' ')
@@ -161,7 +213,7 @@ bool parse_source(const std::string& source_, CACat& ccat_)
       std::string tail = line.substr(tail_start, line.length());
 
       // Comment
-      if (is_comment(head))
+      if (head == sComment)
       {
          continue;
       }
@@ -176,19 +228,27 @@ bool parse_source(const std::string& source_, CACat& ccat_)
 
          if (crt_func)
          {
-            if (crt_func.value().morphisms.empty())
-            {
-               if (!fill_functor_morphisms(crt_func.value(), ccat_))
-                  return false;
-            }
+            Func& func = crt_func.value();
 
-            if (!ccat_.Validate(crt_func.value()))
+            if (func.morphisms.empty())
             {
-               print_error("Incorrect functor: " + crt_func.value().name);
+               print_error("Morphisms are not defined in functor: " + func.name);
                return false;
             }
 
-            ccat_.AddFunctor(crt_func.value());
+            if (expr_type == EExpType::eProof)
+            {
+               if (!ccat_.Proof(func))
+               {
+                  print_error("Incorrect functor: " + func.name);
+                  return false;
+               }
+            }
+            else if (expr_type == EExpType::eStatement)
+               if (!ccat_.Statement(func))
+                  return false;
+
+            ccat_.AddFunctor(func);
 
             crt_func.reset();
          }
@@ -313,39 +373,35 @@ bool parse_source(const std::string& source_, CACat& ccat_)
                   return false;
                }
 
-               Cat::CatName& source = func_categories.front();
-               Cat::CatName& target = func_categories.back ();
-
-               if (ccat_.Categories().find(Cat(source)) == ccat_.Categories().end())
-               {
-                  print_error("No such source category: " + source);
-                  return false;
-               }
-
-               if (ccat_.Categories().find(Cat(target)) == ccat_.Categories().end())
-               {
-                  print_error("No such target category: " + target);
-                  return false;
-               }
-
                if (crt_func)
                {
-                  if (crt_func.value().morphisms.empty())
-                  {
-                     if (!fill_functor_morphisms(crt_func.value(), ccat_))
-                        return false;
-                  }
+                  Func& func = crt_func.value();
 
-                  if (!ccat_.Validate(crt_func.value()))
+                  if (func.morphisms.empty())
                   {
-                     print_error("Incorrect functor: " + crt_func.value().name);
+                     print_error("Morphisms are not defined in functor: " + func.name);
                      return false;
                   }
 
-                  ccat_.AddFunctor(crt_func.value());
+                  if (expr_type == EExpType::eProof)
+                  {
+                     if (!ccat_.Proof(func))
+                     {
+                        print_error("Incorrect functor: " + func.name);
+                        return false;
+                     }
+                  }
+                  else if (expr_type == EExpType::eStatement)
+                     if (!ccat_.Statement(func))
+                        return false;
+
+                  ccat_.AddFunctor(func);
 
                   crt_func.reset();
                }
+
+               Cat::CatName& source = func_categories.front();
+               Cat::CatName& target = func_categories.back ();
 
                std::string name = subsections.first == sAny ? default_functor_name(source, target) : subsections.first;
                crt_func.emplace(Func(source, target, name));
@@ -377,27 +433,94 @@ bool parse_source(const std::string& source_, CACat& ccat_)
                   print_error("Functor morphism definition can only have two end points: " + line);
                   return false;
                }
+               else if (mr_objects.size() < 2)
+               {
+                  print_error("Incorrect functor morphism definition: " + line);
+                  return false;
+               }
 
                Obj source(mr_objects.front());
                Obj target(mr_objects.back ());
 
-               if (target.GetName() == sAny)
+               if (source.GetName() == sAny && target.GetName() == sAny && subsections.first != sAny)
                {
-                  auto it = ccat_.Categories().find(Cat(crt_func.value().target));
-                  if (it != ccat_.Categories().end())
-                  {
-                     const Cat& cat = *it;
-
-                  }
-                  else
-                  {
-                     print_error("No such target category: " + crt_func.value().target);
-                     return false;
-                  }
+                  print_error("Incorrect functor morphism definition: " + line);
+                  return false;
                }
 
-               std::string name = subsections.first == sAny ? default_morph_name(source, target) : subsections.first;
-               crt_func.value().morphisms.insert(MorphDef(source, target, name));
+               if (source.GetName() == sAny && target.GetName() == sAny && subsections.first == sAny)
+               {
+                  const std::set<Cat>& cats = ccat_.Categories();
+
+                  auto itSourceCat = cats.find(Cat(crt_func.value().source));
+                  auto itTargetCat = cats.find(Cat(crt_func.value().target));
+
+                  if (itSourceCat != cats.end() && itTargetCat != cats.end())
+                  {
+                     const Cat& source_cat = *itSourceCat;
+                     const Cat& target_cat = *itTargetCat;
+
+                     const ObjUMap& source_cat_objects = source_cat.GetObjects();
+                     const ObjUMap& target_cat_objects = target_cat.GetObjects();
+
+                     for (const auto& [obj, _] : source_cat_objects)
+                     {
+                        if (target_cat_objects.find(obj) == target_cat_objects.end())
+                        {
+                           print_error("No such object '" + obj.GetName() + "' in target category '" + target_cat.GetName() + "'");
+                           return false;
+                        }
+
+                        crt_func.value().morphisms.insert(MorphDef(obj, obj));
+                     }
+                  }
+                  else
+                     return false;
+               }
+               else if (source.GetName() == sAny && subsections.first == sAny)
+               {
+                  const std::set<Cat>& cats = ccat_.Categories();
+
+                  auto itSourceCat = cats.find(Cat(crt_func.value().source));
+                  auto itTargetCat = cats.find(Cat(crt_func.value().target));
+
+                  if (itSourceCat != cats.end() && itTargetCat != cats.end())
+                  {
+                     const Cat& source_cat = *itSourceCat;
+                     const Cat& target_cat = *itTargetCat;
+
+                     const ObjUMap& source_cat_objects = source_cat.GetObjects();
+                     const ObjUMap& target_cat_objects = target_cat.GetObjects();
+
+                     for (const auto& [obj, _] : source_cat_objects)
+                     {
+                        if (target_cat_objects.find(Obj(target.GetName())) == target_cat_objects.end())
+                        {
+                           print_error("No such object '" + obj.GetName() + "' in target category '" + target_cat.GetName() + "'");
+                           return false;
+                        }
+
+                        crt_func.value().morphisms.insert(MorphDef(obj, Obj(target.GetName())));
+                     }
+                  }
+                  else
+                     return false;
+               }
+               else
+               {
+                  std::string name = subsections.first == sAny ? default_morph_name(source, target) : subsections.first;
+
+                  for (const MorphDef& it : crt_func.value().morphisms)
+                  {
+                     if (it.source == source)
+                     {
+                        print_error("Morphism with the same source already defined");
+                        return false;
+                     }
+                  }
+
+                  crt_func.value().morphisms.insert(MorphDef(source, target, name));
+               }
             }
             else
             {
@@ -419,19 +542,27 @@ bool parse_source(const std::string& source_, CACat& ccat_)
 
    if (crt_func)
    {
-      if (crt_func.value().morphisms.empty())
-      {
-         if (!fill_functor_morphisms(crt_func.value(), ccat_))
-            return false;
-      }
+      Func& func = crt_func.value();
 
-      if (!ccat_.Validate(crt_func.value()))
+      if (func.morphisms.empty())
       {
-         print_error("Incorrect functor: " + crt_func.value().name);
+         print_error("Morphisms are not defined in functor: " + func.name);
          return false;
       }
 
-      ccat_.AddFunctor(crt_func.value());
+      if (expr_type == EExpType::eProof)
+      {
+         if (!ccat_.Proof(func))
+         {
+            print_error("Incorrect functor: " + func.name);
+            return false;
+         }
+      }
+      else if (expr_type == EExpType::eStatement)
+         if (!ccat_.Statement(func))
+            return false;
+
+      ccat_.AddFunctor(func);
 
       crt_func.reset();
    }

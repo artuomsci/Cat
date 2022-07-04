@@ -47,6 +47,12 @@ Obj::Obj(const std::string& name_) : m_name(name_) {};
 Obj::Obj(const Obj& obj_) : m_name(obj_.m_name) {};
 
 //-----------------------------------------------------------------------------------------
+void Obj::operator=(const Obj& obj_)
+{
+   m_name = obj_.m_name;
+}
+
+//-----------------------------------------------------------------------------------------
 bool Obj::operator==(const Obj& obj_) const {
    return m_name == obj_.m_name;
 }
@@ -303,6 +309,20 @@ bool Func::operator < (const Func& func_) const
 }
 
 //-----------------------------------------------------------------------------------------
+std::optional<Obj> cat::MapObject(const Func& func_, const Obj& obj_)
+{
+   for (const MorphDef& morph : func_.morphisms)
+   {
+      if (morph.source == obj_)
+      {
+         return std::optional<Obj>(morph.target);
+      }
+   }
+
+   return std::optional<Obj>();
+}
+
+//-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
 void CACat::AddCategory(const Cat& cat_)
 {
@@ -329,53 +349,98 @@ const std::set<Func>& CACat::Functors() const
 }
 
 //-----------------------------------------------------------------------------------------
-std::optional<Obj> CACat::MapObject(const Func& func_, const Obj& obj_) const
-{
-   for (const MorphDef& morph : func_.morphisms)
-   {
-      if (morph.source == obj_)
-      {
-         return std::optional<Obj>(morph.target);
-      }
-   }
-
-   return std::optional<Obj>();
-}
-
-//-----------------------------------------------------------------------------------------
-bool CACat::Validate(Func& func_) const
+bool CACat::Proof(Func& func_) const
 {
    auto itSourceCat = m_cats.find(Cat(func_.source));
    auto itTargetCat = m_cats.find(Cat(func_.target));
 
-   if (itSourceCat != m_cats.end() && itTargetCat != m_cats.end())
+   if (itSourceCat == m_cats.end() || itTargetCat == m_cats.end())
+      return false;
+
+   const Cat& source_cat = *itSourceCat;
+   const Cat& target_cat = *itTargetCat;
+
+   // Checking mapping of objects
+   for (const auto& [obj, _] : source_cat.GetObjects())
    {
-      const Cat& source_cat = *itSourceCat;
-      const Cat& target_cat = *itTargetCat;
-
-      for (const MorphDef& morph : source_cat.GetMorphisms())
+      if (!MapObject(func_, obj).has_value())
       {
-         auto objs = MapObject(func_, morph.source);
-         auto objt = MapObject(func_, morph.target);
-
-         if (!objs)
-         {
-            print_error("Failure to map object: " + morph.source.GetName());
-            return false;
-         }
-
-         if (!objt)
-         {
-            print_error("Failure to map object: " + morph.target.GetName());
-            return false;
-         }
-
-         if (!target_cat.MatchMorphism(objs.value(), objt.value()))
-            return false;
+         print_error("Failure to map object: " + obj.GetName());
+         return false;
       }
    }
-   else
+
+   for (const MorphDef& morph : source_cat.GetMorphisms())
+   {
+      auto objs = MapObject(func_, morph.source);
+      auto objt = MapObject(func_, morph.target);
+
+      if (!objs)
+      {
+         print_error("Failure to map object: " + morph.source.GetName());
+         return false;
+      }
+
+      if (!objt)
+      {
+         print_error("Failure to map object: " + morph.target.GetName());
+         return false;
+      }
+
+      // Checking mapping of morphisms
+      if (!target_cat.MatchMorphism(objs.value(), objt.value()))
+         return false;
+   }
+
+   return true;
+}
+
+//-----------------------------------------------------------------------------------------
+bool CACat::Statement(Func& func_)
+{
+   auto itSourceCat = m_cats.find(Cat(func_.source));
+   if (itSourceCat == m_cats.end())
+   {
+      print_error("Missing source category: " + func_.source);
       return false;
+   }
+
+   const Cat& source_cat = *itSourceCat;
+
+   std::optional<Cat> ocat;
+   auto itTargetCat = m_cats.find(Cat(func_.target));
+   if (itTargetCat != m_cats.end())
+      ocat.emplace(*itTargetCat);
+   else
+      ocat.emplace(Cat(func_.target));
+
+   Cat& target_cat = ocat.value();
+
+   // Mapping objects
+   for (const auto& [obj, _] : source_cat.GetObjects())
+   {
+      std::optional<Obj> tobj = MapObject(func_, obj);
+      if (!tobj.has_value())
+      {
+         print_error("Missing functor morphism for object: " + obj.GetName());
+         return false;
+      }
+
+      if (target_cat.GetObjects().find(tobj.value()) == target_cat.GetObjects().end())
+         target_cat.AddObject(tobj.value());
+   }
+
+   // Mapping morphisms
+   for (const MorphDef& morph : source_cat.GetMorphisms())
+   {
+      auto objs = MapObject(func_, morph.source);
+      auto objt = MapObject(func_, morph.target);
+
+      if (!target_cat.MatchMorphism(objs.value(), objt.value()))
+      {
+         target_cat.AddMorphism(MorphDef(objs.value(), objt.value()));
+      }
+   }
 
    return true;
 }

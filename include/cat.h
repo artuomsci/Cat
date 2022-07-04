@@ -32,9 +32,12 @@ namespace cat
       explicit Obj(const std::string& name_);
       explicit Obj(const Obj& obj_);
 
+      Obj(Obj&&) = default;
+
+      void operator= (const Obj& obj_);
       bool operator==(const Obj& obj_) const;
       bool operator!=(const Obj& obj_) const;
-      bool operator<(const Obj& obj_) const;
+      bool operator< (const Obj& obj_) const;
 
       /**
        * @brief Return object name
@@ -207,6 +210,8 @@ namespace cat
       bool operator < (const Func& func_) const;
    };
 
+   CAT_EXPORT std::optional<Obj> MapObject(const Func& func_, const Obj& obj_);
+
    // Category of categories
    class CAT_EXPORT CACat
    {
@@ -216,8 +221,8 @@ namespace cat
       void AddFunctor(const Func& func_);
       const std::set<Cat>& Categories() const;
       const std::set<Func>& Functors() const;
-      std::optional<Obj> MapObject(const Func& func_, const Obj& obj_) const;
-      bool Validate(Func& func_) const;
+      bool Proof(Func& func_) const;
+      bool Statement(Func& func_);
       std::optional<Func> MatchFunctor(const Cat::CatName& source_, const Cat::CatName& target_);
 
    private:
