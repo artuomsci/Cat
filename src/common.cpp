@@ -4,6 +4,7 @@
 #include <sstream>
 
 #include "str_utils.h"
+#include "log.h"
 
 // Keywords
 // Category

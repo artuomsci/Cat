@@ -2,6 +2,7 @@
 
 #include "../include/cat.h"
 #include "../include/common.h"
+#include "../include/log.h"
 
 namespace cat
 {
