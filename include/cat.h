@@ -44,23 +44,23 @@ namespace cat
    };
 
    // Morphism
-   struct CAT_EXPORT MorphDef
+   struct CAT_EXPORT Morph
    {
-      explicit MorphDef(const Obj& source_, const Obj& target_, const std::string& morph_name_);
-      explicit MorphDef(const Obj& source_, const Obj& target_);
+      explicit Morph(const Obj& source_, const Obj& target_, const std::string& morph_name_);
+      explicit Morph(const Obj& source_, const Obj& target_);
 
       Obj         source;
       Obj         target;
       std::string name;
 
-      bool operator<(const MorphDef& morph_) const;
-      bool operator==(const MorphDef& morph_) const;
+      bool operator  <  (const Morph& morph_) const;
+      bool operator  == (const Morph& morph_) const;
    };
 
    using ObjSet      = std::set<Obj>;
    using ObjSetPair  = std::pair<Obj, ObjSet>;
    using ObjUMap     = std::unordered_map<Obj, ObjSet, ObjKeyHasher>;
-   using MorphSet    = std::set<MorphDef>;
+   using MorphSet    = std::set<Morph>;
    using ObjVec      = std::vector<Obj>;
 
    // Category
@@ -88,7 +88,7 @@ namespace cat
        * @param morph_ morphism to add
        * @return Result of adding morphism
        */
-      bool AddMorphism(const MorphDef& morph_);
+      bool AddMorphism(const Morph& morph_);
 
       /**
        * @brief Add morphism to the category
@@ -185,11 +185,8 @@ namespace cat
    {
       using FuncName = std::string;
 
-      explicit Func(const Cat::CatName& source_, const Cat::CatName& target_, const FuncName& name_) :
-            source   (source_)
-         ,  target   (target_)
-         ,  name     (name_)
-      {}
+      explicit Func(const Cat::CatName& source_, const Cat::CatName& target_, const FuncName& name_);
+      explicit Func(const Cat::CatName& source_, const Cat::CatName& target_);
 
       Cat::CatName   source;
       Cat::CatName   target;

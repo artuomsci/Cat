@@ -43,7 +43,7 @@ namespace cat
 
          cat.AddObjects(a, b);
 
-         cat.AddMorphism(MorphDef(a, b));
+         cat.AddMorphism(Morph(a, b));
 
          assert(cat.EraseObject(a) == true);
 
@@ -75,22 +75,22 @@ namespace cat
 
          cat.AddObjects(a, b, c);
 
-         assert(cat.GetMorphisms().find(MorphDef(a, a)) != cat.GetMorphisms().end());
-         assert(cat.GetMorphisms().find(MorphDef(b, b)) != cat.GetMorphisms().end());
-         assert(cat.GetMorphisms().find(MorphDef(c, c)) != cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(Morph(a, a)) != cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(Morph(b, b)) != cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(Morph(c, c)) != cat.GetMorphisms().end());
 
          assert(cat.GetMorphisms().size() == 3);
 
          assert(cat.AddMorphism(a, b, "f0"));
-         assert(cat.GetMorphisms().find(MorphDef(a, b, "f0")) != cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(Morph(a, b, "f0")) != cat.GetMorphisms().end());
 
          assert(cat.AddMorphism(a, c, "f1"));
-         assert(cat.GetMorphisms().find(MorphDef(a, c, "f1")) != cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(Morph(a, c, "f1")) != cat.GetMorphisms().end());
 
          assert(cat.GetMorphisms().size() == 5);
 
          assert(cat.AddMorphism(a, d, "f2") == false);
-         assert(cat.GetMorphisms().find(MorphDef(a, d, "f2")) == cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(Morph(a, d, "f2")) == cat.GetMorphisms().end());
          assert(cat.GetMorphisms().size() == 5);
 
          assert(cat.AddMorphism(b, c, "f0") == false);
@@ -114,11 +114,11 @@ namespace cat
          {
             auto prev_count = cat.GetMorphisms().size();
             assert(cat.EraseMorphism("f0") == true);
-            assert(cat.GetMorphisms().find(MorphDef(a, b, "f0")) == cat.GetMorphisms().end());
+            assert(cat.GetMorphisms().find(Morph(a, b, "f0")) == cat.GetMorphisms().end());
             assert(prev_count = cat.GetMorphisms().size() - 1);
 
             assert(cat.EraseMorphism("f1") == true);
-            assert(cat.GetMorphisms().find(MorphDef(a, c, "f1")) == cat.GetMorphisms().end());
+            assert(cat.GetMorphisms().find(Morph(a, c, "f1")) == cat.GetMorphisms().end());
             assert(prev_count = cat.GetMorphisms().size() - 2);
          }
 
@@ -129,7 +129,7 @@ namespace cat
             assert(cat.EraseMorphism(id_morph_name(a)) == false);
             auto new_count = cat.GetMorphisms().size();
             assert(prev_count == new_count);
-            assert(cat.GetMorphisms().find(MorphDef(a, a, id_morph_name(a))) != cat.GetMorphisms().end());
+            assert(cat.GetMorphisms().find(Morph(a, a, id_morph_name(a))) != cat.GetMorphisms().end());
          }
 
          // Non existent morphism can't be deleted
@@ -155,18 +155,18 @@ namespace cat
 
          solve_compositions(cat);
 
-         cat.AddMorphisms(MorphDef(a, b, "f0"), MorphDef(b, c, "f1"), MorphDef(c, d, "f2"));
-         cat.AddMorphisms(MorphDef(d, c, "f3"), MorphDef(c, b, "f4"), MorphDef(b, a, "f5"));
+         cat.AddMorphisms(Morph(a, b, "f0"), Morph(b, c, "f1"), Morph(c, d, "f2"));
+         cat.AddMorphisms(Morph(d, c, "f3"), Morph(c, b, "f4"), Morph(b, a, "f5"));
 
          solve_compositions(cat);
 
-         assert(cat.GetMorphisms().find(MorphDef(a, c)) != cat.GetMorphisms().end());
-         assert(cat.GetMorphisms().find(MorphDef(a, d)) != cat.GetMorphisms().end());
-         assert(cat.GetMorphisms().find(MorphDef(b, d)) != cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(Morph(a, c)) != cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(Morph(a, d)) != cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(Morph(b, d)) != cat.GetMorphisms().end());
 
-         assert(cat.GetMorphisms().find(MorphDef(d, b)) != cat.GetMorphisms().end());
-         assert(cat.GetMorphisms().find(MorphDef(d, a)) != cat.GetMorphisms().end());
-         assert(cat.GetMorphisms().find(MorphDef(c, a)) != cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(Morph(d, b)) != cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(Morph(d, a)) != cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(Morph(c, a)) != cat.GetMorphisms().end());
 
          auto prev_count = cat.GetMorphisms().size();
          solve_compositions(cat);
@@ -186,22 +186,22 @@ namespace cat
          cat.AddObjects(a, b, c, d, e, f);
 
          cat.AddMorphisms(
-                     MorphDef(a, b)
-                  ,  MorphDef(b, a)
-                  ,  MorphDef(a, c)
-                  ,  MorphDef(b, d)
-                  ,  MorphDef(c, d)
-                  ,  MorphDef(c, f)
-                  ,  MorphDef(d, e));
+                     Morph(a, b)
+                  ,  Morph(b, a)
+                  ,  Morph(a, c)
+                  ,  Morph(b, d)
+                  ,  Morph(c, d)
+                  ,  Morph(c, f)
+                  ,  Morph(d, e));
 
          ObjVec seq = solve_sequence(cat, a, e);
 
          assert(seq.size() == 4);
 
-         std::vector<MorphDef> morphs = map_obj2morphism(seq, cat);
-         assert(morphs[0] == MorphDef(a, b));
-         assert(morphs[1] == MorphDef(b, d));
-         assert(morphs[2] == MorphDef(d, e));
+         std::vector<Morph> morphs = map_obj2morphism(seq, cat);
+         assert(morphs[0] == Morph(a, b));
+         assert(morphs[1] == Morph(b, d));
+         assert(morphs[2] == Morph(d, e));
 
          seq = solve_sequence(cat, e, a);
 
@@ -219,38 +219,38 @@ namespace cat
          cat.AddObjects(a, b, c, d, e, f);
 
          cat.AddMorphisms(
-                     MorphDef(a, b)
-                  ,  MorphDef(b, a)
-                  ,  MorphDef(a, c)
-                  ,  MorphDef(b, d)
-                  ,  MorphDef(c, d)
-                  ,  MorphDef(c, f)
-                  ,  MorphDef(d, e)
-                  ,  MorphDef(f, e));
+                     Morph(a, b)
+                  ,  Morph(b, a)
+                  ,  Morph(a, c)
+                  ,  Morph(b, d)
+                  ,  Morph(c, d)
+                  ,  Morph(c, f)
+                  ,  Morph(d, e)
+                  ,  Morph(f, e));
 
          std::vector<ObjVec> seqs = solve_sequences(cat, a, e);
 
          assert(seqs.size() == 3);
 
          {
-            std::vector<MorphDef> morphs = map_obj2morphism(seqs[0], cat);
-            assert(morphs[0] == MorphDef(a, b));
-            assert(morphs[1] == MorphDef(b, d));
-            assert(morphs[2] == MorphDef(d, e));
+            std::vector<Morph> morphs = map_obj2morphism(seqs[0], cat);
+            assert(morphs[0] == Morph(a, b));
+            assert(morphs[1] == Morph(b, d));
+            assert(morphs[2] == Morph(d, e));
          }
 
          {
-            std::vector<MorphDef> morphs = map_obj2morphism(seqs[1], cat);
-            assert(morphs[0] == MorphDef(a, c));
-            assert(morphs[1] == MorphDef(c, d));
-            assert(morphs[2] == MorphDef(d, e));
+            std::vector<Morph> morphs = map_obj2morphism(seqs[1], cat);
+            assert(morphs[0] == Morph(a, c));
+            assert(morphs[1] == Morph(c, d));
+            assert(morphs[2] == Morph(d, e));
          }
 
          {
-            std::vector<MorphDef> morphs = map_obj2morphism(seqs[2], cat);
-            assert(morphs[0] == MorphDef(a, c));
-            assert(morphs[1] == MorphDef(c, f));
-            assert(morphs[2] == MorphDef(f, e));
+            std::vector<Morph> morphs = map_obj2morphism(seqs[2], cat);
+            assert(morphs[0] == Morph(a, c));
+            assert(morphs[1] == Morph(c, f));
+            assert(morphs[2] == Morph(f, e));
          }
 
          seqs = solve_sequences(cat, e, a);
@@ -276,11 +276,11 @@ namespace cat
 
          inverse(cat);
 
-         assert(cat.GetMorphisms().find(MorphDef(b, a, "f0")) != cat.GetMorphisms().end());
-         assert(cat.GetMorphisms().find(MorphDef(c, a, "f1")) != cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(Morph(b, a, "f0")) != cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(Morph(c, a, "f1")) != cat.GetMorphisms().end());
 
-         assert(cat.GetMorphisms().find(MorphDef(d, b, "f2")) != cat.GetMorphisms().end());
-         assert(cat.GetMorphisms().find(MorphDef(d, c, "f3")) != cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(Morph(d, b, "f2")) != cat.GetMorphisms().end());
+         assert(cat.GetMorphisms().find(Morph(d, c, "f3")) != cat.GetMorphisms().end());
       }
 
       //============================================================
@@ -293,33 +293,35 @@ namespace cat
 
          cat.AddObjects(a0, a1, b, c, d0, d1);
 
-         cat.AddMorphisms(MorphDef(a0, a1), MorphDef(a1, a0));
+         cat.AddMorphisms(Morph(a0, a1), Morph(a1, a0));
 
-         cat.AddMorphism(MorphDef(a0, b));
-         cat.AddMorphism(MorphDef(a0, c));
+         cat.AddMorphism(Morph(a0, b));
+         cat.AddMorphism(Morph(a0, c));
 
-         cat.AddMorphism(MorphDef(a1, b));
-         cat.AddMorphism(MorphDef(a1, c));
+         cat.AddMorphism(Morph(a1, b));
+         cat.AddMorphism(Morph(a1, c));
 
-         cat.AddMorphism(MorphDef(b, d0));
-         cat.AddMorphism(MorphDef(c, d0));
+         cat.AddMorphism(Morph(b, d0));
+         cat.AddMorphism(Morph(c, d0));
 
-         cat.AddMorphism(MorphDef(b, d1));
-         cat.AddMorphism(MorphDef(c, d1));
+         cat.AddMorphism(Morph(b, d1));
+         cat.AddMorphism(Morph(c, d1));
 
-         cat.AddMorphisms(MorphDef(d0, d1), MorphDef(d1, d0));
+         cat.AddMorphisms(Morph(d0, d1), Morph(d1, d0));
 
          solve_compositions(cat);
 
          ObjVec initial_obj = initial(cat);
          assert(initial_obj.size() == 2);
-         assert(initial_obj[0] == a1);
-         assert(initial_obj[1] == a0);
+         std::sort(initial_obj.begin(), initial_obj.end());
+         assert(initial_obj[0] == a0);
+         assert(initial_obj[1] == a1);
 
          ObjVec terminal_obj = terminal(cat);
          assert(terminal_obj.size() == 2);
-         assert(terminal_obj[0] == d1);
-         assert(terminal_obj[1] == d0);
+         std::sort(terminal_obj.begin(), terminal_obj.end());
+         assert(terminal_obj[0] == d0);
+         assert(terminal_obj[1] == d1);
 
          cat.EraseObjects();
 
@@ -328,6 +330,27 @@ namespace cat
          terminal_obj = terminal(cat);
          assert(initial_obj.size() == terminal_obj.size() == 1);
          assert(initial_obj[0] == terminal_obj[0]);
+      }
+
+      //============================================================
+      // Testing functor
+      //============================================================
+      {
+         Cat C0("C0");
+         Obj a0("a0"), b0("b0");
+
+         C0.AddObjects(a0, b0);
+
+         Cat C1("C1");
+         Obj a1("a1"), b1("b1");
+         
+         C1.AddObjects(a1, b1);
+
+         CACat ccat;
+         ccat.AddCategory(C0);
+         ccat.AddCategory(C1);
+
+         Func fn(C0.GetName(), C1.GetName());
       }
 
       print_info("End test");

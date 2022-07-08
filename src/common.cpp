@@ -58,21 +58,51 @@ static std::optional<StringVec> get_morphism_objects(const StringPair& pair_)
 }
 
 //-----------------------------------------------------------------------------------------
-static std::optional<StringPair> get_functor_sections(const std::string& string_)
+static std::vector<Morph> get_morphisms(const std::string& string_)
 {
    StringVec subsections = split(string_, "::");
+   if (subsections.size() != 2)
+      return std::vector<Morph>();
+
    for (auto& str : subsections)
       str = trim_sp(str);
-   return subsections.size() == 2 ? StringPair(subsections[0], subsections[1]) : std::optional<StringPair>();
+
+   StringVec args = split(subsections[1], "->", false);
+   if (args.size() < 2)
+      return std::vector<Morph>();
+
+   for (auto& str : args)
+      str = trim_sp(str);
+
+   std::vector<Morph> ret; ret.reserve(args.size() - 1);
+   for (int i = 0; i < (int)args.size() - 1; ++i)
+   {
+      Obj source(args[i + 0]);
+      Obj target(args[i + 1]);
+      ret.push_back(Morph(source, target));
+   }
+
+   return ret;
 }
 
 //-----------------------------------------------------------------------------------------
-static std::optional<StringVec> get_functor_categories(const StringPair& pair_)
+static std::optional<Func> get_functor(const std::string& string_)
 {
-   StringVec ret = split(pair_.second, "=>", false);
-   for (auto& str : ret)
+   StringVec subsections = split(string_, "::");
+   if (subsections.size() != 2)
+      return std::optional<Func>();
+
+   for (auto& str : subsections)
       str = trim_sp(str);
-   return ret.size() < 2 ? std::optional<StringVec>() : ret;
+
+   StringVec args = split(subsections[1], "=>", false);
+   if (args.size() != 2)
+      return std::optional<Func>();
+
+   for (auto& str : args)
+      str = trim_sp(str);
+
+   return Func(args[0], args[1], subsections[0]);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -253,33 +283,17 @@ bool parse_source(const std::string& source_, CACat& ccat_)
             return false;
          }
 
-         auto subsections_opt = get_morphism_sections(line);
-         if (!subsections_opt)
+         std::vector<Morph> morphs = get_morphisms(line);
+         if (morphs.empty())
          {
             print_error("Error in morphism definition: " + line);
             return false;
          }
 
-         StringPair& subsections = subsections_opt.value();
-
-         auto mr_objects_opt = get_morphism_objects(subsections);
-         if (!mr_objects_opt)
+         if (morphs.front().name == sAny && morphs.front().source.GetName() == sAny && (morphs.front().target.GetName() == sAny))
          {
-            print_error("Error in morphism definition: " + line);
-            return false;
-         }
+            const ObjUMap& objs = crt_cat.value().GetObjects();
 
-         std::string morph_name = subsections.first;
-
-         StringVec& mr_objects = mr_objects_opt.value();
-
-         Obj source(mr_objects.front());
-         Obj target(mr_objects.back ());
-
-         const ObjUMap& objs = crt_cat.value().GetObjects();
-
-         if (morph_name == sAny && source.GetName() == sAny && (target.GetName() == sAny))
-         {
             for (const auto& [idomain, icodomain] : objs)
             {
                for (const auto& [jdomain, jcodomain] : objs)
@@ -287,68 +301,55 @@ bool parse_source(const std::string& source_, CACat& ccat_)
                   if (idomain == jdomain)
                      continue;
 
-                  if (!crt_cat.value().AddMorphism(MorphDef(idomain, jdomain)))
+                  if (!crt_cat.value().AddMorphism(Morph(idomain, jdomain)))
                      return false;
                }
             }
          }
          else
          {
-            std::string name = morph_name == sAny ? default_morph_name(source, target) : subsections.first;
-            if (!crt_cat.value().AddMorphism(Obj(source), Obj(target), name))
-               return false;
-
-            // In case of a chain of morphisms
-            if (mr_objects.size() > 2)
+            for (const Morph& morph : morphs)
             {
-               for (int i = 0; i < mr_objects.size() - 1; ++i)
-               {
-                  Obj source(mr_objects[i + 0]);
-                  Obj target(mr_objects[i + 1]);
-
-                  if (!crt_cat.value().AddMorphism(source, target, default_morph_name(source, target)))
-                     return false;
-               }
+               if (!crt_cat.value().AddMorphism(morph))
+                  return false;
             }
          }
-
       }
       // Functor
       else if (is_functor(line))
       {
          process_entity = ECurrentEntity::eFunctor;
 
-         auto subsections_opt = get_functor_sections(line);
-         if (!subsections_opt)
+         std::optional<Func> oFn = get_functor(line);
+         if (!oFn)
          {
             print_error("Error in functor definition: " + line);
             return false;
          }
 
-         StringPair& subsections = subsections_opt.value();
-
-         auto func_categories_opt = get_functor_categories(subsections);
-         if (!func_categories_opt)
-         {
-            print_error("Error in functor definition: " + line);
-            return false;
-         }
-
-         StringVec& func_categories = func_categories_opt.value();
-         if (func_categories.size() > 2)
-         {
-            print_error("Functor definition can only have two end points: " + line);
-            return false;
-         }
+         Func& fn = oFn.value();
 
          if (!fnStateSwitch())
             return false;
 
-         Cat::CatName& source = func_categories.front();
-         Cat::CatName& target = func_categories.back ();
+         if (expr_type == EExpType::eProof)
+         {
+            if (ccat_.Categories().find(Cat(fn.target)) == ccat_.Categories().end())
+            {
+               print_error("No such category: " + fn.target);
+               return false;
+            }
+         }
+         else if (expr_type == EExpType::eStatement)
+         {
+            if (ccat_.Categories().find(Cat(fn.target)) == ccat_.Categories().end())
+            {
+               ccat_.AddCategory(Cat(fn.target));
+            }
+         }
 
-         std::string name = subsections.first == sAny ? default_functor_name(source, target) : subsections.first;
-         crt_func.emplace(Func(source, target, name));
+         std::string name = fn.name == sAny ? default_functor_name(fn.source, fn.target) : fn.name;
+         crt_func.emplace(Func(fn.source, fn.target, name));
       }
       // Functor morphism
       else if (process_entity == ECurrentEntity::eFunctor && is_morphism(line))
@@ -414,7 +415,7 @@ bool parse_source(const std::string& source_, CACat& ccat_)
                   return false;
                }
 
-               crt_func.value().morphisms.insert(MorphDef(obj, obj));
+               crt_func.value().morphisms.insert(Morph(obj, obj));
             }
          }
          else if (source.GetName() == sAny && subsections.first == sAny)
@@ -441,12 +442,12 @@ bool parse_source(const std::string& source_, CACat& ccat_)
                   return false;
                }
 
-               crt_func.value().morphisms.insert(MorphDef(obj, Obj(target.GetName())));
+               crt_func.value().morphisms.insert(Morph(obj, Obj(target.GetName())));
             }
          }
          else
          {
-            for (const MorphDef& it : crt_func.value().morphisms)
+            for (const Morph& it : crt_func.value().morphisms)
             {
                if (it.source == source)
                {
@@ -456,8 +457,13 @@ bool parse_source(const std::string& source_, CACat& ccat_)
             }
 
             std::string name = subsections.first == sAny ? default_morph_name(source, target) : subsections.first;
-            crt_func.value().morphisms.insert(MorphDef(source, target, name));
+            crt_func.value().morphisms.insert(Morph(source, target, name));
          }
+      }
+      else
+      {
+         print_error(line);
+         return false;
       }
    }
 
@@ -635,9 +641,9 @@ std::vector<ObjVec> solve_sequences(const Cat& cat_, const Obj& from_, const Obj
 }
 
 //-----------------------------------------------------------------------------------------
-std::vector<MorphDef> map_obj2morphism(const ObjVec& objs_, const Cat& cat_)
+std::vector<Morph> map_obj2morphism(const ObjVec& objs_, const Cat& cat_)
 {
-   std::vector<MorphDef> ret;
+   std::vector<Morph> ret;
 
    const MorphSet& morphisms = cat_.GetMorphisms();
 
@@ -648,7 +654,7 @@ std::vector<MorphDef> map_obj2morphism(const ObjVec& objs_, const Cat& cat_)
          return objs_[i + 0] == elem_.source && objs_[i + 1] == elem_.target;
       });
 
-      ret.push_back(it != morphisms.end() ? *it : MorphDef(Obj(""), Obj("")));
+      ret.push_back(it != morphisms.end() ? *it : Morph(Obj(""), Obj("")));
    }
 
    return ret;
@@ -691,7 +697,7 @@ void solve_compositions(Cat& cat_)
       std::set_difference(new_codomain.begin(), new_codomain.end(), codomain.begin(), codomain.end(), std::inserter(domain_diff, domain_diff.begin()));
 
       for (const auto& codomain_obj : domain_diff)
-         cat_.AddMorphism(MorphDef(domain, codomain_obj));
+         cat_.AddMorphism(Morph(domain, codomain_obj));
    }
 }
 
@@ -720,7 +726,7 @@ void inverse(Cat& cat_)
 
    cat_.EraseMorphisms();
 
-   for (const MorphDef& morph : morphs)
+   for (const Morph& morph : morphs)
    {
       std::string name = default_morph_name(morph.source, morph.target) == morph.name ? default_morph_name(morph.target, morph.source) : morph.name;
       cat_.AddMorphism(morph.target, morph.source, name);

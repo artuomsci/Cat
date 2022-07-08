@@ -89,7 +89,7 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std:
 
    if (show_morphisms_)
    {
-      for (const MorphDef& mrph : cat_.GetMorphisms())
+      for (const Morph& mrph : cat_.GetMorphisms())
       {
          if (skip_identity_ && mrph.source == mrph.target)
             continue;
@@ -136,7 +136,7 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std:
    }
    else
    {
-      for (const MorphDef& mrph : cat_.GetMorphisms())
+      for (const Morph& mrph : cat_.GetMorphisms())
       {
          if (skip_identity_ & mrph.source == mrph.target)
             continue;

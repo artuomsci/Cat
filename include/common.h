@@ -53,7 +53,7 @@ CAT_EXPORT std::vector<cat::ObjVec> solve_sequences(const cat::Cat& cat_, const 
  * @param cat_ - category to find morphisms in
  * @return Sequence of morphisms
  */
-CAT_EXPORT std::vector<cat::MorphDef> map_obj2morphism(const cat::ObjVec& objs_, const cat::Cat& cat_);
+CAT_EXPORT std::vector<cat::Morph> map_obj2morphism(const cat::ObjVec& objs_, const cat::Cat& cat_);
 
 /**
  * @brief Find all compositions

@@ -51,27 +51,27 @@ std::size_t ObjKeyHasher::operator()(const Obj& k_) const
 
 //-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
-MorphDef::MorphDef(const Obj& source_, const Obj& target_, const std::string& morph_name_) :
+Morph::Morph(const Obj& source_, const Obj& target_, const std::string& morph_name_) :
    source      (source_)
  , target      (target_)
  , name        (morph_name_)
 {};
 
 //-----------------------------------------------------------------------------------------
-MorphDef::MorphDef(const Obj& source_, const Obj& target_) :
+Morph::Morph(const Obj& source_, const Obj& target_) :
    source      (source_)
  , target      (target_)
  , name        (default_morph_name(source_, target_))
 {};
 
 //-----------------------------------------------------------------------------------------
-bool MorphDef::operator<(const MorphDef& morph_) const
+bool Morph::operator<(const Morph& morph_) const
 {
    return std::tie(source, target, name) < std::tie(morph_.source, morph_.target, morph_.name);
 }
 
 //-----------------------------------------------------------------------------------------
-bool MorphDef::operator==(const MorphDef& morph_) const
+bool Morph::operator==(const Morph& morph_) const
 {
    return source == morph_.source && target == morph_.target && name == morph_.name;
 }
@@ -112,13 +112,13 @@ bool Cat::AddMorphism(const Obj& source_, const Obj& target_, const std::string&
 
    m_objects[source_].insert(target_);
 
-   m_morphisms.insert(MorphDef(source_, target_, morph_name_));
+   m_morphisms.insert(Morph(source_, target_, morph_name_));
 
    return true;
 }
 
 //-----------------------------------------------------------------------------------------
-bool Cat::AddMorphism(const MorphDef& morph_)
+bool Cat::AddMorphism(const Morph& morph_)
 {
    if (m_objects.find(morph_.source) == m_objects.end())
    {
@@ -272,6 +272,20 @@ bool Cat::MatchMorphism(const Obj& source_, const Obj& target_) const
 
 //-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
+Func::Func(const Cat::CatName& source_, const Cat::CatName& target_, const FuncName& name_) :
+      source(source_)
+   ,  target(target_)
+   ,  name  (name_)
+{}
+
+//-----------------------------------------------------------------------------------------
+Func::Func(const Cat::CatName& source_, const Cat::CatName& target_) :
+      source(source_)
+   ,  target(target_)
+   ,  name  (default_functor_name(source, target))
+{}
+
+//-----------------------------------------------------------------------------------------
 bool Func::operator < (const Func& func_) const
 {
    return std::tuple(source, target, name) < std::tuple(func_.source, func_.target, name);
@@ -280,7 +294,7 @@ bool Func::operator < (const Func& func_) const
 //-----------------------------------------------------------------------------------------
 std::optional<Obj> cat::MapObject(const Func& func_, const Obj& obj_)
 {
-   for (const MorphDef& morph : func_.morphisms)
+   for (const Morph& morph : func_.morphisms)
    {
       if (morph.source == obj_)
       {
@@ -339,7 +353,7 @@ bool CACat::Proof(Func& func_) const
       }
    }
 
-   for (const MorphDef& morph : source_cat.GetMorphisms())
+   for (const Morph& morph : source_cat.GetMorphisms())
    {
       auto objs = MapObject(func_, morph.source);
       auto objt = MapObject(func_, morph.target);
@@ -350,15 +364,42 @@ bool CACat::Proof(Func& func_) const
          return false;
       }
 
+      if (source_cat.GetObjects().find(morph.source) == source_cat.GetObjects().end())
+      {
+         print_error("No such object '" + morph.source.GetName() + "' in category '" + source_cat.GetName() + "'");
+         return false;
+      }
+
+      if (target_cat.GetObjects().find(objs.value()) == target_cat.GetObjects().end())
+      {
+         print_error("No such object '" + objs.value().GetName() + "' in category '" + target_cat.GetName() + "'");
+         return false;
+      }
+
       if (!objt)
       {
          print_error("Failure to map object: " + morph.target.GetName());
          return false;
       }
 
+      if (source_cat.GetObjects().find(morph.target) == source_cat.GetObjects().end())
+      {
+         print_error("No such object '" + morph.target.GetName() + "' in category '" + source_cat.GetName() + "'");
+         return false;
+      }
+
+      if (target_cat.GetObjects().find(objt.value()) == target_cat.GetObjects().end())
+      {
+         print_error("No such object '" + objt.value().GetName() + "' in category '" + target_cat.GetName() + "'");
+         return false;
+      }
+
       // Checking mapping of morphisms
       if (!target_cat.MatchMorphism(objs.value(), objt.value()))
+      {
+         print_error("Failure to match morphism: " + objs.value().GetName() + "->" + objt.value().GetName());
          return false;
+      }
    }
 
    return true;
@@ -400,14 +441,14 @@ bool CACat::Statement(Func& func_)
    }
 
    // Mapping morphisms
-   for (const MorphDef& morph : source_cat.GetMorphisms())
+   for (const Morph& morph : source_cat.GetMorphisms())
    {
       auto objs = MapObject(func_, morph.source);
       auto objt = MapObject(func_, morph.target);
 
       if (!target_cat.MatchMorphism(objs.value(), objt.value()))
       {
-         target_cat.AddMorphism(MorphDef(objs.value(), objt.value()));
+         target_cat.AddMorphism(Morph(objs.value(), objt.value()));
       }
    }
 
