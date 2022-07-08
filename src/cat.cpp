@@ -286,6 +286,20 @@ Func::Func(const Cat::CatName& source_, const Cat::CatName& target_) :
 {}
 
 //-----------------------------------------------------------------------------------------
+Func::Func(const Cat& source_, const Cat& target_, const FuncName& name_) :
+      source(source_.GetName())
+   ,  target(target_.GetName())
+   ,  name  (name_)
+{}
+
+//-----------------------------------------------------------------------------------------
+Func::Func(const Cat& source_, const Cat& target_) :
+   source(source_.GetName())
+,  target(target_.GetName())
+,  name  (default_functor_name(source, target))
+{}
+
+//-----------------------------------------------------------------------------------------
 bool Func::operator < (const Func& func_) const
 {
    return std::tuple(source, target, name) < std::tuple(func_.source, func_.target, name);

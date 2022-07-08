@@ -187,6 +187,8 @@ namespace cat
 
       explicit Func(const Cat::CatName& source_, const Cat::CatName& target_, const FuncName& name_);
       explicit Func(const Cat::CatName& source_, const Cat::CatName& target_);
+      explicit Func(const Cat& source_, const Cat& target_, const FuncName& name_);
+      explicit Func(const Cat& source_, const Cat& target_);
 
       Cat::CatName   source;
       Cat::CatName   target;
