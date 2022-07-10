@@ -323,13 +323,27 @@ std::optional<Obj> cat::MapObject(const Func& func_, const Obj& obj_)
 //-----------------------------------------------------------------------------------------
 void CACat::AddCategory(const Cat& cat_)
 {
-   m_cats.insert(cat_);
+   if (m_cats.find(cat_) == m_cats.end())
+      m_cats.insert(cat_);
+}
+
+//-----------------------------------------------------------------------------------------
+void CACat::EraseCategory(const Cat& cat_)
+{
+   m_cats.erase(cat_);
 }
 
 //-----------------------------------------------------------------------------------------
 void CACat::AddFunctor(const Func& func_)
 {
-   m_funcs.insert(func_);
+   if (m_funcs.find(func_) == m_funcs.end())
+      m_funcs.insert(func_);
+}
+
+//-----------------------------------------------------------------------------------------
+void CACat::EraseFunctor(const Func& func_)
+{
+   m_funcs.erase(func_);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -346,7 +360,7 @@ const std::set<Func>& CACat::Functors() const
 }
 
 //-----------------------------------------------------------------------------------------
-bool CACat::Proof(Func& func_) const
+bool CACat::Proof(const Func& func_) const
 {
    auto itSourceCat = m_cats.find(Cat(func_.source));
    auto itTargetCat = m_cats.find(Cat(func_.target));
@@ -420,7 +434,7 @@ bool CACat::Proof(Func& func_) const
 }
 
 //-----------------------------------------------------------------------------------------
-bool CACat::Statement(Func& func_)
+bool CACat::Statement(const Func& func_)
 {
    auto itSourceCat = m_cats.find(Cat(func_.source));
    if (itSourceCat == m_cats.end())
@@ -431,14 +445,9 @@ bool CACat::Statement(Func& func_)
 
    const Cat& source_cat = *itSourceCat;
 
-   std::optional<Cat> ocat;
-   auto itTargetCat = m_cats.find(Cat(func_.target));
-   if (itTargetCat != m_cats.end())
-      ocat.emplace(*itTargetCat);
-   else
-      ocat.emplace(Cat(func_.target));
+   Cat target_cat = Categories().find(Cat(func_.target)) == Categories().end() ? Cat(func_.target) : *Categories().find(Cat(func_.target));
 
-   Cat& target_cat = ocat.value();
+   EraseCategory(target_cat);
 
    // Mapping objects
    for (const auto& [obj, _] : source_cat.GetObjects())
@@ -465,6 +474,8 @@ bool CACat::Statement(Func& func_)
          target_cat.AddMorphism(Morph(objs.value(), objt.value()));
       }
    }
+
+   AddCategory(target_cat);
 
    return true;
 }

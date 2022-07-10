@@ -236,12 +236,6 @@ bool parse_source(const std::string& source_, CACat& ccat_)
    // Finalize functor creation
    auto fnCreateFunctor = [](CACat& ccat_, Func& func_, EExpType type_)
    {
-      if (func_.morphisms.empty())
-      {
-         print_error("Morphisms are not defined in functor: " + func_.name);
-         return false;
-      }
-
       if (type_ == EExpType::eProof)
       {
          if (!ccat_.Proof(func_))
@@ -249,6 +243,21 @@ bool parse_source(const std::string& source_, CACat& ccat_)
       }
       else if (type_ == EExpType::eStatement)
       {
+         if (func_.morphisms.empty())
+         {
+            auto itSourceCat = ccat_.Categories().find(Cat(func_.source));
+            if (itSourceCat == ccat_.Categories().end())
+            {
+               print_error("Missing source category: " + func_.source);
+               return false;
+            }
+
+            const Cat& source_cat = *itSourceCat;
+
+            for (const auto& [obj, _] : source_cat.GetObjects())
+               func_.morphisms.emplace(obj, obj);
+         }
+
          if (!ccat_.Statement(func_))
             return false;
       }
@@ -362,8 +371,8 @@ bool parse_source(const std::string& source_, CACat& ccat_)
    {
       const std::set<Cat>& cats = ccat_.Categories();
 
-      auto itSourceCat = std::find_if(cats.begin(), cats.end(), [&](const Cat& cat_){ return cat_.GetName() == crt_func_.value().source; });
-      auto itTargetCat = std::find_if(cats.begin(), cats.end(), [&](const Cat& cat_){ return cat_.GetName() == crt_func_.value().target; });
+      auto itSourceCat = cats.find(Cat(crt_func_.value().source));
+      auto itTargetCat = cats.find(Cat(crt_func_.value().target));
 
       std::set<Obj> source_keys = umapk2set<ObjUMap>((*itSourceCat).GetObjects());
       std::set<Obj> target_keys = umapk2set<ObjUMap>((*itTargetCat).GetObjects());

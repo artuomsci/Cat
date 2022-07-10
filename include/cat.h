@@ -206,11 +206,13 @@ namespace cat
    public:
 
       void AddCategory(const Cat& cat_);
+      void EraseCategory(const Cat& cat_);
       void AddFunctor(const Func& func_);
+      void EraseFunctor(const Func& func_);
       const std::set<Cat>& Categories() const;
       const std::set<Func>& Functors() const;
-      bool Proof(Func& func_) const;
-      bool Statement(Func& func_);
+      bool Proof(const Func& func_) const;
+      bool Statement(const Func& func_);
       std::optional<Func> MatchFunctor(const Cat::CatName& source_, const Cat::CatName& target_);
 
    private:
