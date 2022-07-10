@@ -261,12 +261,92 @@ bool parse_source(const std::string& source_, CACat& ccat_)
    std::optional<Cat > crt_cat;
    std::optional<Func> crt_func;
 
-   auto fnStateSwitch = [&]()
+   auto fnBeginCategory = [](const std::string& line_, std::optional<Cat>& crt_cat_)
    {
-      if (crt_cat)
-         ccat_.AddCategory(crt_cat.value());
-      crt_cat.reset();
+      crt_cat_.emplace(line_);
+   };
 
+   auto fnEndCategory = [](std::optional<Cat>& crt_cat_, CACat& ccat_)
+   {
+      if (crt_cat_)
+         ccat_.AddCategory(crt_cat_.value());
+      crt_cat_.reset();
+
+      return true;
+   };
+
+   auto fnAddObjects = [](const std::string& line_, std::optional<Cat>& crt_cat_)
+   {
+      if (!crt_cat_)
+      {
+         print_error("No category to add object: " + line_);
+         return false;
+      }
+
+      for (auto& itObjName : split(line_, ',', false))
+      {
+         auto objName = trim_sp(itObjName);
+
+         if (!crt_cat_.value().AddObject(Obj(objName)))
+         {
+            print_error("Failure to add object: " + objName);
+            return false;
+         }
+      }
+
+      return true;
+   };
+
+   auto fnAddMorphisms = [](const std::string& line_, std::optional<Cat>& crt_cat_, EExpType expr_type_)
+   {
+      if (!crt_cat_)
+      {
+         print_error("No category to add morphism: " + line_);
+         return false;
+      }
+
+      const ObjUMap& objs = crt_cat_.value().GetObjects();
+
+      std::set<Obj> obj_keys = umapk2set<ObjUMap>(objs);
+
+      std::vector<Morph> morphs = get_chain<Morph, Obj>(line_, obj_keys, obj_keys, expr_type_);
+      if (morphs.empty())
+      {
+         print_error("Error in morphism definition: " + line_);
+         return false;
+      }
+
+      for (const Morph& morph : morphs)
+      {
+         if (!crt_cat_.value().AddMorphism(morph))
+            return false;
+      }
+
+      return true;
+   };
+
+   auto fnBeginFunctor = [](const std::string& line_, std::optional<Func>& crt_func_, CACat& ccat_, EExpType expr_type_)
+   {
+      std::vector<Func> funcs = get_chain<Func, Cat>(line_, ccat_.Categories(), ccat_.Categories(), expr_type_);
+      if (funcs.size() != 1)
+      {
+         print_error("Incorrect functor definition: " + line_);
+         return false;
+      }
+
+      if (expr_type_ == EExpType::eStatement)
+      {
+         if (ccat_.Categories().find(Cat(funcs.front().target)) == ccat_.Categories().end())
+            ccat_.AddCategory(Cat(funcs.front().target));
+      }
+
+      crt_func_.emplace(funcs.front());
+
+      return true;
+   };
+
+   auto fnEndFunctor = [&]()
+   {
       if (crt_func)
       {
          if (!fnCreateFunctor(ccat_, crt_func.value(), expr_type))
@@ -276,6 +356,34 @@ bool parse_source(const std::string& source_, CACat& ccat_)
       }
 
       return true;
+   };
+
+   auto fnAddFMorphisms = [](const std::string& line_, std::optional<Func>& crt_func_, CACat& ccat_, EExpType expr_type_)
+   {
+      const std::set<Cat>& cats = ccat_.Categories();
+
+      auto itSourceCat = std::find_if(cats.begin(), cats.end(), [&](const Cat& cat_){ return cat_.GetName() == crt_func_.value().source; });
+      auto itTargetCat = std::find_if(cats.begin(), cats.end(), [&](const Cat& cat_){ return cat_.GetName() == crt_func_.value().target; });
+
+      std::set<Obj> source_keys = umapk2set<ObjUMap>((*itSourceCat).GetObjects());
+      std::set<Obj> target_keys = umapk2set<ObjUMap>((*itTargetCat).GetObjects());
+
+      std::vector<Morph> morphs = get_chain<Morph, Obj>(line_, source_keys, target_keys, expr_type_);
+      if (morphs.empty())
+      {
+         print_error("Error in morphism definition: " + line_);
+         return false;
+      }
+
+      for (const Morph& morph : morphs)
+         crt_func_.value().morphisms.insert(morph);
+
+     return true;
+   };
+
+   auto fnStateSwitch = [&]()
+   {
+      return fnEndCategory(crt_cat, ccat_) && fnEndFunctor();
    };
 
    for (const std::string& iline : split(conform(source_), '\n'))
@@ -337,57 +445,21 @@ bool parse_source(const std::string& source_, CACat& ccat_)
          if (!fnStateSwitch())
             return false;
 
-         crt_cat.emplace(Cat(tail));
+         fnBeginCategory(tail, crt_cat);
 
          process_entity = ECurrentEntity::eCategory;
       }
       // Object
       else if (process_entity == ECurrentEntity::eCategory && head == sObj)
       {
-         if (!crt_cat)
-         {
-            print_error("No category to add object: " + tail);
+         if (!fnAddObjects(tail, crt_cat))
             return false;
-         }
-
-         StringVec arr_objs = split(tail, ',', false);
-
-         for (auto& itObjName : arr_objs)
-         {
-            auto objName = trim_sp(itObjName);
-
-            if (!crt_cat.value().AddObject(Obj(objName)))
-            {
-               print_error("Failure to add object: " + objName);
-               return false;
-            }
-         }
       }
       // Morphism
       else if (process_entity == ECurrentEntity::eCategory && is_morphism(line))
       {
-         if (!crt_cat)
-         {
-            print_error("No category to add morphism: " + line);
+         if (!fnAddMorphisms(line, crt_cat, expr_type))
             return false;
-         }
-
-         const ObjUMap& objs = crt_cat.value().GetObjects();
-
-         std::set<Obj> obj_keys = umapk2set<ObjUMap>(objs);
-
-         std::vector<Morph> morphs = get_chain<Morph, Obj>(line, obj_keys, obj_keys, expr_type);
-         if (morphs.empty())
-         {
-            print_error("Error in morphism definition: " + line);
-            return false;
-         }
-
-         for (const Morph& morph : morphs)
-         {
-            if (!crt_cat.value().AddMorphism(morph))
-               return false;
-         }
       }
       // Functor
       else if (is_functor(line))
@@ -397,41 +469,14 @@ bool parse_source(const std::string& source_, CACat& ccat_)
          if (!fnStateSwitch())
             return false;
 
-         std::vector<Func> funcs = get_chain<Func, Cat>(line, ccat_.Categories(), ccat_.Categories(), expr_type);
-         if (funcs.size() != 1)
-         {
-            print_error("Incorrect functor definition: " + line);
+         if (!fnBeginFunctor(line, crt_func, ccat_, expr_type))
             return false;
-         }
-
-         if (expr_type == EExpType::eStatement)
-         {
-            if (ccat_.Categories().find(Cat(funcs.front().target)) == ccat_.Categories().end())
-               ccat_.AddCategory(Cat(funcs.front().target));
-         }
-
-         crt_func.emplace(funcs.front());
       }
       // Functor morphism
       else if (process_entity == ECurrentEntity::eFunctor && is_morphism(line))
       {
-         const std::set<Cat>& cats = ccat_.Categories();
-
-         auto itSourceCat = std::find_if(cats.begin(), cats.end(), [&](const Cat& cat_){ return cat_.GetName() == crt_func.value().source; });
-         auto itTargetCat = std::find_if(cats.begin(), cats.end(), [&](const Cat& cat_){ return cat_.GetName() == crt_func.value().target; });
-
-         std::set<Obj> source_keys = umapk2set<ObjUMap>((*itSourceCat).GetObjects());
-         std::set<Obj> target_keys = umapk2set<ObjUMap>((*itTargetCat).GetObjects());
-
-         std::vector<Morph> morphs = get_chain<Morph, Obj>(line, source_keys, target_keys, expr_type);
-         if (morphs.empty())
-         {
-            print_error("Error in morphism definition: " + line);
+         if (!fnAddFMorphisms(line, crt_func, ccat_, expr_type))
             return false;
-         }
-
-         for (const Morph& morph : morphs)
-            crt_func.value().morphisms.insert(morph);
       }
       else
       {
