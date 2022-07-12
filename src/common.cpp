@@ -11,13 +11,18 @@
 static const char* const sCat = "cat";
 // Object
 static const char* const sObj = "obj";
-// Any
+// Any entity
 static const char* const sAny = "*";
 // Comment
 static const char* const sComment = "--";
+// Import
+static const char* const sImport = "import";
 // Expressions type
 static const char* const sStatement = "statement";
 static const char* const sProof     = "proof";
+
+// File extension
+static const char* const sExt = ".cat";
 
 using namespace cat;
 
@@ -220,7 +225,7 @@ static std::string conform(std::string string_)
 }
 
 //-----------------------------------------------------------------------------------------
-bool parse_source(const std::string& source_, CACat& ccat_)
+bool SParser::parse_source(const std::string& source_, CACat& ccat_)
 {
    enum class ECurrentEntity
    {
@@ -270,9 +275,18 @@ bool parse_source(const std::string& source_, CACat& ccat_)
    std::optional<Cat > crt_cat;
    std::optional<Func> crt_func;
 
-   auto fnBeginCategory = [](const std::string& line_, std::optional<Cat>& crt_cat_)
+   auto fnBeginCategory = [](const std::string& line_, std::optional<Cat>& crt_cat_, CACat& ccat_)
    {
-      crt_cat_.emplace(line_);
+      auto it = ccat_.Categories().find(Cat(line_));
+
+      if (it == ccat_.Categories().end())
+         crt_cat_.emplace(line_);
+      else
+      {
+         crt_cat_.emplace(*it);
+
+         ccat_.EraseCategory(*it);
+      }
    };
 
    auto fnEndCategory = [](std::optional<Cat>& crt_cat_, CACat& ccat_)
@@ -395,12 +409,38 @@ bool parse_source(const std::string& source_, CACat& ccat_)
       return fnEndCategory(crt_cat, ccat_) && fnEndFunctor();
    };
 
-   for (const std::string& iline : split(conform(source_), '\n'))
+   auto fnImport = [](const std::filesystem::path& path_, const std::string& line_, int line_index_, StringVec& lines_)
    {
-      if (iline.empty())
+      auto pt = path_;
+      std::ifstream input(pt.remove_filename().string() + line_ + sExt);
+      if (input.is_open())
+      {
+         std::stringstream descr;
+         descr << input.rdbuf();
+
+         input.close();
+
+         StringVec import_lines = split(conform(descr.str()), '\n');
+
+         lines_.insert(lines_.begin() + line_index_ + 1, import_lines.begin(), import_lines.end());
+      }
+      else
+      {
+         print_error("Failure to import: " + line_);
+         return false;
+      }
+
+      return true;
+   };
+
+   StringVec lines = split(conform(source_), '\n');
+
+   for (int i = 0; i < lines.size(); ++i)
+   {
+      if (lines[i].empty())
          continue;
 
-      std::string line = trim_sp(iline);
+      std::string line = trim_sp(lines[i]);
 
       StringVec sections;
 
@@ -448,13 +488,19 @@ bool parse_source(const std::string& source_, CACat& ccat_)
       {
          continue;
       }
+      // Import
+      if (head == sImport)
+      {
+         if (!fnImport(m_path, tail, i, lines))
+            return false;
+      }
       // Category
       else if (head == sCat)
       {
          if (!fnStateSwitch())
             return false;
 
-         fnBeginCategory(tail, crt_cat);
+         fnBeginCategory(tail, crt_cat, ccat_);
 
          process_entity = ECurrentEntity::eCategory;
       }
@@ -501,7 +547,18 @@ bool parse_source(const std::string& source_, CACat& ccat_)
 }
 
 //-----------------------------------------------------------------------------------------
-bool load_source(const std::string& path_, CACat& ccat_)
+SParser::SParser(const std::string& file_path_) : m_path(file_path_)
+{
+}
+
+//-----------------------------------------------------------------------------------------
+bool SParser::parse(cat::CACat& ccat_)
+{
+   return load_source(m_path.string(), ccat_);
+}
+
+//-----------------------------------------------------------------------------------------
+bool SParser::load_source(const std::string& path_, CACat& ccat_)
 {
    std::ifstream input(path_);
    if (input.is_open())

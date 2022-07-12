@@ -2,25 +2,43 @@
 
 #include <string>
 #include <optional>
+#include <filesystem>
 
 #include "cat_export.h"
 #include "cat.h"
 
-/**
- * @brief Parse the contents of string
- * @param source_ - string to parse
- * @param ccat_ - category of categories
- * @return True if string was successfully parsed
- */
-CAT_EXPORT bool parse_source(const std::string& source_, cat::CACat& ccat_);
+struct CAT_EXPORT SParser
+{
+   SParser(const std::string& file_path_);
 
-/**
- * @brief Load source file
- * @param path_ - path to source file
- * @param ccat_ - category of categories
- * @return True if file was successfully loaded
- */
-CAT_EXPORT bool load_source(const std::string& path_, cat::CACat& ccat_);
+   /**
+   * @brief Parse file
+   * @param ccat_ - category of categories
+   * @return True if file was successfully parsed
+   */
+   bool parse(cat::CACat& ccat_);
+
+private:
+   /**
+    * @brief Load source file
+    * @param path_ - path to source file
+    * @param ccat_ - category of categories
+    * @return True if file was successfully loaded
+    */
+   bool load_source(const std::string& path_, cat::CACat& ccat_);
+
+   /**
+    * @brief Parse the contents of string
+    * @param source_ - string to parse
+    * @param ccat_ - category of categories
+    * @return True if string was successfully parsed
+    */
+   bool parse_source(const std::string& source_, cat::CACat& ccat_);
+
+private:
+
+   std::filesystem::path m_path;
+};
 
 /**
  * @brief Load text file into string
