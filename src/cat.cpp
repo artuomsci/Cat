@@ -481,7 +481,7 @@ bool CACat::Statement(const Func& func_)
 }
 
 //-----------------------------------------------------------------------------------------
-std::optional<Func> CACat::MatchFunctor(const Cat::CatName& source_, const Cat::CatName& target_)
+std::optional<Func> CACat::MatchFunctor(const Cat::CatName& source_, const Cat::CatName& target_) const
 {
    for (const Func& func : m_funcs)
    {

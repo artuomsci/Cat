@@ -123,3 +123,22 @@ CAT_EXPORT cat::ObjVec initial(cat::Cat& cat_);
  * @return Terminal objects
  */
 CAT_EXPORT cat::ObjVec terminal(cat::Cat& cat_);
+
+/**
+ * @brief The type of coproduct
+ */
+enum class eCProdType
+{
+      eInt  // Numerical value
+   ,  eReal // Numerical value
+   ,  eStr  // String value
+};
+
+/**
+ * @brief Coproduct
+ * @param fst_ - first object
+ * @param snd_ - second object
+ * @param type_ - type of coproduct
+ * @return Coproduct result
+ */
+CAT_EXPORT cat::Obj coproduct(cat::Obj& fst_, cat::Obj& snd_, eCProdType type_);

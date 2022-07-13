@@ -213,7 +213,7 @@ namespace cat
       const std::set<Func>& Functors() const;
       bool Proof(const Func& func_) const;
       bool Statement(const Func& func_);
-      std::optional<Func> MatchFunctor(const Cat::CatName& source_, const Cat::CatName& target_);
+      std::optional<Func> MatchFunctor(const Cat::CatName& source_, const Cat::CatName& target_) const;
 
    private:
       std::set<Cat> m_cats;

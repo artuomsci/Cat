@@ -333,6 +333,24 @@ namespace cat
       }
 
       //============================================================
+      // Coproduct test
+      //============================================================
+      {
+         Obj a("a");
+         Obj b("b");
+         assert(coproduct(a, b, eCProdType::eStr) == Obj("ab"));
+
+         Obj f("4");
+         Obj s("5");
+         assert(coproduct(f, s, eCProdType::eInt) == Obj("9"));
+
+         Obj fd("0.1");
+         Obj sd("0.5");
+         double result = std::stod(coproduct(fd, sd, eCProdType::eReal).GetName());
+         assert(std::abs(result - 0.6) < std::numeric_limits<double>::epsilon());
+      }
+
+      //============================================================
       // Testing functor
       //============================================================
       {

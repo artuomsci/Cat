@@ -834,7 +834,7 @@ ObjVec initial(Cat& cat_)
 }
 
 //-----------------------------------------------------------------------------------------
-CAT_EXPORT ObjVec terminal(Cat& cat_)
+ObjVec terminal(Cat& cat_)
 {
    ObjVec ret;
 
@@ -856,4 +856,24 @@ CAT_EXPORT ObjVec terminal(Cat& cat_)
    }
 
    return ret;
+}
+
+//-----------------------------------------------------------------------------------------
+cat::Obj coproduct(cat::Obj& fst_, cat::Obj& snd_, eCProdType type_)
+{
+   std::string ret;
+
+   switch (type_) {
+   case eCProdType::eReal:
+      ret = std::to_string(std::stod(fst_.GetName()) + std::stod(snd_.GetName()));
+      break;
+   case eCProdType::eInt:
+      ret = std::to_string(std::stoi(fst_.GetName()) + std::stoi(snd_.GetName()));
+      break;
+   case eCProdType::eStr:
+      ret = fst_.GetName() + snd_.GetName();
+      break;
+   }
+
+   return cat::Obj(ret);
 }
