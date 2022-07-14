@@ -351,6 +351,24 @@ namespace cat
       }
 
       //============================================================
+      // Product test
+      //============================================================
+      {
+         Obj a("ac");
+         Obj b("bd");
+         assert(product(a, b, eCProdType::eStr) == Obj("abadcbcd"));
+
+         Obj f("4");
+         Obj s("5");
+         assert(product(f, s, eCProdType::eInt) == Obj("20"));
+
+         Obj fd("1.1");
+         Obj sd("5");
+         double result = std::stod(product(fd, sd, eCProdType::eReal).GetName());
+         assert(std::abs(result - 5.5) < std::numeric_limits<double>::epsilon());
+      }
+
+      //============================================================
       // Testing functor
       //============================================================
       {

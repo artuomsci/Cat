@@ -142,3 +142,12 @@ enum class eCProdType
  * @return Coproduct result
  */
 CAT_EXPORT cat::Obj coproduct(cat::Obj& fst_, cat::Obj& snd_, eCProdType type_);
+
+/**
+ * @brief Product
+ * @param fst_ - first object
+ * @param snd_ - second object
+ * @param type_ - type of product
+ * @return Product result
+ */
+CAT_EXPORT cat::Obj product(cat::Obj& fst_, cat::Obj& snd_, eCProdType type_);

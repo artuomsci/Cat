@@ -877,3 +877,32 @@ cat::Obj coproduct(cat::Obj& fst_, cat::Obj& snd_, eCProdType type_)
 
    return cat::Obj(ret);
 }
+
+//-----------------------------------------------------------------------------------------
+cat::Obj product(cat::Obj& fst_, cat::Obj& snd_, eCProdType type_)
+{
+   std::string ret;
+
+   switch (type_) {
+   case eCProdType::eReal:
+      ret = std::to_string(std::stod(fst_.GetName()) * std::stod(snd_.GetName()));
+      break;
+   case eCProdType::eInt:
+      ret = std::to_string(std::stoi(fst_.GetName()) * std::stoi(snd_.GetName()));
+      break;
+   case eCProdType::eStr:
+   {
+      for (auto i : fst_.GetName())
+      {
+         for (auto j : snd_.GetName())
+         {
+            ret += i;
+            ret += j;
+         }
+      }
+   }
+      break;
+   }
+
+   return cat::Obj(ret);
+}
