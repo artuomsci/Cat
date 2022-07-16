@@ -57,11 +57,19 @@ namespace cat
       bool operator  == (const Morph& morph_) const;
    };
 
+   using MorphSet    = std::set<Morph>;
+
    using ObjSet      = std::set<Obj>;
    using ObjSetPair  = std::pair<Obj, ObjSet>;
    using ObjUMap     = std::unordered_map<Obj, ObjSet, ObjKeyHasher>;
-   using MorphSet    = std::set<Morph>;
    using ObjVec      = std::vector<Obj>;
+
+   //-----------------------------------------------------------------------------------------
+   enum class EExpType
+   {
+         eStatement
+      ,  eProof
+   };
 
    // Category
    class CAT_EXPORT Cat
@@ -104,7 +112,7 @@ namespace cat
       /**
        * @brief Erase morphism
        * @param morph_name_ - morphism name
-       * @return Result of erasure
+       * @return True if successfully erased
        */
       bool EraseMorphism(const std::string& morph_name_);
 
@@ -114,14 +122,14 @@ namespace cat
       void EraseMorphisms();
 
       /**
-       * @brief Add object to category
+       * @brief Add object to the category
        * @param obj_ - object to add
-       * @return Result of adding object
+       * @return True if successfully added
        */
       bool AddObject(const Obj& obj_);
 
       /**
-       * @brief Add object to category
+       * @brief Add objects to the category
        * @param obj_ - object to add
        * @return Result of adding object
        */
@@ -132,9 +140,9 @@ namespace cat
       }
 
       /**
-       * @brief Erase object from category
+       * @brief Erase object from the category
        * @param obj_ - object to erase
-       * @return Result of erasure
+       * @return True if successfully erased
        */
       bool EraseObject(const Obj& obj_);
 
@@ -180,43 +188,5 @@ namespace cat
       MorphSet    m_morphisms;
    };
 
-   // Functor
-   struct CAT_EXPORT Func
-   {
-      using FuncName = std::string;
-
-      explicit Func(const Cat::CatName& source_, const Cat::CatName& target_, const FuncName& name_);
-      explicit Func(const Cat::CatName& source_, const Cat::CatName& target_);
-      explicit Func(const Cat& source_, const Cat& target_, const FuncName& name_);
-      explicit Func(const Cat& source_, const Cat& target_);
-
-      Cat::CatName   source;
-      Cat::CatName   target;
-      FuncName       name;
-      MorphSet       morphisms;
-
-      bool operator < (const Func& func_) const;
-   };
-
-   CAT_EXPORT std::optional<Obj> MapObject(const Func& func_, const Obj& obj_);
-
-   // Category of categories
-   class CAT_EXPORT CACat
-   {
-   public:
-
-      void AddCategory(const Cat& cat_);
-      void EraseCategory(const Cat& cat_);
-      void AddFunctor(const Func& func_);
-      void EraseFunctor(const Func& func_);
-      const std::set<Cat>& Categories() const;
-      const std::set<Func>& Functors() const;
-      bool Proof(const Func& func_) const;
-      bool Statement(const Func& func_);
-      std::optional<Func> MatchFunctor(const Cat::CatName& source_, const Cat::CatName& target_) const;
-
-   private:
-      std::set<Cat> m_cats;
-      std::set<Func> m_funcs;
-   };
+   using CatSet = std::set<Cat>;
 }

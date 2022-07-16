@@ -55,13 +55,6 @@ static bool is_functor(const std::string& string_)
 }
 
 //-----------------------------------------------------------------------------------------
-enum class EExpType
-{
-      eStatement
-   ,  eProof
-};
-
-//-----------------------------------------------------------------------------------------
 template <typename TNode, typename TContainer, typename TLink>
 static std::vector<TLink> get_chains(const std::string& name_, const TNode& source_, const TNode& target_, const TContainer& domain_, const TContainer& codomain_, EExpType expr_type_)
 {
@@ -238,40 +231,6 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
 
    EExpType expr_type { EExpType::eProof };
 
-   // Finalize functor creation
-   auto fnCreateFunctor = [](CACat& ccat_, Func& func_, EExpType type_)
-   {
-      if (type_ == EExpType::eProof)
-      {
-         if (!ccat_.Proof(func_))
-            return false;
-      }
-      else if (type_ == EExpType::eStatement)
-      {
-         if (func_.morphisms.empty())
-         {
-            auto itSourceCat = ccat_.Categories().find(Cat(func_.source));
-            if (itSourceCat == ccat_.Categories().end())
-            {
-               print_error("Missing source category: " + func_.source);
-               return false;
-            }
-
-            const Cat& source_cat = *itSourceCat;
-
-            for (const auto& [obj, _] : source_cat.GetObjects())
-               func_.morphisms.emplace(obj, obj);
-         }
-
-         if (!ccat_.Statement(func_))
-            return false;
-      }
-
-      ccat_.AddFunctor(func_);
-
-      return true;
-   };
-
    std::optional<Cat > crt_cat;
    std::optional<Func> crt_func;
 
@@ -372,7 +331,7 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
    {
       if (crt_func)
       {
-         if (!fnCreateFunctor(ccat_, crt_func.value(), expr_type))
+         if (!ccat_.AddFunctor(crt_func.value(), expr_type))
             return false;
 
          crt_func.reset();
