@@ -4,72 +4,75 @@
 
 using namespace cat;
 
+static std::string get_template()
+{
+   return R"(<!DOCTYPE>
+      <html>
+        <meta charset="UTF-8">
+        <head>
+          <title>$(title)</title>
+          <script src="cytoscape.min.js"></script>
+
+          <style>
+            #cy {
+            height: 100%;
+            width: 100%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            float: left;
+            }
+          </style>
+
+        </head>
+
+        <body>
+          <div id="cy"></div>
+          <script>
+                  let data = {$(data)};
+                  var cy = cytoscape({
+                      container: document.getElementById('cy'),
+                      elements: data,
+                      style: [
+                              {
+                              selector: 'node[type="Node"][name]',
+                                 style:
+                                 {
+                                    'content': 'data(name)'
+                                 }
+                              },
+                              {
+                              selector: 'node[type="Link"][name]',
+                                 style:
+                                 {
+                                    'content': 'data(name)',
+                                    'text-valign': 'center',
+                                    'text-halign': 'center',
+                                    'background-color': 'white'
+                                 }
+                              },
+                              {
+                              selector: 'edge',
+                                 style:
+                                 {
+                                    'curve-style': 'bezier',
+                                    'target-arrow-shape': 'triangle'
+                                 }
+                              }
+                      ],
+                      layout: {
+                          name: '$(pattern)'
+                      }
+                  });
+
+          </script>
+        </body>
+
+      </html>)";
+}
+
 void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std::string& prefix_, const TCoords<Obj>& coords_, bool skip_identity_, bool show_morphisms_)
 {
-   std::string srctemplate = R"(<!DOCTYPE>
-         <html>
-           <meta charset="UTF-8">
-           <head>
-             <title>$(title)</title>
-             <script src="cytoscape.min.js"></script>
-
-             <style>
-               #cy {
-               height: 100%;
-               width: 100%;
-               position: absolute;
-               left: 0;
-               top: 0;
-               float: left;
-               }
-             </style>
-
-           </head>
-
-           <body>
-             <div id="cy"></div>
-             <script>
-                     let data = {$(data)};
-                     var cy = cytoscape({
-                         container: document.getElementById('cy'),
-                         elements: data,
-                         style: [
-                                 {
-                                 selector: 'node[type="Obj"][name]',
-                                    style:
-                                    {
-                                       'content': 'data(name)'
-                                    }
-                                 },
-                                 {
-                                 selector: 'node[type="Morph"][name]',
-                                    style:
-                                    {
-                                       'content': 'data(name)',
-                                       'text-valign': 'center',
-                                       'text-halign': 'center',
-                                       'background-color': 'white'
-                                    }
-                                 },
-                                 {
-                                 selector: 'edge',
-                                    style:
-                                    {
-                                       'curve-style': 'bezier',
-                                       'target-arrow-shape': 'triangle'
-                                    }
-                                 }
-                         ],
-                         layout: {
-                             name: '$(pattern)'
-                         }
-                     });
-
-             </script>
-           </body>
-
-         </html>)";
-
    std::string nodes;
 
    for (const auto& [obj, objset] : cat_.GetObjects())
@@ -77,11 +80,11 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std:
       // nodes
       char buffern[1024];
       if (coords_.empty())
-         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", obj.GetName().c_str(), obj.GetName().c_str(), "Obj");
+         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", obj.GetName().c_str(), obj.GetName().c_str(), "Node");
       else
       {
          const TVec2& crd = coords_.at(obj);
-         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", obj.GetName().c_str(), obj.GetName().c_str(), "Obj", crd.first, crd.second);
+         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", obj.GetName().c_str(), obj.GetName().c_str(), "Node", crd.first, crd.second);
       }
 
       nodes += (nodes.empty() ? "" : ",") +  std::string(buffern) + "\n";
@@ -97,7 +100,7 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std:
          // nodes
          char buffern[1024];
          if (coords_.empty())
-            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", mrph.name.c_str(), mrph.name.c_str(), "Morph");
+            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", mrph.name.c_str(), mrph.name.c_str(), "Link");
          else
          {
             const TVec2& source_crd = coords_.at(mrph.source);
@@ -106,7 +109,7 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std:
             int x = (source_crd.first + target_crd.first) * 0.5;
             int y = (source_crd.second + target_crd.second) * 0.5;
 
-            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", mrph.name.c_str(), mrph.name.c_str(), "Morph", x, y);
+            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", mrph.name.c_str(), mrph.name.c_str(), "Link", x, y);
          }
 
          nodes += (nodes.empty() ? "" : ",") +  std::string(buffern) + "\n";
@@ -157,6 +160,7 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std:
    // aggregate data into string
    std::string data = "nodes: [" + nodes + "]" + "," + "edges: [" + edges + "]";
 
+   std::string srctemplate = get_template();
    // filling template
    auto ind = srctemplate.find("$(title)");
    srctemplate.replace(ind, std::string("$(title)").length(), cat_.GetName());
@@ -178,70 +182,6 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std:
 
 void cat::export_cytoscape(const CACat& ccat_, const std::string& path_, const std::string& prefix_, const TCoords<Cat>& coords_, bool show_functors_)
 {
-   std::string srctemplate = R"(<!DOCTYPE>
-         <html>
-           <meta charset="UTF-8">
-           <head>
-             <title>$(title)</title>
-             <script src="cytoscape.min.js"></script>
-
-             <style>
-               #cy {
-               height: 100%;
-               width: 100%;
-               position: absolute;
-               left: 0;
-               top: 0;
-               float: left;
-               }
-             </style>
-
-           </head>
-
-           <body>
-             <div id="cy"></div>
-             <script>
-                     let data = {$(data)};
-                     var cy = cytoscape({
-                         container: document.getElementById('cy'),
-                         elements: data,
-                         style: [
-                                 {
-                                 selector: 'node[type="Obj"][name]',
-                                    style:
-                                    {
-                                       'content': 'data(name)'
-                                    }
-                                 },
-                                 {
-                                 selector: 'node[type="Morph"][name]',
-                                    style:
-                                    {
-                                       'content': 'data(name)',
-                                       'text-valign': 'center',
-                                       'text-halign': 'center',
-                                       'background-color': 'white'
-                                    }
-                                 },
-                                 {
-                                 selector: 'edge',
-                                    style:
-                                    {
-                                       'curve-style': 'bezier',
-                                       'target-arrow-shape': 'triangle'
-                                    }
-                                 }
-                         ],
-                         layout: {
-                             name: '$(pattern)'
-                         }
-                     });
-
-             </script>
-           </body>
-
-         </html>)";
-
    std::string nodes;
 
    for (const Cat& cat : ccat_.Categories())
@@ -249,11 +189,11 @@ void cat::export_cytoscape(const CACat& ccat_, const std::string& path_, const s
       // nodes
       char buffern[1024];
       if (coords_.empty())
-         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", cat.GetName().c_str(), cat.GetName().c_str(), "Obj");
+         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", cat.GetName().c_str(), cat.GetName().c_str(), "Node");
       else
       {
          const TVec2& crd = coords_.at(cat);
-         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", cat.GetName().c_str(), cat.GetName().c_str(), "Obj", crd.first, crd.second);
+         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", cat.GetName().c_str(), cat.GetName().c_str(), "Node", crd.first, crd.second);
       }
 
       nodes += (nodes.empty() ? "" : ",") +  std::string(buffern) + "\n";
@@ -266,7 +206,7 @@ void cat::export_cytoscape(const CACat& ccat_, const std::string& path_, const s
          // nodes
          char buffern[1024];
          if (coords_.empty())
-            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", func.name.c_str(), func.name.c_str(), "Morph");
+            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", func.name.c_str(), func.name.c_str(), "Link");
          else
          {
             const TVec2& source_crd = coords_.at(Cat(func.source));
@@ -275,7 +215,7 @@ void cat::export_cytoscape(const CACat& ccat_, const std::string& path_, const s
             int x = (source_crd.first + target_crd.first) * 0.5;
             int y = (source_crd.second + target_crd.second) * 0.5;
 
-            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", func.name.c_str(), func.name.c_str(), "Morph", x, y);
+            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", func.name.c_str(), func.name.c_str(), "Link", x, y);
          }
 
          nodes += (nodes.empty() ? "" : ",") +  std::string(buffern) + "\n";
@@ -315,6 +255,7 @@ void cat::export_cytoscape(const CACat& ccat_, const std::string& path_, const s
    // aggregate data into string
    std::string data = "nodes: [" + nodes + "]" + "," + "edges: [" + edges + "]";
 
+   std::string srctemplate = get_template();
    // filling template
    auto ind = srctemplate.find("$(title)");
    srctemplate.replace(ind, std::string("$(title)").length(), "CACat");
