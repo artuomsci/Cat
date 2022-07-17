@@ -74,7 +74,7 @@ namespace cat
        * @brief Return categories
        * @return Categories
        */
-      const CatSet& Categories() const;
+      const CatUMap& Categories() const;
 
       /**
        * @brief Return functors
@@ -105,7 +105,7 @@ namespace cat
       std::optional<Func> MatchFunctor(const Cat::CatName& source_, const Cat::CatName& target_) const;
 
    private:
-      CatSet   m_cats;
+      CatUMap  m_cats;
       FuncSet  m_funcs;
    };
 }

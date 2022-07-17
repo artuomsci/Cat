@@ -184,7 +184,7 @@ void cat::export_cytoscape(const CACat& ccat_, const std::string& path_, const s
 {
    std::string nodes;
 
-   for (const Cat& cat : ccat_.Categories())
+   for (const auto& [cat, _] : ccat_.Categories())
    {
       // nodes
       char buffern[1024];

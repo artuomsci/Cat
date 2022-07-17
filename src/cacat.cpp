@@ -63,7 +63,7 @@ bool CACat::AddCategory(const Cat& cat_)
       return false;
 
    if (m_cats.find(cat_) == m_cats.end())
-      m_cats.insert(cat_);
+      m_cats[cat_];
    else
    {
       print_error("Category redefinition: " + cat_.GetName());
@@ -129,7 +129,7 @@ bool CACat::AddFunctor(Func func_, EExpType type_)
             return false;
          }
 
-         const Cat& source_cat = *itSourceCat;
+         const auto& [source_cat, _] = *itSourceCat;
 
          for (const auto& [obj, _] : source_cat.GetObjects())
             func_.morphisms.emplace(obj, obj);
@@ -161,7 +161,7 @@ bool CACat::EraseFunctor(const Func& func_)
 }
 
 //-----------------------------------------------------------------------------------------
-const CatSet& CACat::Categories() const
+const CatUMap& CACat::Categories() const
 {
    return m_cats;
 }
@@ -182,8 +182,8 @@ bool CACat::Proof(const Func& func_) const
    if (itSourceCat == m_cats.end() || itTargetCat == m_cats.end())
       return false;
 
-   const Cat& source_cat = *itSourceCat;
-   const Cat& target_cat = *itTargetCat;
+   const auto& [source_cat, _s] = *itSourceCat;
+   const auto& [target_cat, _t] = *itTargetCat;
 
    // Checking mapping of objects
    for (const auto& [obj, _] : source_cat.GetObjects())
@@ -257,9 +257,11 @@ bool CACat::Statement(const Func& func_)
       return false;
    }
 
-   const Cat& source_cat = *itSourceCat;
+   const auto& [source_cat, _] = *itSourceCat;
 
-   Cat target_cat = Categories().find(Cat(func_.target)) == Categories().end() ? Cat(func_.target) : *Categories().find(Cat(func_.target));
+   auto itTargetCat = m_cats.find(Cat(func_.target));
+
+   Cat target_cat = itTargetCat == m_cats.end() ? Cat(func_.target) : (*itTargetCat).first;
 
    EraseCategory(target_cat);
 

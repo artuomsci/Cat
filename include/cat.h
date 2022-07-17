@@ -40,8 +40,13 @@ namespace cat
 
    struct CAT_EXPORT ObjKeyHasher
    {
-     std::size_t operator()(const Obj& k_) const;
+      std::size_t operator()(const Obj& k_) const;
    };
+
+   using ObjSet      = std::set<Obj>;
+   using ObjSetPair  = std::pair<Obj, ObjSet>;
+   using ObjVec      = std::vector<Obj>;
+   using ObjUMap     = std::unordered_map<Obj, ObjSet, ObjKeyHasher>;
 
    // Morphism
    struct CAT_EXPORT Morph
@@ -58,11 +63,6 @@ namespace cat
    };
 
    using MorphSet    = std::set<Morph>;
-
-   using ObjSet      = std::set<Obj>;
-   using ObjSetPair  = std::pair<Obj, ObjSet>;
-   using ObjUMap     = std::unordered_map<Obj, ObjSet, ObjKeyHasher>;
-   using ObjVec      = std::vector<Obj>;
 
    //-----------------------------------------------------------------------------------------
    enum class EExpType
@@ -81,6 +81,8 @@ namespace cat
       explicit Cat(const CatName& name_);
 
       bool operator < (const Cat& cat_) const;
+      bool operator ==(const Cat& cat_) const;
+      bool operator !=(const Cat& cat_) const;
 
       /**
        * @brief Add morphism to the category
@@ -188,5 +190,13 @@ namespace cat
       MorphSet    m_morphisms;
    };
 
-   using CatSet = std::set<Cat>;
+   struct CAT_EXPORT CatKeyHasher
+   {
+      std::size_t operator()(const Cat& k_) const;
+   };
+
+   using CatSet      = std::set<Cat>;
+   using CatSetPair  = std::pair<Cat, CatSet>;
+   using CatVec      = std::vector<Cat>;
+   using CatUMap     = std::unordered_map<Cat, CatSet, CatKeyHasher>;
 }

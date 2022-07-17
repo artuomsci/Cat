@@ -84,6 +84,18 @@ bool Cat::operator < (const Cat& cat_) const
 }
 
 //-----------------------------------------------------------------------------------------
+bool Cat::operator ==(const Cat& cat_) const
+{
+   return m_name == cat_.GetName();
+}
+
+//-----------------------------------------------------------------------------------------
+bool Cat::operator !=(const Cat& cat_) const
+{
+   return m_name != cat_.GetName();
+}
+
+//-----------------------------------------------------------------------------------------
 bool Cat::AddMorphism(const Obj& source_, const Obj& target_, const std::string& morph_name_)
 {
    if (m_objects.find(source_) == m_objects.end())
@@ -265,4 +277,10 @@ bool Cat::MatchMorphism(const Obj& source_, const Obj& target_) const
    const auto& [_, codomain] = *it;
 
    return codomain.find(target_) != codomain.end();
+}
+
+//-----------------------------------------------------------------------------------------
+std::size_t CatKeyHasher::operator()(const Cat& k_) const
+{
+   return std::hash<std::string>{}(k_.GetName());
 }

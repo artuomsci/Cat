@@ -106,9 +106,9 @@ static std::vector<TLink> get_chains(const std::string& name_, const TNode& sour
    // * :: * -> *
    else if (name_ == sAny && source_.GetName() == sAny && target_.GetName() == sAny)
    {
-      for (const auto& dnode : domain_)
+      for (const auto& [dnode, _d] : domain_)
       {
-         for (const auto& cnode : codomain_)
+         for (const auto& [cnode, _c] : codomain_)
          {
             ret.push_back(TLink(dnode, cnode));
          }
@@ -120,7 +120,7 @@ static std::vector<TLink> get_chains(const std::string& name_, const TNode& sour
       if (!fnCheckTarget())
          return ret;
 
-      for (const auto& dnode : domain_)
+      for (const auto& [dnode, _] : domain_)
          ret.push_back(TLink(dnode, target_));
    }
    // * :: a -> *
@@ -129,7 +129,7 @@ static std::vector<TLink> get_chains(const std::string& name_, const TNode& sour
       if (!fnCheckSource())
          return ret;
 
-      for (const auto& cnode : codomain_)
+      for (const auto& [cnode, _] : codomain_)
          ret.push_back(TLink(source_, cnode));
    }
    // f :: a -> *
@@ -143,7 +143,7 @@ static std::vector<TLink> get_chains(const std::string& name_, const TNode& sour
       if (!fnCheckTarget())
          return ret;
 
-      for (const auto& dnode : domain_)
+      for (const auto& [dnode, _] : domain_)
          ret.push_back(TLink(dnode, target_, name_));
    }
    // f :: * -> *
@@ -242,9 +242,11 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
          crt_cat_.emplace(line_);
       else
       {
-         crt_cat_.emplace(*it);
+         const auto& [cat, _] = *it;
 
-         ccat_.EraseCategory(*it);
+         crt_cat_.emplace(cat);
+
+         ccat_.EraseCategory(cat);
       }
    };
 
@@ -289,9 +291,7 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
 
       const ObjUMap& objs = crt_cat_.value().GetObjects();
 
-      std::set<Obj> obj_keys = umapk2set<ObjUMap>(objs);
-
-      std::vector<Morph> morphs = get_chain<Morph, Obj>(line_, obj_keys, obj_keys, expr_type_);
+      std::vector<Morph> morphs = get_chain<Morph, Obj>(line_, objs, objs, expr_type_);
       if (morphs.empty())
       {
          print_error("Error in morphism definition: " + line_);
@@ -342,15 +342,12 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
 
    auto fnAddFMorphisms = [](const std::string& line_, std::optional<Func>& crt_func_, CACat& ccat_, EExpType expr_type_)
    {
-      const std::set<Cat>& cats = ccat_.Categories();
+      const auto& cats = ccat_.Categories();
 
       auto itSourceCat = cats.find(Cat(crt_func_.value().source));
       auto itTargetCat = cats.find(Cat(crt_func_.value().target));
 
-      std::set<Obj> source_keys = umapk2set<ObjUMap>((*itSourceCat).GetObjects());
-      std::set<Obj> target_keys = umapk2set<ObjUMap>((*itTargetCat).GetObjects());
-
-      std::vector<Morph> morphs = get_chain<Morph, Obj>(line_, source_keys, target_keys, expr_type_);
+      std::vector<Morph> morphs = get_chain<Morph, Obj>(line_, (*itSourceCat).first.GetObjects(), (*itTargetCat).first.GetObjects(), expr_type_);
       if (morphs.empty())
       {
          print_error("Error in morphism definition: " + line_);
