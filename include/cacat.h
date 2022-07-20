@@ -97,14 +97,31 @@ namespace cat
       bool Statement(const Func& func_);
 
       /**
-       * @brief Find functor by source and target
+       * @brief Find functor by source and target categories
        * @param source_ - source category
        * @param target_ - target category
        * @return Functor
        */
-      std::optional<Func> MatchFunctor(const Cat::CatName& source_, const Cat::CatName& target_) const;
+      std::optional<Func> FindFunctor(const Cat::CatName& source_, const Cat::CatName& target_) const;
+
+      /**
+       * @brief Find source categories for the target category
+       * @param target_ - target category
+       * @return Source categories
+       */
+      CatNameVec FindSources(const Cat::CatName& target_) const;
+
+      /**
+       * @brief Find target categories for the source category
+       * @param source_ - source categories
+       * @return Target categories
+       */
+      CatNameVec FindTargets(const Cat::CatName& source_) const;
 
    private:
+
+      void eraseInstances(const Cat& cat_);
+
       CatUMap  m_cats;
       FuncSet  m_funcs;
    };

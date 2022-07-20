@@ -198,5 +198,6 @@ namespace cat
    using CatSet      = std::set<Cat>;
    using CatSetPair  = std::pair<Cat, CatSet>;
    using CatVec      = std::vector<Cat>;
+   using CatNameVec  = std::vector<Cat::CatName>;
    using CatUMap     = std::unordered_map<Cat, CatSet, CatKeyHasher>;
 }

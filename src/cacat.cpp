@@ -261,9 +261,23 @@ bool CACat::Statement(const Func& func_)
 
    auto itTargetCat = m_cats.find(Cat(func_.target));
 
-   Cat target_cat = itTargetCat == m_cats.end() ? Cat(func_.target) : (*itTargetCat).first;
+   Cat target_cat("");
 
-   EraseCategory(target_cat);
+   CatNameVec backup_targets;
+   CatNameVec backup_sources;
+
+   if (itTargetCat == m_cats.end())
+      target_cat = Cat(func_.target);
+   else
+   {
+      target_cat = (*itTargetCat).first;
+
+      // Backup relations
+      backup_targets = FindTargets(target_cat.GetName());
+      backup_sources = FindSources(target_cat.GetName());
+   }
+
+   eraseInstances(target_cat);
 
    // Mapping objects
    for (const auto& [obj, _] : source_cat.GetObjects())
@@ -286,18 +300,28 @@ bool CACat::Statement(const Func& func_)
       auto objt = MapObject(func_, morph.target);
 
       if (!target_cat.MatchMorphism(objs.value(), objt.value()))
-      {
          target_cat.AddMorphism(Morph(objs.value(), objt.value()));
-      }
    }
 
-   AddCategory(target_cat);
+   if (!AddCategory(target_cat))
+      return false;
+
+   // Restoring relations
+   for (const auto& scat : backup_sources)
+      m_cats[Cat(scat)].insert(target_cat);
+
+   auto crt_category_targets = m_cats[Cat(target_cat)];
+   for (const auto& tcat : backup_targets)
+   {
+      const auto& [cat, _] = *m_cats.find(Cat(tcat));
+      crt_category_targets.insert(cat);
+   }
 
    return true;
 }
 
 //-----------------------------------------------------------------------------------------
-std::optional<Func> CACat::MatchFunctor(const Cat::CatName& source_, const Cat::CatName& target_) const
+std::optional<Func> CACat::FindFunctor(const Cat::CatName& source_, const Cat::CatName& target_) const
 {
    for (const Func& func : m_funcs)
    {
@@ -306,4 +330,41 @@ std::optional<Func> CACat::MatchFunctor(const Cat::CatName& source_, const Cat::
    }
 
    return std::optional<Func>();
+}
+
+//-----------------------------------------------------------------------------------------
+CatNameVec CACat::FindSources(const Cat::CatName& target_) const
+{
+   CatNameVec ret; ret.reserve(m_funcs.size());
+
+   for (const Func& func : m_funcs)
+   {
+      if (func.target == target_)
+         ret.push_back(func.source);
+   }
+
+   return ret;
+}
+
+//-----------------------------------------------------------------------------------------
+CatNameVec CACat::FindTargets(const Cat::CatName& source_) const
+{
+   CatNameVec ret; ret.reserve(m_funcs.size());
+
+   for (const Func& func : m_funcs)
+   {
+      if (func.source == source_)
+         ret.push_back(func.target);
+   }
+
+   return ret;
+}
+
+//-----------------------------------------------------------------------------------------
+void CACat::eraseInstances(const Cat& cat_)
+{
+   for (auto& [cat, cat_set] : m_cats)
+      cat_set.erase(cat_);
+
+   m_cats.erase(cat_);
 }
