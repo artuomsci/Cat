@@ -34,6 +34,12 @@ namespace cat
 
    using FuncSet = std::set<Func>;
 
+   /**
+   * @brief Map obj with functor
+   * @param func_ - functor to map with
+   * @param obj_ - object for mapping
+   * @return Mapped object
+   */
    CAT_EXPORT std::optional<Obj> MapObject(const Func& func_, const Obj& obj_);
 
    // Category of categories
@@ -117,6 +123,13 @@ namespace cat
        * @return Target categories
        */
       CatNameVec FindTargets(const Cat::CatName& source_) const;
+
+      /**
+      * @brief Find categories with matching targets
+      * @param targets_ - target categories
+      * @return Categories with matching targets
+      */
+      CatVec FindByTargets(const CatNameVec& targets_) const;
 
    private:
 

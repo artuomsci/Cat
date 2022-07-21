@@ -361,6 +361,26 @@ CatNameVec CACat::FindTargets(const Cat::CatName& source_) const
 }
 
 //-----------------------------------------------------------------------------------------
+CatVec CACat::FindByTargets(const CatNameVec& targets_) const
+{
+   CatVec ret; ret.reserve(targets_.size());
+
+   for (const auto& [domain, _] : m_cats)
+   {
+      for (int i = 0; i < (int)targets_.size(); ++i)
+      {
+         if (!FindFunctor(domain.GetName(), targets_[i]))
+            continue;
+
+         if (i == targets_.size() - 1)
+            ret.push_back(domain);
+      }
+   }
+
+   return ret;
+}
+
+//-----------------------------------------------------------------------------------------
 void CACat::eraseInstances(const Cat& cat_)
 {
    for (auto& [cat, cat_set] : m_cats)
