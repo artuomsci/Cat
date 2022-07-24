@@ -19,14 +19,16 @@ namespace cat
    public:
 
       explicit Obj(const std::string& name_);
-      explicit Obj(const Obj& obj_);
 
+      Obj(const Obj& obj_) = default;
       Obj(Obj&&) = default;
 
-      void operator= (const Obj& obj_);
-      bool operator==(const Obj& obj_) const;
-      bool operator!=(const Obj& obj_) const;
-      bool operator< (const Obj& obj_) const;
+      Obj& operator  = (Obj&& obj_) = default;
+      Obj& operator  = (const Obj& obj_) = default;
+
+      bool operator  < (const Obj& obj_) const;
+      bool operator == (const Obj& obj_) const;
+      bool operator != (const Obj& obj_) const;
 
       /**
        * @brief Return object name

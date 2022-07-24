@@ -10,12 +10,8 @@ using namespace cat;
 Obj::Obj(const std::string& name_) : m_name(name_) {};
 
 //-----------------------------------------------------------------------------------------
-Obj::Obj(const Obj& obj_) : m_name(obj_.m_name) {};
-
-//-----------------------------------------------------------------------------------------
-void Obj::operator=(const Obj& obj_)
-{
-   m_name = obj_.m_name;
+bool Obj::operator<(const Obj& obj_) const {
+   return m_name < obj_.m_name;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -26,11 +22,6 @@ bool Obj::operator==(const Obj& obj_) const {
 //-----------------------------------------------------------------------------------------
 bool Obj::operator!=(const Obj& obj_) const {
    return m_name != obj_.m_name;
-}
-
-//-----------------------------------------------------------------------------------------
-bool Obj::operator<(const Obj& obj_) const {
-   return m_name < obj_.m_name;
 }
 
 //-----------------------------------------------------------------------------------------
