@@ -87,7 +87,7 @@ bool Cat::AddMorphism(const Obj& source_, const Obj& target_, const std::string&
 
    m_objects[source_].insert(target_);
 
-   m_morphisms.insert(Morph(source_, target_, morph_name_));
+   m_morphisms.emplace_back(source_, target_, morph_name_);
 
    return true;
 }
@@ -118,7 +118,7 @@ bool Cat::AddMorphism(const Morph& morph_)
 
    m_objects[morph_.source].insert(morph_.target);
 
-   m_morphisms.insert(morph_);
+   m_morphisms.push_back(morph_);
 
    return true;
 }
@@ -126,7 +126,7 @@ bool Cat::AddMorphism(const Morph& morph_)
 //-----------------------------------------------------------------------------------------
 bool Cat::EraseMorphism(const std::string& morph_name_)
 {
-   auto it = std::find_if(m_morphisms.begin(), m_morphisms.end(), [&](const MorphSet::value_type& elem_) {
+   auto it = std::find_if(m_morphisms.begin(), m_morphisms.end(), [&](const MorphVec::value_type& elem_) {
       return elem_.name == morph_name_;
    });
 
@@ -188,9 +188,9 @@ bool Cat::EraseObject(const Obj& obj_)
    {
       m_objects.erase(it);
 
-      std::vector<MorphSet::iterator> morphs; morphs.reserve(m_morphisms.size());
+      std::vector<MorphVec::iterator> morphs; morphs.reserve(m_morphisms.size());
 
-      for (MorphSet::iterator it = m_morphisms.begin(); it != m_morphisms.end(); ++it)
+      for (MorphVec::iterator it = m_morphisms.begin(); it != m_morphisms.end(); ++it)
       {
          if (((*it).source == obj_) || ((*it).target == obj_))
             morphs.push_back(it);
@@ -222,7 +222,7 @@ const Cat::CatName& Cat::GetName() const
 }
 
 //-----------------------------------------------------------------------------------------
-const MorphSet& Cat::GetMorphisms() const
+const MorphVec& Cat::GetMorphisms() const
 {
    return m_morphisms;
 }

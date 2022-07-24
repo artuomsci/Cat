@@ -2,7 +2,6 @@
 
 #include <vector>
 #include <unordered_map>
-#include <set>
 
 #include "cat_export.h"
 
@@ -25,7 +24,7 @@ namespace cat
       bool operator != (const Morph& morph_) const;
    };
 
-   using MorphSet    = std::set<Morph>;
+   using MorphVec = std::vector<Morph>;
 
    //-----------------------------------------------------------------------------------------
    enum class EExpType
@@ -126,7 +125,7 @@ namespace cat
        * @brief Return category morphisms
        * @return Morphisms
        */
-      const MorphSet& GetMorphisms() const;
+      const MorphVec& GetMorphisms() const;
 
       /**
        * @brief Return category objects
@@ -150,7 +149,7 @@ namespace cat
 
       CatName     m_name;
       ObjUMap     m_objects;
-      MorphSet    m_morphisms;
+      MorphVec    m_morphisms;
    };
 
    struct CAT_EXPORT CatKeyHasher

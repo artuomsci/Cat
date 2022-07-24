@@ -356,7 +356,7 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
       }
 
       for (const Morph& morph : morphs)
-         crt_func_.value().morphisms.insert(morph);
+         crt_func_.value().morphisms.push_back(morph);
 
      return true;
    };
@@ -686,11 +686,11 @@ std::vector<Morph> map_obj2morphism(const ObjVec& objs_, const Cat& cat_)
 {
    std::vector<Morph> ret;
 
-   const MorphSet& morphisms = cat_.GetMorphisms();
+   const MorphVec& morphisms = cat_.GetMorphisms();
 
    for (int i = 0; i < (int)objs_.size() - 1; ++i)
    {
-      auto it = std::find_if(morphisms.begin(), morphisms.end(), [&](const MorphSet::value_type& elem_)
+      auto it = std::find_if(morphisms.begin(), morphisms.end(), [&](const MorphVec::value_type& elem_)
       {
          return objs_[i + 0] == elem_.source && objs_[i + 1] == elem_.target;
       });
@@ -763,7 +763,7 @@ Func::FuncName default_functor_name(const Cat::CatName& source_, const Cat::CatN
 //-----------------------------------------------------------------------------------------
 void inverse(Cat& cat_)
 {
-   MorphSet morphs = cat_.GetMorphisms();
+   MorphVec morphs = cat_.GetMorphisms();
 
    cat_.EraseMorphisms();
 

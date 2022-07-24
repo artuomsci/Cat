@@ -83,9 +83,9 @@ bool CACat::EraseCategory(const Cat& cat_)
    {
       m_cats.erase(it);
 
-      std::vector<FuncSet::iterator> funcs; funcs.reserve(m_funcs.size());
+      std::vector<FuncVec::iterator> funcs; funcs.reserve(m_funcs.size());
 
-      for (FuncSet::iterator it = m_funcs.begin(); it != m_funcs.end(); ++it)
+      for (FuncVec::iterator it = m_funcs.begin(); it != m_funcs.end(); ++it)
       {
          if (((*it).source == cat_.GetName()) || ((*it).target == cat_.GetName()))
             funcs.push_back(it);
@@ -134,15 +134,20 @@ bool CACat::AddFunctor(Func func_, EExpType type_)
          const auto& [source_cat, _] = *itSourceCat;
 
          for (const auto& [obj, _] : source_cat.GetObjects())
-            func_.morphisms.emplace(obj, obj);
+            func_.morphisms.emplace_back(obj, obj);
       }
 
       if (!Statement(func_))
          return false;
    }
 
-   if (m_funcs.find(func_) == m_funcs.end())
-      m_funcs.insert(func_);
+   auto it = std::find_if(m_funcs.begin(), m_funcs.end(), [&](const FuncVec::value_type& element_)
+   {
+      return element_.name == func_.name && element_.source == func_.source && element_.target == func_.target;
+   });
+
+   if (it == m_funcs.end())
+      m_funcs.push_back(func_);
 
    return true;
 }
@@ -157,7 +162,7 @@ bool CACat::EraseFunctor(const Func& func_)
    if (it == m_funcs.end())
       return false;
 
-   m_funcs.erase(func_);
+   m_funcs.erase(it);
 
    return true;
 }
@@ -170,7 +175,7 @@ const CatUMap& CACat::Categories() const
 
 //-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
-const FuncSet& CACat::Functors() const
+const FuncVec& CACat::Functors() const
 {
    return m_funcs;
 }

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <optional>
-#include <set>
+#include <vector>
 
 #include "cat_export.h"
 
@@ -22,12 +22,12 @@ namespace cat
       Cat::CatName   source;
       Cat::CatName   target;
       FuncName       name;
-      MorphSet       morphisms;
+      MorphVec       morphisms;
 
       bool operator < (const Func& func_) const;
    };
 
-   using FuncSet = std::set<Func>;
+   using FuncVec = std::vector<Func>;
 
    /**
    * @brief Map obj with functor
@@ -81,7 +81,7 @@ namespace cat
        * @brief Return functors
        * @return Functors
        */
-      const FuncSet& Functors() const;
+      const FuncVec& Functors() const;
 
       /**
        * @brief Functor validation
@@ -131,6 +131,6 @@ namespace cat
       void eraseInstances(const Cat& cat_);
 
       CatUMap  m_cats;
-      FuncSet  m_funcs;
+      FuncVec  m_funcs;
    };
 }

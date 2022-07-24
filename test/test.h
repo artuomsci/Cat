@@ -66,6 +66,16 @@ namespace cat
          assert(cat.GetMorphisms().size() == 0);
       }
 
+      auto fnCheckMorph = [](const MorphVec& morphs_, const Morph& morph_)
+      {
+         auto it = std::find_if(morphs_.begin(), morphs_.end(), [&](const MorphVec::value_type& element_)
+         {
+            return element_.name == morph_.name && element_.source == morph_.source && element_.target == morph_.target;
+         });
+
+         return it != morphs_.end();
+      };
+
       //============================================================
       // Testing of morphism addition methods
       //============================================================
@@ -76,22 +86,22 @@ namespace cat
 
          cat.AddObjects(a, b, c);
 
-         assert(cat.GetMorphisms().find(Morph(a, a)) != cat.GetMorphisms().end());
-         assert(cat.GetMorphisms().find(Morph(b, b)) != cat.GetMorphisms().end());
-         assert(cat.GetMorphisms().find(Morph(c, c)) != cat.GetMorphisms().end());
+         assert(cat.MatchMorphism(a, a));
+         assert(cat.MatchMorphism(b, b));
+         assert(cat.MatchMorphism(c, c));
 
          assert(cat.GetMorphisms().size() == 3);
 
          assert(cat.AddMorphism(a, b, "f0"));
-         assert(cat.GetMorphisms().find(Morph(a, b, "f0")) != cat.GetMorphisms().end());
+         assert(fnCheckMorph(cat.GetMorphisms(), Morph(a, b, "f0")));
 
          assert(cat.AddMorphism(a, c, "f1"));
-         assert(cat.GetMorphisms().find(Morph(a, c, "f1")) != cat.GetMorphisms().end());
+         assert(fnCheckMorph(cat.GetMorphisms(), Morph(a, c, "f1")));
 
          assert(cat.GetMorphisms().size() == 5);
 
          assert(cat.AddMorphism(a, d, "f2") == false);
-         assert(cat.GetMorphisms().find(Morph(a, d, "f2")) == cat.GetMorphisms().end());
+         assert(!fnCheckMorph(cat.GetMorphisms(), Morph(a, d, "f2")));
          assert(cat.GetMorphisms().size() == 5);
 
          assert(cat.AddMorphism(b, c, "f0") == false);
@@ -115,11 +125,11 @@ namespace cat
          {
             auto prev_count = cat.GetMorphisms().size();
             assert(cat.EraseMorphism("f0") == true);
-            assert(cat.GetMorphisms().find(Morph(a, b, "f0")) == cat.GetMorphisms().end());
+            assert(!fnCheckMorph(cat.GetMorphisms(), Morph(a, b, "f0")));
             assert(prev_count = cat.GetMorphisms().size() - 1);
 
             assert(cat.EraseMorphism("f1") == true);
-            assert(cat.GetMorphisms().find(Morph(a, c, "f1")) == cat.GetMorphisms().end());
+            assert(!fnCheckMorph(cat.GetMorphisms(), Morph(a, c, "f1")));
             assert(prev_count = cat.GetMorphisms().size() - 2);
          }
 
@@ -130,7 +140,7 @@ namespace cat
             assert(cat.EraseMorphism(id_morph_name(a)) == false);
             auto new_count = cat.GetMorphisms().size();
             assert(prev_count == new_count);
-            assert(cat.GetMorphisms().find(Morph(a, a, id_morph_name(a))) != cat.GetMorphisms().end());
+            assert(fnCheckMorph(cat.GetMorphisms(), Morph(a, a, id_morph_name(a))));
          }
 
          // Non existent morphism can't be deleted
@@ -161,13 +171,13 @@ namespace cat
 
          solve_compositions(cat);
 
-         assert(cat.GetMorphisms().find(Morph(a, c)) != cat.GetMorphisms().end());
-         assert(cat.GetMorphisms().find(Morph(a, d)) != cat.GetMorphisms().end());
-         assert(cat.GetMorphisms().find(Morph(b, d)) != cat.GetMorphisms().end());
+         assert(fnCheckMorph(cat.GetMorphisms(), Morph(a, c)));
+         assert(fnCheckMorph(cat.GetMorphisms(), Morph(a, d)));
+         assert(fnCheckMorph(cat.GetMorphisms(), Morph(b, d)));
 
-         assert(cat.GetMorphisms().find(Morph(d, b)) != cat.GetMorphisms().end());
-         assert(cat.GetMorphisms().find(Morph(d, a)) != cat.GetMorphisms().end());
-         assert(cat.GetMorphisms().find(Morph(c, a)) != cat.GetMorphisms().end());
+         assert(fnCheckMorph(cat.GetMorphisms(), Morph(d, b)));
+         assert(fnCheckMorph(cat.GetMorphisms(), Morph(d, a)));
+         assert(fnCheckMorph(cat.GetMorphisms(), Morph(c, a)));
 
          auto prev_count = cat.GetMorphisms().size();
          solve_compositions(cat);
@@ -277,11 +287,11 @@ namespace cat
 
          inverse(cat);
 
-         assert(cat.GetMorphisms().find(Morph(b, a, "f0")) != cat.GetMorphisms().end());
-         assert(cat.GetMorphisms().find(Morph(c, a, "f1")) != cat.GetMorphisms().end());
+         assert(fnCheckMorph(cat.GetMorphisms(), Morph(b, a, "f0")));
+         assert(fnCheckMorph(cat.GetMorphisms(), Morph(c, a, "f1")));
 
-         assert(cat.GetMorphisms().find(Morph(d, b, "f2")) != cat.GetMorphisms().end());
-         assert(cat.GetMorphisms().find(Morph(d, c, "f3")) != cat.GetMorphisms().end());
+         assert(fnCheckMorph(cat.GetMorphisms(), Morph(d, b, "f2")));
+         assert(fnCheckMorph(cat.GetMorphisms(), Morph(d, c, "f3")));
       }
 
       //============================================================
