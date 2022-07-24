@@ -1,4 +1,5 @@
 #include <assert.h>
+#include <algorithm>
 
 #include "../include/cat.h"
 #include "../include/common.h"

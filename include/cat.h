@@ -1,55 +1,15 @@
 #pragma once
 
 #include <vector>
-#include <optional>
 #include <unordered_map>
-#include <map>
 #include <set>
-#include <algorithm>
 
 #include "cat_export.h"
 
-#include "types.h"
+#include "obj.h"
 
 namespace cat
 {
-   // Object
-   class CAT_EXPORT Obj
-   {
-   public:
-
-      explicit Obj(const std::string& name_);
-
-      Obj(const Obj& obj_) = default;
-      Obj(Obj&&) = default;
-
-      Obj& operator  = (Obj&& obj_) = default;
-      Obj& operator  = (const Obj& obj_) = default;
-
-      bool operator  < (const Obj& obj_) const;
-      bool operator == (const Obj& obj_) const;
-      bool operator != (const Obj& obj_) const;
-
-      /**
-       * @brief Return object name
-       * @return Name of the object
-       */
-      const std::string& GetName() const;
-
-   private:
-      std::string m_name;
-   };
-
-   struct CAT_EXPORT ObjKeyHasher
-   {
-      std::size_t operator()(const Obj& k_) const;
-   };
-
-   using ObjSet      = std::set<Obj>;
-   using ObjSetPair  = std::pair<Obj, ObjSet>;
-   using ObjVec      = std::vector<Obj>;
-   using ObjUMap     = std::unordered_map<Obj, ObjSet, ObjKeyHasher>;
-
    // Morphism
    struct CAT_EXPORT Morph
    {

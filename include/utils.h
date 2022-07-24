@@ -1,5 +1,7 @@
 #pragma once
 
+#include <map>
+
 #include "cat.h"
 #include "cacat.h"
 

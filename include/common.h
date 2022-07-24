@@ -5,7 +5,7 @@
 #include <filesystem>
 
 #include "cat_export.h"
-#include "cat.h"
+
 #include "cacat.h"
 
 struct CAT_EXPORT SParser

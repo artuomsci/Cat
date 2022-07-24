@@ -1,15 +1,10 @@
 #pragma once
 
-#include <vector>
 #include <optional>
-#include <unordered_map>
-#include <map>
 #include <set>
-#include <algorithm>
 
 #include "cat_export.h"
 
-#include "types.h"
 #include "cat.h"
 
 namespace cat

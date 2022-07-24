@@ -1,5 +1,7 @@
 #include "cacat.h"
 
+#include <algorithm>
+
 #include "str_utils.h"
 #include "common.h"
 #include "log.h"
