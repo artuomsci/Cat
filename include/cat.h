@@ -58,8 +58,9 @@ namespace cat
       Obj         target;
       std::string name;
 
-      bool operator  <  (const Morph& morph_) const;
-      bool operator  == (const Morph& morph_) const;
+      bool operator  < (const Morph& morph_) const;
+      bool operator == (const Morph& morph_) const;
+      bool operator != (const Morph& morph_) const;
    };
 
    using MorphSet    = std::set<Morph>;
@@ -80,9 +81,9 @@ namespace cat
 
       explicit Cat(const CatName& name_);
 
-      bool operator < (const Cat& cat_) const;
-      bool operator ==(const Cat& cat_) const;
-      bool operator !=(const Cat& cat_) const;
+      bool operator  < (const Cat& cat_) const;
+      bool operator == (const Cat& cat_) const;
+      bool operator != (const Cat& cat_) const;
 
       /**
        * @brief Add morphism to the category

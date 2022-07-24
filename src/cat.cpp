@@ -74,6 +74,12 @@ bool Morph::operator==(const Morph& morph_) const
 }
 
 //-----------------------------------------------------------------------------------------
+bool Morph::operator!=(const Morph& morph_) const
+{
+   return source != morph_.source || target != morph_.target || name != morph_.name;
+}
+
+//-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
 Cat::Cat(const CatName& name_) : m_name(name_) {};
 
