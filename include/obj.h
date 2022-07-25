@@ -17,7 +17,7 @@ namespace cat
       explicit Obj(const std::string& name_);
 
       Obj(const Obj& obj_) = default;
-      Obj(Obj&&) = default;
+      Obj(Obj&& obj_) = default;
 
       Obj& operator  = (Obj&& obj_) = default;
       Obj& operator  = (const Obj& obj_) = default;

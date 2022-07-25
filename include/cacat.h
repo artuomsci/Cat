@@ -19,12 +19,20 @@ namespace cat
       explicit Func(const Cat& source_, const Cat& target_, const FuncName& name_);
       explicit Func(const Cat& source_, const Cat& target_);
 
+      Func(const Func& func_) = default;
+      Func(Func&& func_) = default;
+
+      Func& operator  = (Func&& func_) = default;
+      Func& operator  = (const Func& func_) = default;
+
       Cat::CatName   source;
       Cat::CatName   target;
       FuncName       name;
       MorphVec       morphisms;
 
-      bool operator < (const Func& func_) const;
+      bool operator  < (const Func& func_) const;
+      bool operator == (const Func& func_) const;
+      bool operator != (const Func& func_) const;
    };
 
    using FuncVec = std::vector<Func>;
@@ -35,7 +43,7 @@ namespace cat
    * @param obj_ - object for mapping
    * @return Mapped object
    */
-   CAT_EXPORT std::optional<Obj> MapObject(const Func& func_, const Obj& obj_);
+   CAT_EXPORT std::optional<Obj> MapObject(const std::optional<Func>& func_, const std::optional<Obj>& obj_);
 
    // Category of categories
    class CAT_EXPORT CACat

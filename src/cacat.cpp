@@ -38,17 +38,36 @@ Func::Func(const Cat& source_, const Cat& target_) :
 {}
 
 //-----------------------------------------------------------------------------------------
-bool Func::operator < (const Func& func_) const
+bool Func::operator<(const Func& func_) const
 {
    return std::tuple(source, target, name) < std::tuple(func_.source, func_.target, name);
 }
 
 //-----------------------------------------------------------------------------------------
-std::optional<Obj> cat::MapObject(const Func& func_, const Obj& obj_)
+bool Func::operator==(const Func& func_) const
 {
-   for (const Morph& morph : func_.morphisms)
+   return
+         (source     == func_.source)
+      && (target     == func_.target)
+      && (name       == func_.name)
+      && (morphisms  == func_.morphisms);
+}
+
+//-----------------------------------------------------------------------------------------
+bool Func::operator!=(const Func& func_) const
+{
+   return !(*this == func_);
+}
+
+//-----------------------------------------------------------------------------------------
+std::optional<Obj> cat::MapObject(const std::optional<Func>& func_, const std::optional<Obj>& obj_)
+{
+   if (!func_ || !obj_)
+      return std::optional<Obj>();
+
+   for (const Morph& morph : func_.value().morphisms)
    {
-      if (morph.source == obj_)
+      if (morph.source == obj_.value())
       {
          return std::optional<Obj>(morph.target);
       }
