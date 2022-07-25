@@ -109,7 +109,7 @@ bool Cat::AddMorphism(const Morph& morph_)
 
    for (auto & [obj_source, obj_target, morph_name_value] : m_morphisms)
    {
-      if (morph_.name == morph_name_value && (obj_source != morph_.source || obj_target != morph_.target))
+      if (morph_.name == morph_name_value && obj_target != morph_.target)
       {
          print_error("Morphism redefinition: " + morph_.name);
          return false;
@@ -126,26 +126,32 @@ bool Cat::AddMorphism(const Morph& morph_)
 //-----------------------------------------------------------------------------------------
 bool Cat::EraseMorphism(const std::string& morph_name_)
 {
-   auto it = std::find_if(m_morphisms.begin(), m_morphisms.end(), [&](const MorphVec::value_type& elem_) {
-      return elem_.name == morph_name_;
-   });
+   for (Morph& morph : m_morphisms)
+   {
+      if (morph.name == morph_name_)
+      {
+         auto it_obj = m_objects.find(morph.source);
+         if (it_obj != m_objects.end())
+         {
+            if (morph.source == morph.target)
+               return false;
 
-   if (it == m_morphisms.end())
+            auto& [_, obj_set] = *it_obj;
+
+            obj_set.erase(morph.target);
+         }
+      }
+   }
+
+   auto it_begin = std::remove_if(m_morphisms.begin(), m_morphisms.end(), [&](const MorphVec::value_type& element_)
+      {
+         return element_.name == morph_name_;
+      });
+
+   if (it_begin == m_morphisms.end())
       return false;
 
-   bool isIdentity = (*it).source == (*it).target;
-
-   if (!isIdentity)
-      m_morphisms.erase(it);
-   else
-   {
-      // removing identity morphism for missing object only
-      bool isObjectPresent = m_objects.find((*it).source) != m_objects.end();
-      if (!isObjectPresent)
-         m_morphisms.erase(it);
-      else
-         return false;
-   }
+   m_morphisms.erase(it_begin, m_morphisms.end());
 
    return true;
 }

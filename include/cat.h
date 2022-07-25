@@ -15,13 +15,19 @@ namespace cat
       explicit Morph(const Obj& source_, const Obj& target_, const std::string& morph_name_);
       explicit Morph(const Obj& source_, const Obj& target_);
 
-      Obj         source;
-      Obj         target;
-      std::string name;
+      Morph(const Morph& morph_) = default;
+      Morph(Morph&& morph_) = default;
+
+      Morph& operator = (Morph&& morph_) = default;
+      Morph& operator = (const Morph& morph_) = default;
 
       bool operator  < (const Morph& morph_) const;
       bool operator == (const Morph& morph_) const;
       bool operator != (const Morph& morph_) const;
+
+      Obj         source;
+      Obj         target;
+      std::string name;
    };
 
    using MorphVec = std::vector<Morph>;
