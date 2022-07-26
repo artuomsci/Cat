@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <fstream>
 #include <sstream>
+#include <variant>
 
 #include "str_utils.h"
 #include "log.h"
@@ -816,50 +817,92 @@ ObjVec terminal(Cat& cat_)
 }
 
 //-----------------------------------------------------------------------------------------
-cat::Obj coproduct(cat::Obj& fst_, cat::Obj& snd_, eCProdType type_)
+template <typename T>
+static std::optional<cat::Obj> t_coproduct(cat::Obj& fst_, cat::Obj& snd_)
 {
-   std::string ret;
+   auto pfst = std::get_if<T>(&fst_.Value());
+   auto psnd = std::get_if<T>(&snd_.Value());
 
-   switch (type_) {
-   case eCProdType::eReal:
-      ret = std::to_string(std::stod(fst_.GetName()) + std::stod(snd_.GetName()));
-      break;
-   case eCProdType::eInt:
-      ret = std::to_string(std::stoi(fst_.GetName()) + std::stoi(snd_.GetName()));
-      break;
-   case eCProdType::eStr:
-      ret = fst_.GetName() + snd_.GetName();
-      break;
+   if (pfst && psnd)
+   {
+      cat::Obj ret(fst_.GetName() + "+" + snd_.GetName());
+      ret.SetValue(*pfst + *psnd);
+
+      return ret;
    }
 
-   return cat::Obj(ret);
+   return std::optional<cat::Obj>();
 }
 
 //-----------------------------------------------------------------------------------------
-cat::Obj product(cat::Obj& fst_, cat::Obj& snd_, eCProdType type_)
+std::optional<cat::Obj> coproduct(cat::Obj& fst_, cat::Obj& snd_)
 {
-   std::string ret;
+   if       (auto cp = t_coproduct<int>         (fst_, snd_))
+      return cp;
+   else if  (auto cp = t_coproduct<double>      (fst_, snd_))
+      return cp;
+   else if  (auto cp = t_coproduct<std::string> (fst_, snd_))
+      return cp;
+   else
+      return std::optional<cat::Obj>();
+}
 
-   switch (type_) {
-   case eCProdType::eReal:
-      ret = std::to_string(std::stod(fst_.GetName()) * std::stod(snd_.GetName()));
-      break;
-   case eCProdType::eInt:
-      ret = std::to_string(std::stoi(fst_.GetName()) * std::stoi(snd_.GetName()));
-      break;
-   case eCProdType::eStr:
+//-----------------------------------------------------------------------------------------
+template <typename T>
+static std::optional<cat::Obj> t_product(cat::Obj& fst_, cat::Obj& snd_)
+{
+   auto pfst = std::get_if<T>(&fst_.Value());
+   auto psnd = std::get_if<T>(&snd_.Value());
+
+   if (pfst && psnd)
    {
-      for (auto i : fst_.GetName())
+      cat::Obj ret(fst_.GetName() + "*" + snd_.GetName());
+      ret.SetValue(*pfst * *psnd);
+
+      return ret;
+   }
+
+   return std::optional<cat::Obj>();
+}
+
+//-----------------------------------------------------------------------------------------
+static std::optional<cat::Obj> sproduct(cat::Obj& fst_, cat::Obj& snd_)
+{
+   auto pfst = std::get_if<std::string>(&fst_.Value());
+   auto psnd = std::get_if<std::string>(&snd_.Value());
+
+   if (pfst && psnd)
+   {
+      cat::Obj ret(fst_.GetName() + "*" + snd_.GetName());
+
+      std::string prod;
+
+      for (auto i : *pfst)
       {
-         for (auto j : snd_.GetName())
+         for (auto j : *psnd)
          {
-            ret += i;
-            ret += j;
+            prod += i;
+            prod += j;
          }
       }
-   }
-      break;
+
+      ret.SetValue(prod);
+
+      return ret;
    }
 
-   return cat::Obj(ret);
+   return std::optional<cat::Obj>();
+}
+
+//-----------------------------------------------------------------------------------------
+std::optional<cat::Obj> product(cat::Obj& fst_, cat::Obj& snd_)
+{
+   if       (auto p = t_product<int>         (fst_, snd_))
+      return p;
+   else if  (auto p = t_product<double>      (fst_, snd_))
+      return p;
+   else if  (auto p = sproduct               (fst_, snd_))
+      return p;
+   else
+      return std::optional<cat::Obj>();
 }

@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <set>
 #include <string>
+#include <variant>
 
 #include "cat_export.h"
 
@@ -13,6 +14,8 @@ namespace cat
    class CAT_EXPORT Obj
    {
    public:
+
+      using TSet = std::variant<int, double, std::string>;
 
       explicit Obj(const std::string& name_);
 
@@ -32,8 +35,22 @@ namespace cat
        */
       const std::string& GetName() const;
 
+      /**
+       * @brief Return object as a "set"
+       * @return "Set" representation
+       */
+      const TSet& Value() const;
+
+      /**
+       * @brief Set object as a "set"
+       * @param value_ - "set" representation
+       */
+      void SetValue(const TSet& value_);
+
    private:
+
       std::string m_name;
+      TSet        m_set;
    };
 
    struct CAT_EXPORT ObjKeyHasher

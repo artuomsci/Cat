@@ -348,16 +348,22 @@ namespace cat
       //============================================================
       {
          Obj a("a");
+         a.SetValue("a");
          Obj b("b");
-         assert(coproduct(a, b, eCProdType::eStr) == Obj("ab"));
+         b.SetValue("b");
+         assert(coproduct(a, b)->Value() == Obj::TSet("ab"));
 
-         Obj f("4");
-         Obj s("5");
-         assert(coproduct(f, s, eCProdType::eInt) == Obj("9"));
+         Obj f("f");
+         f.SetValue(4);
+         Obj s("s");
+         s.SetValue(5);
+         assert(coproduct(f, s)->Value() == Obj::TSet(9));
 
          Obj fd("0.1");
+         fd.SetValue(0.1);
          Obj sd("0.5");
-         double result = std::stod(coproduct(fd, sd, eCProdType::eReal).GetName());
+         sd.SetValue(0.5);
+         double result = std::get<double>(coproduct(fd, sd)->Value());
          assert(std::abs(result - 0.6) < std::numeric_limits<double>::epsilon());
       }
 
@@ -366,16 +372,22 @@ namespace cat
       //============================================================
       {
          Obj a("ac");
+         a.SetValue("ac");
          Obj b("bd");
-         assert(product(a, b, eCProdType::eStr) == Obj("abadcbcd"));
+         b.SetValue("bd");
+         assert(product(a, b)->Value() == Obj::TSet("abadcbcd"));
 
          Obj f("4");
+         f.SetValue(4);
          Obj s("5");
-         assert(product(f, s, eCProdType::eInt) == Obj("20"));
+         s.SetValue(5);
+         assert(product(f, s)->Value() == Obj::TSet(20));
 
          Obj fd("1.1");
+         fd.SetValue(1.1);
          Obj sd("5");
-         double result = std::stod(product(fd, sd, eCProdType::eReal).GetName());
+         sd.SetValue(5.0);
+         double result = std::get<double>(product(fd, sd)->Value());
          assert(std::abs(result - 5.5) < std::numeric_limits<double>::epsilon());
       }
 
