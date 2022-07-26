@@ -187,6 +187,15 @@ bool CACat::EraseFunctor(const Func& func_)
 }
 
 //-----------------------------------------------------------------------------------------
+void CACat::EraseFunctors()
+{
+   m_funcs.clear();
+
+   for (auto& [cat, catset] : m_cats)
+      catset.clear();
+}
+
+//-----------------------------------------------------------------------------------------
 const CatUMap& CACat::Categories() const
 {
    return m_cats;

@@ -88,6 +88,11 @@ namespace cat
       bool EraseFunctor(const Func& func_);
 
       /**
+       * @brief Erase all functors
+       */
+      void EraseFunctors();
+
+      /**
        * @brief Return categories
        * @return Categories
        */
