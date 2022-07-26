@@ -50,6 +50,14 @@ namespace cat
    {
    public:
 
+      CACat() = default;
+
+      CACat(const CACat&) = delete;
+      CACat(CACat&&) = delete;
+
+      CACat& operator = (CACat&&) = delete;
+      CACat& operator = (const CACat&) = delete;
+
       /**
        * @brief Add category to the category
        * @param cat_ - category to add
