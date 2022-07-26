@@ -62,37 +62,6 @@ bool Cat::operator !=(const Cat& cat_) const
 }
 
 //-----------------------------------------------------------------------------------------
-bool Cat::AddMorphism(const Obj& source_, const Obj& target_, const std::string& morph_name_)
-{
-   if (m_objects.find(source_) == m_objects.end())
-   {
-      print_error("No such object: " + source_.GetName());
-      return false;
-   }
-
-   if (m_objects.find(target_) == m_objects.end())
-   {
-      print_error("No such object: " + target_.GetName());
-      return false;
-   }
-
-   for (auto & [obj_source, obj_target, morph_name_value] : m_morphisms)
-   {
-      if (morph_name_ == morph_name_value && (obj_source != source_ || obj_target != target_))
-      {
-         print_error("Morphism redefinition: " + morph_name_);
-         return false;
-      }
-   }
-
-   m_objects[source_].insert(target_);
-
-   m_morphisms.emplace_back(source_, target_, morph_name_);
-
-   return true;
-}
-
-//-----------------------------------------------------------------------------------------
 bool Cat::AddMorphism(const Morph& morph_)
 {
    if (m_objects.find(morph_.source) == m_objects.end())
@@ -174,7 +143,7 @@ bool Cat::AddObject(const Obj& obj_)
    if (m_objects.find(obj_) == m_objects.end())
    {
       m_objects[obj_];
-      if (!AddMorphism(obj_, obj_, id_morph_name(obj_)))
+      if (!AddMorphism(Morph(obj_, obj_, id_morph_name(obj_))))
          return false;
    }
    else

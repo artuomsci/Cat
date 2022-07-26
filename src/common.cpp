@@ -771,7 +771,7 @@ void inverse(Cat& cat_)
    for (const Morph& morph : morphs)
    {
       std::string name = default_morph_name(morph.source, morph.target) == morph.name ? default_morph_name(morph.target, morph.source) : morph.name;
-      cat_.AddMorphism(morph.target, morph.source, name);
+      cat_.AddMorphism(Morph(morph.target, morph.source, name));
    }
 }
 

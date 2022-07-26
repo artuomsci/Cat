@@ -25,14 +25,14 @@ namespace cat
       Func& operator  = (Func&& func_) = default;
       Func& operator  = (const Func& func_) = default;
 
+      bool operator  < (const Func& func_) const;
+      bool operator == (const Func& func_) const;
+      bool operator != (const Func& func_) const;
+
       Cat::CatName   source;
       Cat::CatName   target;
       FuncName       name;
       MorphVec       morphisms;
-
-      bool operator  < (const Func& func_) const;
-      bool operator == (const Func& func_) const;
-      bool operator != (const Func& func_) const;
    };
 
    using FuncVec = std::vector<Func>;

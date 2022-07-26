@@ -54,15 +54,6 @@ namespace cat
 
       /**
        * @brief Add morphism to the category
-       * @param source_ - source object
-       * @param target_ - target object
-       * @param morph_name_ - morphism name
-       * @return Result of adding morphism
-       */
-      bool AddMorphism(const Obj& source_, const Obj& target_, const std::string& morph_name_);
-
-      /**
-       * @brief Add morphism to the category
        * @param morph_ morphism to add
        * @return Result of adding morphism
        */

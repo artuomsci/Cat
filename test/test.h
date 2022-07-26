@@ -92,20 +92,20 @@ namespace cat
 
          assert(cat.GetMorphisms().size() == 3);
 
-         assert(cat.AddMorphism(a, b, "f0"));
+         assert(cat.AddMorphism(Morph(a, b, "f0")));
          assert(fnCheckMorph(cat.GetMorphisms(), Morph(a, b, "f0")));
 
-         assert(cat.AddMorphism(a, c, "f1"));
+         assert(cat.AddMorphism(Morph(a, c, "f1")));
          assert(fnCheckMorph(cat.GetMorphisms(), Morph(a, c, "f1")));
 
          assert(cat.GetMorphisms().size() == 5);
 
-         assert(cat.AddMorphism(a, d, "f2") == false);
+         assert(cat.AddMorphism(Morph(a, d, "f2")) == false);
          assert(!fnCheckMorph(cat.GetMorphisms(), Morph(a, d, "f2")));
          assert(cat.GetMorphisms().size() == 5);
 
-         assert(cat.AddMorphism(b, c, "f0") == false);
-         assert(cat.AddMorphism(a, b, "f0"));
+         assert(cat.AddMorphism(Morph(b, c, "f0")) == false);
+         assert(cat.AddMorphism(Morph(a, b, "f0")));
       }
 
       //============================================================
@@ -118,8 +118,8 @@ namespace cat
 
          cat.AddObjects(a, b, c);
 
-         cat.AddMorphism(a, b, "f0");
-         cat.AddMorphism(a, c, "f1");
+         cat.AddMorphism(Morph(a, b, "f0"));
+         cat.AddMorphism(Morph(a, c, "f1"));
 
          // Deleting morphisms one at a time
          {
@@ -279,11 +279,11 @@ namespace cat
 
          cat.AddObjects(a, b, c, d);
 
-         cat.AddMorphism(a, b, "f0");
-         cat.AddMorphism(a, c, "f1");
+         cat.AddMorphism(Morph(a, b, "f0"));
+         cat.AddMorphism(Morph(a, c, "f1"));
 
-         cat.AddMorphism(b, d, "f2");
-         cat.AddMorphism(c, d, "f3");
+         cat.AddMorphism(Morph(b, d, "f2"));
+         cat.AddMorphism(Morph(c, d, "f3"));
 
          inverse(cat);
 
