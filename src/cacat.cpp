@@ -127,7 +127,7 @@ bool CACat::AddFunctor(Func func_, EExpType type_)
 {
    for (const Func& func : m_funcs)
    {
-      if (func_.name == func.name && (func_.source != func.source || func_.target != func.target))
+      if (func_.name == func.name && func_.target != func.target)
       {
          print_error("Functor redefinition: " + func_.name);
          return false;
