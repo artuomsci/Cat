@@ -8,35 +8,60 @@
 using namespace cat;
 
 //-----------------------------------------------------------------------------------------
-Morph::Morph(const Obj& source_, const Obj& target_, const std::string& morph_name_) :
+Arrow::Arrow(const std::string& source_, const std::string& target_, const std::string& arrow_name_) :
    source      (source_)
  , target      (target_)
- , name        (morph_name_)
+ , name        (arrow_name_)
 {};
+
+//-----------------------------------------------------------------------------------------
+Arrow::Arrow(const std::string& source_, const std::string& target_) :
+   source      (source_)
+ , target      (target_)
+ , name        (default_arrow_name(source_, target_))
+{};
+
+//-----------------------------------------------------------------------------------------
+bool Arrow::operator<(const Arrow& arrow_) const
+{
+   return std::tie(source, target, name) < std::tie(arrow_.source, arrow_.target, arrow_.name);
+}
+
+//-----------------------------------------------------------------------------------------
+bool Arrow::operator==(const Arrow& arrow_) const
+{
+   return source == arrow_.source && target == arrow_.target && name == arrow_.name;
+}
+
+//-----------------------------------------------------------------------------------------
+bool Arrow::operator!=(const Arrow& morph_) const
+{
+   return source != morph_.source || target != morph_.target || name != morph_.name;
+}
+
+//-----------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------
+Morph::Morph(const std::string& source_, const std::string& target_, const std::string& name_) :
+   Arrow(source_, target_, name_)
+{
+}
+
+//-----------------------------------------------------------------------------------------
+Morph::Morph(const std::string& source_, const std::string& target_) :
+   Arrow(source_, target_, default_arrow_name(source_, target_))
+{
+}
+
+//-----------------------------------------------------------------------------------------
+Morph::Morph(const Obj& source_, const Obj& target_, const std::string& name_) :
+   Arrow(source_.GetName(), target_.GetName(), name_)
+{
+}
 
 //-----------------------------------------------------------------------------------------
 Morph::Morph(const Obj& source_, const Obj& target_) :
-   source      (source_)
- , target      (target_)
- , name        (default_morph_name(source_, target_))
-{};
-
-//-----------------------------------------------------------------------------------------
-bool Morph::operator<(const Morph& morph_) const
+   Arrow(source_.GetName(), target_.GetName(), default_arrow_name(source_.GetName(), target_.GetName()))
 {
-   return std::tie(source, target, name) < std::tie(morph_.source, morph_.target, morph_.name);
-}
-
-//-----------------------------------------------------------------------------------------
-bool Morph::operator==(const Morph& morph_) const
-{
-   return source == morph_.source && target == morph_.target && name == morph_.name;
-}
-
-//-----------------------------------------------------------------------------------------
-bool Morph::operator!=(const Morph& morph_) const
-{
-   return source != morph_.source || target != morph_.target || name != morph_.name;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -64,15 +89,15 @@ bool Cat::operator !=(const Cat& cat_) const
 //-----------------------------------------------------------------------------------------
 bool Cat::AddMorphism(const Morph& morph_)
 {
-   if (m_objects.find(morph_.source) == m_objects.end())
+   if (m_objects.find(Obj(morph_.source)) == m_objects.end())
    {
-      print_error("No such object: " + morph_.source.GetName());
+      print_error("No such object: " + morph_.source);
       return false;
    }
 
-   if (m_objects.find(morph_.target) == m_objects.end())
+   if (m_objects.find(Obj(morph_.target)) == m_objects.end())
    {
-      print_error("No such object: " + morph_.target.GetName());
+      print_error("No such object: " + morph_.target);
       return false;
    }
 
@@ -85,7 +110,7 @@ bool Cat::AddMorphism(const Morph& morph_)
       }
    }
 
-   m_objects[morph_.source].insert(morph_.target);
+   m_objects[Obj(morph_.source)].insert(Obj(morph_.target));
 
    m_morphisms.push_back(morph_);
 
@@ -99,7 +124,7 @@ bool Cat::EraseMorphism(const std::string& morph_name_)
    {
       if (morph.name == morph_name_)
       {
-         auto it_obj = m_objects.find(morph.source);
+         auto it_obj = m_objects.find(Obj(morph.source));
          if (it_obj != m_objects.end())
          {
             if (morph.source == morph.target)
@@ -107,7 +132,7 @@ bool Cat::EraseMorphism(const std::string& morph_name_)
 
             auto& [_, obj_set] = *it_obj;
 
-            obj_set.erase(morph.target);
+            obj_set.erase(Obj(morph.target));
          }
       }
    }
@@ -143,7 +168,7 @@ bool Cat::AddObject(const Obj& obj_)
    if (m_objects.find(obj_) == m_objects.end())
    {
       m_objects[obj_];
-      if (!AddMorphism(Morph(obj_, obj_, id_morph_name(obj_))))
+      if (!AddMorphism(Morph(obj_, obj_, id_arrow_name(obj_.GetName()))))
          return false;
    }
    else
@@ -167,7 +192,7 @@ bool Cat::EraseObject(const Obj& obj_)
 
       for (MorphVec::iterator it = m_morphisms.begin(); it != m_morphisms.end(); ++it)
       {
-         if (((*it).source == obj_) || ((*it).target == obj_))
+         if (((*it).source == obj_.GetName()) || ((*it).target == obj_.GetName()))
             morphs.push_back(it);
       }
 

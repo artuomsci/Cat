@@ -9,25 +9,35 @@
 
 namespace cat
 {
-   // Morphism
-   struct CAT_EXPORT Morph
+   // Arrow
+   struct CAT_EXPORT Arrow
    {
-      explicit Morph(const Obj& source_, const Obj& target_, const std::string& morph_name_);
-      explicit Morph(const Obj& source_, const Obj& target_);
+      explicit Arrow(const std::string& source_, const std::string& target_, const std::string& arrow_name_);
+      explicit Arrow(const std::string& source_, const std::string& target_);
 
-      Morph(const Morph& morph_) = default;
-      Morph(Morph&& morph_) = default;
+      Arrow(const Arrow&) = default;
+      Arrow(Arrow&&) = default;
 
-      Morph& operator = (Morph&& morph_) = default;
-      Morph& operator = (const Morph& morph_) = default;
+      Arrow& operator = (Arrow&&) = default;
+      Arrow& operator = (const Arrow&) = default;
 
-      bool operator  < (const Morph& morph_) const;
-      bool operator == (const Morph& morph_) const;
-      bool operator != (const Morph& morph_) const;
+      bool operator  < (const Arrow& arrow_) const;
+      bool operator == (const Arrow& arrow_) const;
+      bool operator != (const Arrow& arrow_) const;
 
-      Obj         source;
-      Obj         target;
+      std::string source;
+      std::string target;
       std::string name;
+   };
+
+   // Morphism
+   struct CAT_EXPORT Morph : Arrow
+   {
+      explicit Morph(const std::string& source_, const std::string& target_, const std::string& name_);
+      explicit Morph(const std::string& source_, const std::string& target_);
+
+      explicit Morph(const Obj& source_, const Obj& target_, const std::string& name_);
+      explicit Morph(const Obj& source_, const Obj& target_);
    };
 
    using MorphVec = std::vector<Morph>;

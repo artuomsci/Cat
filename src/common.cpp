@@ -693,10 +693,10 @@ std::vector<Morph> map_obj2morphism(const ObjVec& objs_, const Cat& cat_)
    {
       auto it = std::find_if(morphisms.begin(), morphisms.end(), [&](const MorphVec::value_type& elem_)
       {
-         return objs_[i + 0] == elem_.source && objs_[i + 1] == elem_.target;
+         return objs_[i + 0].GetName() == elem_.source && objs_[i + 1].GetName() == elem_.target;
       });
 
-      ret.push_back(it != morphisms.end() ? *it : Morph(Obj(""), Obj("")));
+      ret.push_back(it != morphisms.end() ? *it : Morph("", ""));
    }
 
    return ret;
@@ -744,19 +744,13 @@ void solve_compositions(Cat& cat_)
 }
 
 //-----------------------------------------------------------------------------------------
-std::string id_morph_name(const Obj& obj_)
+std::string id_arrow_name(const std::string& name_)
 {
-   return default_morph_name(obj_, obj_);
+   return default_arrow_name(name_, name_);
 }
 
 //-----------------------------------------------------------------------------------------
-std::string default_morph_name(const Obj& source_, const Obj& target_)
-{
-   return source_.GetName() + "-" + target_.GetName();
-}
-
-//-----------------------------------------------------------------------------------------
-Func::FuncName default_functor_name(const Cat::CatName& source_, const Cat::CatName& target_)
+std::string default_arrow_name(const std::string& source_, const std::string& target_)
 {
    return source_ + "-" + target_;
 }
@@ -770,7 +764,7 @@ void inverse(Cat& cat_)
 
    for (const Morph& morph : morphs)
    {
-      std::string name = default_morph_name(morph.source, morph.target) == morph.name ? default_morph_name(morph.target, morph.source) : morph.name;
+      std::string name = default_arrow_name(morph.source, morph.target) == morph.name ? default_arrow_name(morph.target, morph.source) : morph.name;
       cat_.AddMorphism(Morph(morph.target, morph.source, name));
    }
 }

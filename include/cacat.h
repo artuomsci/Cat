@@ -10,29 +10,27 @@
 namespace cat
 {
    // Functor
-   struct CAT_EXPORT Func
+   struct CAT_EXPORT Func : Arrow
    {
       using FuncName = std::string;
 
       explicit Func(const Cat::CatName& source_, const Cat::CatName& target_, const FuncName& name_);
       explicit Func(const Cat::CatName& source_, const Cat::CatName& target_);
+
       explicit Func(const Cat& source_, const Cat& target_, const FuncName& name_);
       explicit Func(const Cat& source_, const Cat& target_);
 
-      Func(const Func& func_) = default;
-      Func(Func&& func_) = default;
+      Func(const Func&) = default;
+      Func(Func&&) = default;
 
-      Func& operator  = (Func&& func_) = default;
-      Func& operator  = (const Func& func_) = default;
+      Func& operator  = (Func&&) = default;
+      Func& operator  = (const Func&) = default;
 
       bool operator  < (const Func& func_) const;
       bool operator == (const Func& func_) const;
       bool operator != (const Func& func_) const;
 
-      Cat::CatName   source;
-      Cat::CatName   target;
-      FuncName       name;
-      MorphVec       morphisms;
+      MorphVec morphisms;
    };
 
    using FuncVec = std::vector<Func>;

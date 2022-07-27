@@ -103,8 +103,8 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std:
             sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", mrph.name.c_str(), mrph.name.c_str(), "Link");
          else
          {
-            const TVec2& source_crd = coords_.at(mrph.source);
-            const TVec2& target_crd = coords_.at(mrph.target);
+            const TVec2& source_crd = coords_.at(Obj(mrph.source));
+            const TVec2& target_crd = coords_.at(Obj(mrph.target));
 
             int x = (source_crd.first + target_crd.first) * 0.5;
             int y = (source_crd.second + target_crd.second) * 0.5;
@@ -147,11 +147,11 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std:
          // edges
          char buffere[1024];
 
-         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", mrph.source.GetName().c_str(), mrph.name.c_str());
+         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", mrph.source.c_str(), mrph.name.c_str());
 
          edges += (edges.empty() ? "" : ",") +  std::string(buffere) + "\n";
 
-         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", mrph.name.c_str(), mrph.target.GetName().c_str());
+         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", mrph.name.c_str(), mrph.target.c_str());
 
          edges += (edges.empty() ? "" : ",") +  std::string(buffere) + "\n";
       }

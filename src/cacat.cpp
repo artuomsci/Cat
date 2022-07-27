@@ -9,32 +9,23 @@
 using namespace cat;
 
 //-----------------------------------------------------------------------------------------
-//-----------------------------------------------------------------------------------------
 Func::Func(const Cat::CatName& source_, const Cat::CatName& target_, const FuncName& name_) :
-      source(source_)
-   ,  target(target_)
-   ,  name  (name_)
+   Arrow(source_, target_, name_)
 {}
 
 //-----------------------------------------------------------------------------------------
 Func::Func(const Cat::CatName& source_, const Cat::CatName& target_) :
-      source(source_)
-   ,  target(target_)
-   ,  name  (default_functor_name(source, target))
+   Arrow(source_, target_, default_arrow_name(source_, target_))
 {}
 
 //-----------------------------------------------------------------------------------------
 Func::Func(const Cat& source_, const Cat& target_, const FuncName& name_) :
-      source(source_.GetName())
-   ,  target(target_.GetName())
-   ,  name  (name_)
+   Arrow(source_.GetName(), target_.GetName(), name_)
 {}
 
 //-----------------------------------------------------------------------------------------
 Func::Func(const Cat& source_, const Cat& target_) :
-   source(source_.GetName())
-,  target(target_.GetName())
-,  name  (default_functor_name(source, target))
+   Arrow(source_.GetName(), target_.GetName(), default_arrow_name(source_.GetName(), target_.GetName()))
 {}
 
 //-----------------------------------------------------------------------------------------
@@ -67,7 +58,7 @@ std::optional<Obj> cat::MapObject(const std::optional<Func>& func_, const std::o
 
    for (const Morph& morph : func_.value().morphisms)
    {
-      if (morph.source == obj_.value())
+      if (morph.source == obj_->GetName())
       {
          return std::optional<Obj>(morph.target);
       }
@@ -153,7 +144,7 @@ bool CACat::AddFunctor(Func func_, EExpType type_)
          const auto& [source_cat, _] = *itSourceCat;
 
          for (const auto& [obj, _] : source_cat.GetObjects())
-            func_.morphisms.emplace_back(obj, obj);
+            func_.morphisms.emplace_back(obj.GetName(), obj.GetName());
       }
 
       if (!Statement(func_))
@@ -232,18 +223,18 @@ bool CACat::Proof(const Func& func_) const
 
    for (const Morph& morph : source_cat.GetMorphisms())
    {
-      auto objs = MapObject(func_, morph.source);
-      auto objt = MapObject(func_, morph.target);
+      auto objs = MapObject(func_, Obj(morph.source));
+      auto objt = MapObject(func_, Obj(morph.target));
 
       if (!objs)
       {
-         print_error("Failure to map object: " + morph.source.GetName());
+         print_error("Failure to map object: " + morph.source);
          return false;
       }
 
-      if (source_cat.GetObjects().find(morph.source) == source_cat.GetObjects().end())
+      if (source_cat.GetObjects().find(Obj(morph.source)) == source_cat.GetObjects().end())
       {
-         print_error("No such object '" + morph.source.GetName() + "' in category '" + source_cat.GetName() + "'");
+         print_error("No such object '" + morph.source + "' in category '" + source_cat.GetName() + "'");
          return false;
       }
 
@@ -255,13 +246,13 @@ bool CACat::Proof(const Func& func_) const
 
       if (!objt)
       {
-         print_error("Failure to map object: " + morph.target.GetName());
+         print_error("Failure to map object: " + morph.target);
          return false;
       }
 
-      if (source_cat.GetObjects().find(morph.target) == source_cat.GetObjects().end())
+      if (source_cat.GetObjects().find(Obj(morph.target)) == source_cat.GetObjects().end())
       {
-         print_error("No such object '" + morph.target.GetName() + "' in category '" + source_cat.GetName() + "'");
+         print_error("No such object '" + morph.target + "' in category '" + source_cat.GetName() + "'");
          return false;
       }
 
@@ -331,11 +322,11 @@ bool CACat::Statement(const Func& func_)
    // Mapping morphisms
    for (const Morph& morph : source_cat.GetMorphisms())
    {
-      auto objs = MapObject(func_, morph.source);
-      auto objt = MapObject(func_, morph.target);
+      auto objs = MapObject(func_, Obj(morph.source));
+      auto objt = MapObject(func_, Obj(morph.target));
 
       if (!target_cat.MatchMorphism(objs.value(), objt.value()))
-         target_cat.AddMorphism(Morph(objs.value(), objt.value()));
+         target_cat.AddMorphism(Morph(objs->GetName(), objt->GetName()));
    }
 
    if (!AddCategory(target_cat))
