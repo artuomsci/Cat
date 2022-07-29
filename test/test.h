@@ -190,11 +190,11 @@ namespace cat
       // Testing morphism sequence
       //============================================================
       {
-//         Cat cat("cat");
+         Cat cat("cat");
 
-//         Obj a("a"), b("b"), c("c"), d("d"), e("e"), f("f");
+         Obj a("a"), b("b"), c("c"), d("d"), e("e"), f("f");
 
-//         cat.AddNodes(a, b, c, d, e, f);
+         cat.AddNodes(a, b, c, d, e, f);
 
 //         cat.AddArrows(
 //                     Morph(a, b)
@@ -223,11 +223,11 @@ namespace cat
       // Testing morphism sequences
       //============================================================
       {
-//         Cat cat("cat");
+         Cat cat("cat");
 
-//         Obj a("a"), b("b"), c("c"), d("d"), e("e"), f("f");
+         Obj a("a"), b("b"), c("c"), d("d"), e("e"), f("f");
 
-//         cat.AddNodes(a, b, c, d, e, f);
+         cat.AddNodes(a, b, c, d, e, f);
 
 //         cat.AddArrows(
 //                     Morph(a, b)
@@ -298,11 +298,11 @@ namespace cat
       // Testing of initial/terminal objects
       //============================================================
       {
-//         Cat cat("cat");
+         Cat cat("cat");
 
-//         Obj a0("a0"), a1("a1"), b("b"), c("c"), d0("d0"), d1("d1");
+         Obj a0("a0"), a1("a1"), b("b"), c("c"), d0("d0"), d1("d1");
 
-//         cat.AddNodes(a0, a1, b, c, d0, d1);
+         cat.AddNodes(a0, a1, b, c, d0, d1);
 
 //         cat.AddArrows(Morph(a0, a1), Morph(a1, a0));
 

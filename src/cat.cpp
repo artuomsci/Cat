@@ -1,6 +1,9 @@
 #include "cat.h"
 
+#include <algorithm>
+
 #include "common.h"
+#include "log.h"
 
 using namespace cat;
 
