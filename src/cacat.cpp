@@ -69,162 +69,94 @@ std::optional<Obj> cat::MapObject(const std::optional<Func>& func_, const std::o
 
 //-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
-bool CACat::AddCategory(const Cat& cat_)
+bool CACat::AddArrow(Func arrow_, EExpType type_)
 {
-   if (cat_.GetName().empty())
-      return false;
-
-   if (m_cats.find(cat_) == m_cats.end())
-      m_cats[cat_];
-   else
+   for (const Func& func : m_arrows)
    {
-      print_error("Category redefinition: " + cat_.GetName());
-      return false;
-   }
-
-   return true;
-}
-
-//-----------------------------------------------------------------------------------------
-bool CACat::EraseCategory(const Cat& cat_)
-{
-   auto it = m_cats.find(cat_);
-   if (it != m_cats.end())
-   {
-      m_cats.erase(it);
-
-      std::vector<FuncVec::iterator> funcs; funcs.reserve(m_funcs.size());
-
-      for (FuncVec::iterator it = m_funcs.begin(); it != m_funcs.end(); ++it)
+      if (arrow_.name == func.name && arrow_.target != func.target)
       {
-         if (((*it).source == cat_.GetName()) || ((*it).target == cat_.GetName()))
-            funcs.push_back(it);
-      }
-
-      while (!funcs.empty())
-      {
-         m_funcs.erase(funcs.back());
-         funcs.pop_back();
-      }
-
-      return true;
-   }
-   
-   return false;
-}
-
-//-----------------------------------------------------------------------------------------
-bool CACat::AddFunctor(Func func_, EExpType type_)
-{
-   for (const Func& func : m_funcs)
-   {
-      if (func_.name == func.name && func_.target != func.target)
-      {
-         print_error("Functor redefinition: " + func_.name);
+         print_error("Arrow redefinition: " + arrow_.name);
          return false;
       }
    }
 
    if (type_ == EExpType::eProof)
    {
-      if (!Proof(func_))
+      m_arrows.push_back(arrow_);
+
+      if (!Proof(Cat(arrow_.source), Cat(arrow_.target)))
          return false;
    }
    else if (type_ == EExpType::eStatement)
    {
-      if (func_.morphisms.empty())
+      if (arrow_.morphisms.empty())
       {
-         auto itSourceCat = Categories().find(Cat(func_.source));
-         if (itSourceCat == Categories().end())
+         auto itSourceCat = m_nodes.find(Cat(arrow_.source));
+         if (itSourceCat == m_nodes.end())
          {
-            print_error("Missing source category: " + func_.source);
+            print_error("Missing source category: " + arrow_.source);
             return false;
          }
 
          const auto& [source_cat, _] = *itSourceCat;
 
-         for (const auto& [obj, _] : source_cat.GetObjects())
-            func_.morphisms.emplace_back(obj.GetName(), obj.GetName());
+         for (const auto& [obj, _] : source_cat.Nodes())
+            arrow_.morphisms.emplace_back(obj.GetName(), obj.GetName());
       }
 
-      if (!Statement(func_))
+      if (!Statement(arrow_))
          return false;
    }
 
-   auto it = std::find_if(m_funcs.begin(), m_funcs.end(), [&](const FuncVec::value_type& element_)
-   {
-      return element_.name == func_.name && element_.source == func_.source && element_.target == func_.target;
-   });
-
-   if (it == m_funcs.end())
-      m_funcs.push_back(func_);
-
    return true;
-}
-
-//-----------------------------------------------------------------------------------------
-bool CACat::EraseFunctor(const Func& func_)
-{
-   auto it = std::find_if(m_funcs.begin(), m_funcs.end(), [&](const std::set<Func>::value_type& elem_) {
-      return elem_.name == func_.name;
-   });
-
-   if (it == m_funcs.end())
-      return false;
-
-   m_funcs.erase(it);
-
-   return true;
-}
-
-//-----------------------------------------------------------------------------------------
-void CACat::EraseFunctors()
-{
-   m_funcs.clear();
-
-   for (auto& [cat, catset] : m_cats)
-      catset.clear();
-}
-
-//-----------------------------------------------------------------------------------------
-const CatUMap& CACat::Categories() const
-{
-   return m_cats;
-}
-
-//-----------------------------------------------------------------------------------------
-//-----------------------------------------------------------------------------------------
-const FuncVec& CACat::Functors() const
-{
-   return m_funcs;
 }
 
 //-----------------------------------------------------------------------------------------
 bool CACat::Proof(const Func& func_) const
 {
-   auto itSourceCat = m_cats.find(Cat(func_.source));
-   auto itTargetCat = m_cats.find(Cat(func_.target));
+   auto itSourceCat = m_nodes.find(Cat(func_.source));
+   auto itTargetCat = m_nodes.find(Cat(func_.target));
 
-   if (itSourceCat == m_cats.end() || itTargetCat == m_cats.end())
+   if (itSourceCat == m_nodes.end())
+   {
+      print_error("No such source category: " + func_.source);
       return false;
+   }
+
+   if (itTargetCat == m_nodes.end())
+   {
+      print_error("No such target category: " + func_.target);
+      return false;
+   }
+
+   auto fn = std::find_if(m_arrows.begin(), m_arrows.end(), [&](const ArrowVec::value_type& element_)
+   {
+      return element_.source == func_.source && element_.target == func_.target && element_.name == func_.name;
+   });
+
+   if (fn == m_arrows.end())
+   {
+      print_error("No functor from " + func_.source + " to " + func_.target);
+      return false;
+   }
 
    const auto& [source_cat, _s] = *itSourceCat;
    const auto& [target_cat, _t] = *itTargetCat;
 
    // Checking mapping of objects
-   for (const auto& [obj, _] : source_cat.GetObjects())
+   for (const auto& [obj, _] : source_cat.Nodes())
    {
-      if (!MapObject(func_, obj).has_value())
+      if (!MapObject(*fn, obj))
       {
          print_error("Failure to map object: " + obj.GetName());
          return false;
       }
    }
 
-   for (const Morph& morph : source_cat.GetMorphisms())
+   for (const Morph& morph : source_cat.Arrows())
    {
-      auto objs = MapObject(func_, Obj(morph.source));
-      auto objt = MapObject(func_, Obj(morph.target));
+      auto objs = MapObject(*fn, Obj(morph.source));
+      auto objt = MapObject(*fn, Obj(morph.target));
 
       if (!objs)
       {
@@ -232,13 +164,13 @@ bool CACat::Proof(const Func& func_) const
          return false;
       }
 
-      if (source_cat.GetObjects().find(Obj(morph.source)) == source_cat.GetObjects().end())
+      if (source_cat.Nodes().find(Obj(morph.source)) == source_cat.Nodes().end())
       {
          print_error("No such object '" + morph.source + "' in category '" + source_cat.GetName() + "'");
          return false;
       }
 
-      if (target_cat.GetObjects().find(objs.value()) == target_cat.GetObjects().end())
+      if (target_cat.Nodes().find(objs.value()) == target_cat.Nodes().end())
       {
          print_error("No such object '" + objs.value().GetName() + "' in category '" + target_cat.GetName() + "'");
          return false;
@@ -250,20 +182,114 @@ bool CACat::Proof(const Func& func_) const
          return false;
       }
 
-      if (source_cat.GetObjects().find(Obj(morph.target)) == source_cat.GetObjects().end())
+      if (source_cat.Nodes().find(Obj(morph.target)) == source_cat.Nodes().end())
       {
          print_error("No such object '" + morph.target + "' in category '" + source_cat.GetName() + "'");
          return false;
       }
 
-      if (target_cat.GetObjects().find(objt.value()) == target_cat.GetObjects().end())
+      if (target_cat.Nodes().find(objt.value()) == target_cat.Nodes().end())
       {
          print_error("No such object '" + objt.value().GetName() + "' in category '" + target_cat.GetName() + "'");
          return false;
       }
 
       // Checking mapping of morphisms
-      if (!target_cat.MatchMorphism(objs.value(), objt.value()))
+      if (!target_cat.MatchArrow(objs.value(), objt.value()))
+      {
+         print_error("Failure to match morphism: " + objs.value().GetName() + "->" + objt.value().GetName());
+         return false;
+      }
+   }
+
+   return true;
+}
+
+//-----------------------------------------------------------------------------------------
+bool CACat::Proof(const Cat& source_, const Cat& target_) const
+{
+   auto itSourceCat = m_nodes.find(source_);
+   auto itTargetCat = m_nodes.find(target_);
+
+   if (itSourceCat == m_nodes.end())
+   {
+      print_error("No such source category: " + source_.GetName());
+      return false;
+   }
+
+   if (itTargetCat == m_nodes.end())
+   {
+      print_error("No such target category: " + target_.GetName());
+      return false;
+   }
+
+   auto fn = std::find_if(m_arrows.begin(), m_arrows.end(), [&](const ArrowVec::value_type& element_)
+   {
+      return element_.source == source_.GetName() && element_.target == target_.GetName();
+   });
+
+   if (fn == m_arrows.end())
+   {
+      print_error("No functor from " + source_.GetName() + " to " + target_.GetName());
+      return false;
+   }
+
+   const auto& [source_cat, _s] = *itSourceCat;
+   const auto& [target_cat, _t] = *itTargetCat;
+
+   // Checking mapping of objects
+   for (const auto& [obj, _] : source_cat.Nodes())
+   {
+      if (!MapObject(*fn, obj))
+      {
+         print_error("Failure to map object: " + obj.GetName());
+         return false;
+      }
+   }
+
+   for (const Morph& morph : source_cat.Arrows())
+   {
+      auto objs = MapObject(*fn, Obj(morph.source));
+      auto objt = MapObject(*fn, Obj(morph.target));
+
+      if (!objs)
+      {
+         print_error("Failure to map object: " + morph.source);
+         return false;
+      }
+
+      if (source_cat.Nodes().find(Obj(morph.source)) == source_cat.Nodes().end())
+      {
+         print_error("No such object '" + morph.source + "' in category '" + source_cat.GetName() + "'");
+         return false;
+      }
+
+      if (target_cat.Nodes().find(objs.value()) == target_cat.Nodes().end())
+      {
+         print_error("No such object '" + objs.value().GetName() + "' in category '" + target_cat.GetName() + "'");
+         return false;
+      }
+
+      if (!objt)
+      {
+         print_error("Failure to map object: " + morph.target);
+         return false;
+      }
+
+      if (source_cat.Nodes().find(Obj(morph.target)) == source_cat.Nodes().end())
+      {
+         print_error("No such object '" + morph.target + "' in category '" + source_cat.GetName() + "'");
+         return false;
+      }
+
+      if (target_cat.Nodes().find(objt.value()) == target_cat.Nodes().end())
+      {
+         print_error("No such object '" + objt.value().GetName() + "' in category '" + target_cat.GetName() + "'");
+         return false;
+      }
+
+      // Checking mapping of morphisms
+      if (!target_cat.MatchArrow(objs.value(), objt.value()))
       {
          print_error("Failure to match morphism: " + objs.value().GetName() + "->" + objt.value().GetName());
          return false;
@@ -276,8 +302,8 @@ bool CACat::Proof(const Func& func_) const
 //-----------------------------------------------------------------------------------------
 bool CACat::Statement(const Func& func_)
 {
-   auto itSourceCat = m_cats.find(Cat(func_.source));
-   if (itSourceCat == m_cats.end())
+   auto itSourceCat = m_nodes.find(Cat(func_.source));
+   if (itSourceCat == m_nodes.end())
    {
       print_error("Missing source category: " + func_.source);
       return false;
@@ -285,14 +311,14 @@ bool CACat::Statement(const Func& func_)
 
    const auto& [source_cat, _] = *itSourceCat;
 
-   auto itTargetCat = m_cats.find(Cat(func_.target));
+   auto itTargetCat = m_nodes.find(Cat(func_.target));
 
    Cat target_cat("");
 
    CatNameVec backup_targets;
    CatNameVec backup_sources;
 
-   if (itTargetCat == m_cats.end())
+   if (itTargetCat == m_nodes.end())
       target_cat = Cat(func_.target);
    else
    {
@@ -303,10 +329,13 @@ bool CACat::Statement(const Func& func_)
       backup_sources = FindSources(target_cat.GetName());
    }
 
-   eraseInstances(target_cat);
+   for (auto& [_, nodes_set] : m_nodes)
+      nodes_set.erase(target_cat);
+
+   m_nodes.erase(target_cat);
 
    // Mapping objects
-   for (const auto& [obj, _] : source_cat.GetObjects())
+   for (const auto& [obj, _] : source_cat.Nodes())
    {
       std::optional<Obj> tobj = MapObject(func_, obj);
       if (!tobj.has_value())
@@ -315,102 +344,35 @@ bool CACat::Statement(const Func& func_)
          return false;
       }
 
-      if (target_cat.GetObjects().find(tobj.value()) == target_cat.GetObjects().end())
-         target_cat.AddObject(tobj.value());
+      if (target_cat.Nodes().find(tobj.value()) == target_cat.Nodes().end())
+         target_cat.AddNode(tobj.value());
    }
 
    // Mapping morphisms
-   for (const Morph& morph : source_cat.GetMorphisms())
+   for (const Morph& morph : source_cat.Arrows())
    {
       auto objs = MapObject(func_, Obj(morph.source));
       auto objt = MapObject(func_, Obj(morph.target));
 
-      if (!target_cat.MatchMorphism(objs.value(), objt.value()))
-         target_cat.AddMorphism(Morph(objs->GetName(), objt->GetName()));
+      if (!target_cat.MatchArrow(objs.value(), objt.value()))
+         target_cat.AddArrow(Morph(objs->GetName(), objt->GetName()));
    }
 
-   if (!AddCategory(target_cat))
+   if (!AddNode(target_cat))
       return false;
 
    // Restoring relations
    for (const auto& scat : backup_sources)
-      m_cats[Cat(scat)].insert(target_cat);
+      m_nodes[Cat(scat)].insert(target_cat);
 
-   auto crt_category_targets = m_cats[Cat(target_cat)];
+   auto crt_category_targets = m_nodes[Cat(target_cat)];
    for (const auto& tcat : backup_targets)
    {
-      const auto& [cat, _] = *m_cats.find(Cat(tcat));
+      const auto& [cat, _] = *m_nodes.find(Cat(tcat));
       crt_category_targets.insert(cat);
    }
 
+   m_arrows.push_back(func_);
+
    return true;
-}
-
-//-----------------------------------------------------------------------------------------
-std::optional<Func> CACat::FindFunctor(const Cat::CatName& source_, const Cat::CatName& target_) const
-{
-   for (const Func& func : m_funcs)
-   {
-      if (func.source == source_ && func.target == target_)
-         return std::optional<Func>(func);
-   }
-
-   return std::optional<Func>();
-}
-
-//-----------------------------------------------------------------------------------------
-CatNameVec CACat::FindSources(const Cat::CatName& target_) const
-{
-   CatNameVec ret; ret.reserve(m_funcs.size());
-
-   for (const Func& func : m_funcs)
-   {
-      if (func.target == target_)
-         ret.push_back(func.source);
-   }
-
-   return ret;
-}
-
-//-----------------------------------------------------------------------------------------
-CatNameVec CACat::FindTargets(const Cat::CatName& source_) const
-{
-   CatNameVec ret; ret.reserve(m_funcs.size());
-
-   for (const Func& func : m_funcs)
-   {
-      if (func.source == source_)
-         ret.push_back(func.target);
-   }
-
-   return ret;
-}
-
-//-----------------------------------------------------------------------------------------
-CatVec CACat::FindByTargets(const CatNameVec& targets_) const
-{
-   CatVec ret; ret.reserve(targets_.size());
-
-   for (const auto& [domain, _] : m_cats)
-   {
-      for (int i = 0; i < (int)targets_.size(); ++i)
-      {
-         if (!FindFunctor(domain.GetName(), targets_[i]))
-            continue;
-
-         if (i == targets_.size() - 1)
-            ret.push_back(domain);
-      }
-   }
-
-   return ret;
-}
-
-//-----------------------------------------------------------------------------------------
-void CACat::eraseInstances(const Cat& cat_)
-{
-   for (auto& [cat, cat_set] : m_cats)
-      cat_set.erase(cat_);
-
-   m_cats.erase(cat_);
 }

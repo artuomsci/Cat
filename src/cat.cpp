@@ -1,9 +1,6 @@
 #include "cat.h"
 
-#include <algorithm>
-
 #include "common.h"
-#include "log.h"
 
 using namespace cat;
 
@@ -87,132 +84,9 @@ bool Cat::operator !=(const Cat& cat_) const
 }
 
 //-----------------------------------------------------------------------------------------
-bool Cat::AddMorphism(const Morph& morph_)
+bool Cat::AddArrow(const Morph& arrow_, EExpType type_)
 {
-   if (m_objects.find(Obj(morph_.source)) == m_objects.end())
-   {
-      print_error("No such object: " + morph_.source);
-      return false;
-   }
-
-   if (m_objects.find(Obj(morph_.target)) == m_objects.end())
-   {
-      print_error("No such object: " + morph_.target);
-      return false;
-   }
-
-   for (auto & [obj_source, obj_target, morph_name_value] : m_morphisms)
-   {
-      if (morph_.name == morph_name_value && obj_target != morph_.target)
-      {
-         print_error("Morphism redefinition: " + morph_.name);
-         return false;
-      }
-   }
-
-   m_objects[Obj(morph_.source)].insert(Obj(morph_.target));
-
-   m_morphisms.push_back(morph_);
-
-   return true;
-}
-
-//-----------------------------------------------------------------------------------------
-bool Cat::EraseMorphism(const std::string& morph_name_)
-{
-   for (Morph& morph : m_morphisms)
-   {
-      if (morph.name == morph_name_)
-      {
-         auto it_obj = m_objects.find(Obj(morph.source));
-         if (it_obj != m_objects.end())
-         {
-            if (morph.source == morph.target)
-               return false;
-
-            auto& [_, obj_set] = *it_obj;
-
-            obj_set.erase(Obj(morph.target));
-         }
-      }
-   }
-
-   auto it_begin = std::remove_if(m_morphisms.begin(), m_morphisms.end(), [&](const MorphVec::value_type& element_)
-      {
-         return element_.name == morph_name_;
-      });
-
-   if (it_begin == m_morphisms.end())
-      return false;
-
-   m_morphisms.erase(it_begin, m_morphisms.end());
-
-   return true;
-}
-
-//-----------------------------------------------------------------------------------------
-void Cat::EraseMorphisms()
-{
-   m_morphisms.clear();
-
-   for (auto& [obj, objset] : m_objects)
-      objset.clear();
-}
-
-//-----------------------------------------------------------------------------------------
-bool Cat::AddObject(const Obj& obj_)
-{
-   if (obj_.GetName().empty())
-      return false;
-
-   if (m_objects.find(obj_) == m_objects.end())
-   {
-      m_objects[obj_];
-      if (!AddMorphism(Morph(obj_, obj_, id_arrow_name(obj_.GetName()))))
-         return false;
-   }
-   else
-   {
-      print_error("Object redefinition: " + obj_.GetName());
-      return false;
-   }
-
-   return true;
-}
-
-//-----------------------------------------------------------------------------------------
-bool Cat::EraseObject(const Obj& obj_)
-{
-   auto it = m_objects.find(obj_);
-   if (it != m_objects.end())
-   {
-      m_objects.erase(it);
-
-      std::vector<MorphVec::iterator> morphs; morphs.reserve(m_morphisms.size());
-
-      for (MorphVec::iterator it = m_morphisms.begin(); it != m_morphisms.end(); ++it)
-      {
-         if (((*it).source == obj_.GetName()) || ((*it).target == obj_.GetName()))
-            morphs.push_back(it);
-      }
-
-      while (!morphs.empty())
-      {
-         m_morphisms.erase(morphs.back());
-         morphs.pop_back();
-      }
-
-      return true;
-   }
-
-   return false;
-}
-
-//-----------------------------------------------------------------------------------------
-void Cat::EraseObjects()
-{
-   m_objects   .clear();
-   m_morphisms .clear();
+   return addArrow(arrow_, type_);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -222,27 +96,15 @@ const Cat::CatName& Cat::GetName() const
 }
 
 //-----------------------------------------------------------------------------------------
-const MorphVec& Cat::GetMorphisms() const
+bool Cat::Proof(const Morph& morph_) const
 {
-   return m_morphisms;
+   return proof(morph_);
 }
 
 //-----------------------------------------------------------------------------------------
-const ObjUMap& Cat::GetObjects() const
+bool Cat::Proof(const Obj& source_, const Obj& target_) const
 {
-   return m_objects;
-}
-
-//-----------------------------------------------------------------------------------------
-bool Cat::MatchMorphism(const Obj& source_, const Obj& target_) const
-{
-   auto it = m_objects.find(source_);
-   if (it == m_objects.end())
-      return false;
-
-   const auto& [_, codomain] = *it;
-
-   return codomain.find(target_) != codomain.end();
+   return proof(source_, target_);
 }
 
 //-----------------------------------------------------------------------------------------

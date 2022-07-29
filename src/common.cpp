@@ -57,10 +57,10 @@ static bool is_functor(const std::string& string_)
 }
 
 //-----------------------------------------------------------------------------------------
-template <typename TNode, typename TContainer, typename TLink>
-static std::vector<TLink> get_chains(const std::string& name_, const TNode& source_, const TNode& target_, const TContainer& domain_, const TContainer& codomain_, EExpType expr_type_)
+template <typename TNode, typename TContainer, typename TArrow>
+static std::vector<TArrow> get_chains(const std::string& name_, const TNode& source_, const TNode& target_, const TContainer& domain_, const TContainer& codomain_, EExpType expr_type_)
 {
-   std::vector<TLink> ret;
+   std::vector<TArrow> ret;
 
    auto fnCheckSource = [&]()
    {
@@ -93,7 +93,7 @@ static std::vector<TLink> get_chains(const std::string& name_, const TNode& sour
       if (!fnCheckTarget())
          return ret;
 
-      ret.push_back(TLink(source_, target_, name_));
+      ret.push_back(TArrow(source_, target_, name_));
    }
    // * :: a -> b
    else if  (name_ == sAny && source_.GetName() != sAny && target_.GetName() != sAny)
@@ -103,7 +103,7 @@ static std::vector<TLink> get_chains(const std::string& name_, const TNode& sour
       if (!fnCheckTarget())
          return ret;
 
-      ret.push_back(TLink(source_, target_));
+      ret.push_back(TArrow(source_, target_));
    }
    // * :: * -> *
    else if (name_ == sAny && source_.GetName() == sAny && target_.GetName() == sAny)
@@ -112,7 +112,7 @@ static std::vector<TLink> get_chains(const std::string& name_, const TNode& sour
       {
          for (const auto& [cnode, _c] : codomain_)
          {
-            ret.push_back(TLink(dnode, cnode));
+            ret.push_back(TArrow(dnode, cnode));
          }
       }
    }
@@ -123,7 +123,7 @@ static std::vector<TLink> get_chains(const std::string& name_, const TNode& sour
          return ret;
 
       for (const auto& [dnode, _] : domain_)
-         ret.push_back(TLink(dnode, target_));
+         ret.push_back(TArrow(dnode, target_));
    }
    // * :: a -> *
    else if (name_ == sAny && source_.GetName() != sAny && target_.GetName() == sAny)
@@ -132,7 +132,7 @@ static std::vector<TLink> get_chains(const std::string& name_, const TNode& sour
          return ret;
 
       for (const auto& [cnode, _] : codomain_)
-         ret.push_back(TLink(source_, cnode));
+         ret.push_back(TArrow(source_, cnode));
    }
    // f :: a -> *
    else if (name_ != sAny && source_.GetName() != sAny && target_.GetName() == sAny)
@@ -146,7 +146,7 @@ static std::vector<TLink> get_chains(const std::string& name_, const TNode& sour
          return ret;
 
       for (const auto& [dnode, _] : domain_)
-         ret.push_back(TLink(dnode, target_, name_));
+         ret.push_back(TArrow(dnode, target_, name_));
    }
    // f :: * -> *
    else if (name_ != sAny && source_.GetName() == sAny && target_.GetName() == sAny)
@@ -165,12 +165,12 @@ template <> std::string chain_symbol<Morph>() { return "->"; }
 template <> std::string chain_symbol<Func >() { return "=>"; }
 
 //-----------------------------------------------------------------------------------------
-template <typename TLink, typename TNode, typename TContainer>
-static std::vector<TLink> get_chain(const std::string& line_, const TContainer& domain_, const TContainer& codomain_, EExpType expr_type_)
+template <typename TArrow, typename TNode, typename TContainer>
+static std::vector<TArrow> get_chain(const std::string& line_, const TContainer& domain_, const TContainer& codomain_, EExpType expr_type_)
 {
    StringVec subsections = split(line_, "::");
    if (subsections.size() != 2)
-      return std::vector<TLink>();
+      return std::vector<TArrow>();
 
    for (auto& str : subsections)
       str = trim_sp(str);
@@ -178,20 +178,20 @@ static std::vector<TLink> get_chain(const std::string& line_, const TContainer& 
    const std::string& head = subsections[0];
    const std::string& tail = subsections[1];
 
-   StringVec args = split(tail, chain_symbol<TLink>(), false);
+   StringVec args = split(tail, chain_symbol<TArrow>(), false);
    if (args.size() < 2)
-      return std::vector<TLink>();
+      return std::vector<TArrow>();
 
    for (auto& str : args)
       str = trim_sp(str);
 
-   std::vector<TLink> ret; ret.reserve(args.size() - 1);
+   std::vector<TArrow> ret; ret.reserve(args.size() - 1);
    for (int i = 0; i < (int)args.size() - 1; ++i)
    {
       TNode source(args[i + 0]);
       TNode target(args[i + 1]);
 
-      for (const auto& it : get_chains<TNode, TContainer, TLink>(head, source, target, domain_, codomain_, expr_type_))
+      for (const auto& it : get_chains<TNode, TContainer, TArrow>(head, source, target, domain_, codomain_, expr_type_))
          ret.push_back(it);
    }
 
@@ -238,9 +238,9 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
 
    auto fnBeginCategory = [](const std::string& line_, std::optional<Cat>& crt_cat_, CACat& ccat_)
    {
-      auto it = ccat_.Categories().find(Cat(line_));
+      auto it = ccat_.Nodes().find(Cat(line_));
 
-      if (it == ccat_.Categories().end())
+      if (it == ccat_.Nodes().end())
          crt_cat_.emplace(line_);
       else
       {
@@ -248,14 +248,14 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
 
          crt_cat_.emplace(cat);
 
-         ccat_.EraseCategory(cat);
+         ccat_.EraseNode(cat);
       }
    };
 
    auto fnEndCategory = [](std::optional<Cat>& crt_cat_, CACat& ccat_)
    {
       if (crt_cat_)
-         ccat_.AddCategory(crt_cat_.value());
+         ccat_.AddNode(crt_cat_.value());
       crt_cat_.reset();
 
       return true;
@@ -273,7 +273,7 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
       {
          auto objName = trim_sp(itObjName);
 
-         if (!crt_cat_.value().AddObject(Obj(objName)))
+         if (!crt_cat_->AddNode(Obj(objName)))
          {
             print_error("Failure to add object: " + objName);
             return false;
@@ -291,7 +291,7 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
          return false;
       }
 
-      const ObjUMap& objs = crt_cat_.value().GetObjects();
+      const ObjUMap& objs = crt_cat_.value().Nodes();
 
       std::vector<Morph> morphs = get_chain<Morph, Obj>(line_, objs, objs, expr_type_);
       if (morphs.empty())
@@ -302,7 +302,7 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
 
       for (const Morph& morph : morphs)
       {
-         if (!crt_cat_.value().AddMorphism(morph))
+         if (!crt_cat_->AddArrow(morph))
             return false;
       }
 
@@ -311,7 +311,7 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
 
    auto fnBeginFunctor = [](const std::string& line_, std::optional<Func>& crt_func_, CACat& ccat_, EExpType expr_type_)
    {
-      std::vector<Func> funcs = get_chain<Func, Cat>(line_, ccat_.Categories(), ccat_.Categories(), expr_type_);
+      std::vector<Func> funcs = get_chain<Func, Cat>(line_, ccat_.Nodes(), ccat_.Nodes(), expr_type_);
       if (funcs.size() != 1)
       {
          print_error("Incorrect functor definition: " + line_);
@@ -320,8 +320,8 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
 
       if (expr_type_ == EExpType::eStatement)
       {
-         if (ccat_.Categories().find(Cat(funcs.front().target)) == ccat_.Categories().end())
-            ccat_.AddCategory(Cat(funcs.front().target));
+         if (ccat_.Nodes().find(Cat(funcs.front().target)) == ccat_.Nodes().end())
+            ccat_.AddNode(Cat(funcs.front().target));
       }
 
       crt_func_.emplace(funcs.front());
@@ -333,7 +333,7 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
    {
       if (crt_func)
       {
-         if (!ccat_.AddFunctor(crt_func.value(), expr_type))
+         if (!ccat_.AddArrow(crt_func.value(), expr_type))
             return false;
 
          crt_func.reset();
@@ -344,12 +344,12 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
 
    auto fnAddFMorphisms = [](const std::string& line_, std::optional<Func>& crt_func_, CACat& ccat_, EExpType expr_type_)
    {
-      const auto& cats = ccat_.Categories();
+      const auto& cats = ccat_.Nodes();
 
       auto itSourceCat = cats.find(Cat(crt_func_.value().source));
       auto itTargetCat = cats.find(Cat(crt_func_.value().target));
 
-      std::vector<Morph> morphs = get_chain<Morph, Obj>(line_, (*itSourceCat).first.GetObjects(), (*itTargetCat).first.GetObjects(), expr_type_);
+      std::vector<Morph> morphs = get_chain<Morph, Obj>(line_, (*itSourceCat).first.Nodes(), (*itTargetCat).first.Nodes(), expr_type_);
       if (morphs.empty())
       {
          print_error("Error in morphism definition: " + line_);
@@ -573,7 +573,7 @@ ObjVec solve_sequence(const Cat& cat_, const Obj& from_, const Obj& to_)
          return ret;
       }
 
-      stack.emplace_back(current_obj.value(), cat_.GetObjects().at(current_obj.value()));
+      stack.emplace_back(current_obj.value(), cat_.Nodes().at(current_obj.value()));
 
       // Remove identity morphism
       stack.back().second.erase(current_obj.value());
@@ -640,7 +640,7 @@ std::vector<ObjVec> solve_sequences(const Cat& cat_, const Obj& from_, const Obj
       else
       {
          // Stacking forward movements
-         stack.emplace_back(current_obj.value(), cat_.GetObjects().at(current_obj.value()));
+         stack.emplace_back(current_obj.value(), cat_.Nodes().at(current_obj.value()));
 
          // Removing identity morphism
          stack.back().second.erase(current_obj.value());
@@ -687,7 +687,7 @@ std::vector<Morph> map_obj2morphism(const ObjVec& objs_, const Cat& cat_)
 {
    std::vector<Morph> ret;
 
-   const MorphVec& morphisms = cat_.GetMorphisms();
+   const MorphVec& morphisms = cat_.Arrows();
 
    for (int i = 0; i < (int)objs_.size() - 1; ++i)
    {
@@ -705,7 +705,7 @@ std::vector<Morph> map_obj2morphism(const ObjVec& objs_, const Cat& cat_)
 //-----------------------------------------------------------------------------------------
 void solve_compositions(Cat& cat_)
 {
-   for (const auto & [domain, codomain] : cat_.GetObjects())
+   for (const auto & [domain, codomain] : cat_.Nodes())
    {
       ObjSet traverse = codomain;
 
@@ -721,7 +721,7 @@ void solve_compositions(Cat& cat_)
             if (obj == domain)
                continue;
 
-            const ObjSet& sub_codomain = cat_.GetObjects().at(obj);
+            const ObjSet& sub_codomain = cat_.Nodes().at(obj);
 
             for (const Obj& sub_obj : sub_codomain)
             {
@@ -739,33 +739,21 @@ void solve_compositions(Cat& cat_)
       std::set_difference(new_codomain.begin(), new_codomain.end(), codomain.begin(), codomain.end(), std::inserter(domain_diff, domain_diff.begin()));
 
       for (const auto& codomain_obj : domain_diff)
-         cat_.AddMorphism(Morph(domain, codomain_obj));
+         cat_.AddArrow(Morph(domain, codomain_obj));
    }
-}
-
-//-----------------------------------------------------------------------------------------
-std::string id_arrow_name(const std::string& name_)
-{
-   return default_arrow_name(name_, name_);
-}
-
-//-----------------------------------------------------------------------------------------
-std::string default_arrow_name(const std::string& source_, const std::string& target_)
-{
-   return source_ + "-" + target_;
 }
 
 //-----------------------------------------------------------------------------------------
 void inverse(Cat& cat_)
 {
-   MorphVec morphs = cat_.GetMorphisms();
+   MorphVec morphs = cat_.Arrows();
 
-   cat_.EraseMorphisms();
+   cat_.EraseArrows();
 
    for (const Morph& morph : morphs)
    {
       std::string name = default_arrow_name(morph.source, morph.target) == morph.name ? default_arrow_name(morph.target, morph.source) : morph.name;
-      cat_.AddMorphism(Morph(morph.target, morph.source, name));
+      cat_.AddArrow(Morph(morph.target, morph.source, name));
    }
 }
 
@@ -774,7 +762,7 @@ ObjVec initial(Cat& cat_)
 {
    ObjVec ret;
 
-   const ObjUMap& objs = cat_.GetObjects();
+   const ObjUMap& objs = cat_.Nodes();
 
    for (const auto& [obj, objset] : objs)
    {
@@ -790,11 +778,11 @@ ObjVec terminal(Cat& cat_)
 {
    ObjVec ret;
 
-   for (const auto& [obj, objset] : cat_.GetObjects())
+   for (const auto& [obj, objset] : cat_.Nodes())
    {
       bool is_terminal { true };
 
-      for (const auto& [obj_int, objset_int] : cat_.GetObjects())
+      for (const auto& [obj_int, objset_int] : cat_.Nodes())
       {
          if (std::find_if(objset_int.begin(), objset_int.end(), [&](const Obj& obj_){ return obj == obj_; }) == objset_int.end())
          {

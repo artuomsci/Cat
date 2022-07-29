@@ -9,7 +9,9 @@
 
 namespace cat
 {
-   // Functor
+   /**
+    * @brief The Func struct represents functors
+    */
    struct CAT_EXPORT Func : Arrow
    {
       using FuncName = std::string;
@@ -43,8 +45,10 @@ namespace cat
    */
    CAT_EXPORT std::optional<Obj> MapObject(const std::optional<Func>& func_, const std::optional<Obj>& obj_);
 
-   // Category of categories
-   class CAT_EXPORT CACat
+   /**
+    * @brief The CACat class represents category of categories
+    */
+   class CAT_EXPORT CACat : public Frame<Cat, CatKeyHasher, Func>
    {
    public:
 
@@ -57,99 +61,32 @@ namespace cat
       CACat& operator = (const CACat&) = delete;
 
       /**
-       * @brief Add category to the category
-       * @param cat_ - category to add
-       * @return True if successfully added
+       * @brief Add arrow
+       * @param arrow_ - arrow
+       * @return True if successful
        */
-      bool AddCategory(const Cat& cat_);
+      bool AddArrow(Func arrow_, EExpType type_ = EExpType::eProof);
 
       /**
-       * @brief Erase category from the category
-       * @param cat_ - category to erase
-       * @return True if successfully erased
-       */
-      bool EraseCategory(const Cat& cat_);
-
-      /**
-       * @brief Add functor to the category
-       * @param func_ - functor to add
-       * @param type_ - type of operation
-       * @return True if successfully added
-       */
-      bool AddFunctor(Func func_, EExpType type_);
-
-      /**
-       * @brief Erase functor
-       * @param func_ - functor to erase
-       * @return True if successfully erased
-       */
-      bool EraseFunctor(const Func& func_);
-
-      /**
-       * @brief Erase all functors
-       */
-      void EraseFunctors();
-
-      /**
-       * @brief Return categories
-       * @return Categories
-       */
-      const CatUMap& Categories() const;
-
-      /**
-       * @brief Return functors
-       * @return Functors
-       */
-      const FuncVec& Functors() const;
-
-      /**
-       * @brief Functor validation
-       * @param func_ - functor to validate
-       * @return True if functor is valid
+       * @brief Proof functor
+       * @param func_ - functor
+       * @return True if successful
        */
       bool Proof(const Func& func_) const;
 
       /**
+       * @brief Proof functor
+       * @param source_ - source
+       * @param target_ - target
+       * @return True if successful
+       */
+      bool Proof(const Cat& source_, const Cat& target_) const;
+
+      /**
        * @brief Create right side of the functor expression
-       * @param func_ - functor expression
-       * @return True if operation is successfull
+       * @param func_ - functor
+       * @return True if successful
        */
       bool Statement(const Func& func_);
-
-      /**
-       * @brief Find functor by source and target categories
-       * @param source_ - source category
-       * @param target_ - target category
-       * @return Functor
-       */
-      std::optional<Func> FindFunctor(const Cat::CatName& source_, const Cat::CatName& target_) const;
-
-      /**
-       * @brief Find source categories for the target category
-       * @param target_ - target category
-       * @return Source categories
-       */
-      CatNameVec FindSources(const Cat::CatName& target_) const;
-
-      /**
-       * @brief Find target categories for the source category
-       * @param source_ - source categories
-       * @return Target categories
-       */
-      CatNameVec FindTargets(const Cat::CatName& source_) const;
-
-      /**
-      * @brief Find categories with matching targets
-      * @param targets_ - target categories
-      * @return Categories with matching targets
-      */
-      CatVec FindByTargets(const CatNameVec& targets_) const;
-
-   private:
-
-      void eraseInstances(const Cat& cat_);
-
-      CatUMap  m_cats;
-      FuncVec  m_funcs;
    };
 }

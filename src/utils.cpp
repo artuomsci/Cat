@@ -75,7 +75,7 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std:
 {
    std::string nodes;
 
-   for (const auto& [obj, objset] : cat_.GetObjects())
+   for (const auto& [obj, objset] : cat_.Nodes())
    {
       // nodes
       char buffern[1024];
@@ -92,7 +92,7 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std:
 
    if (show_morphisms_)
    {
-      for (const Morph& mrph : cat_.GetMorphisms())
+      for (const Morph& mrph : cat_.Arrows())
       {
          if (skip_identity_ && mrph.source == mrph.target)
             continue;
@@ -120,7 +120,7 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std:
 
    if (!show_morphisms_)
    {
-      for (const auto& [obj, objset] : cat_.GetObjects())
+      for (const auto& [obj, objset] : cat_.Nodes())
       {
          const Obj& source = obj;
 
@@ -139,7 +139,7 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std:
    }
    else
    {
-      for (const Morph& mrph : cat_.GetMorphisms())
+      for (const Morph& mrph : cat_.Arrows())
       {
          if (skip_identity_ & mrph.source == mrph.target)
             continue;
@@ -184,7 +184,7 @@ void cat::export_cytoscape(const CACat& ccat_, const std::string& path_, const s
 {
    std::string nodes;
 
-   for (const auto& [cat, _] : ccat_.Categories())
+   for (const auto& [cat, _] : ccat_.Nodes())
    {
       // nodes
       char buffern[1024];
@@ -201,7 +201,7 @@ void cat::export_cytoscape(const CACat& ccat_, const std::string& path_, const s
 
    if (show_functors_)
    {
-      for (const Func& func : ccat_.Functors())
+      for (const Func& func : ccat_.Arrows())
       {
          // nodes
          char buffern[1024];
@@ -226,7 +226,7 @@ void cat::export_cytoscape(const CACat& ccat_, const std::string& path_, const s
 
    if (!show_functors_)
    {
-      for (const Func& func : ccat_.Functors())
+      for (const Func& func : ccat_.Arrows())
       {
          // edges
          char buffere[1024];
@@ -237,7 +237,7 @@ void cat::export_cytoscape(const CACat& ccat_, const std::string& path_, const s
    }
    else
    {
-      for (const Func& func : ccat_.Functors())
+      for (const Func& func : ccat_.Arrows())
       {
          // edges
          char buffere[1024];

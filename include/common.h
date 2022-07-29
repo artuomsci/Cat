@@ -81,21 +81,6 @@ CAT_EXPORT std::vector<cat::Morph> map_obj2morphism(const cat::ObjVec& objs_, co
 CAT_EXPORT void solve_compositions(cat::Cat& cat_);
 
 /**
- * @brief Return identity arrow name
- * @param name_ - source/target name
- * @return Arrow name
- */
-CAT_EXPORT std::string id_arrow_name(const std::string& name_);
-
-/**
- * @brief Return default arrow name
- * @param source_ - source name
- * @param target_ - target name
- * @return Arrow name
- */
-CAT_EXPORT std::string default_arrow_name(const std::string& source_, const std::string& target_);
-
-/**
  * @brief Inverse category morphisms
  * @param cat_ - category to inverse morphisms
  */
