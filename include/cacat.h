@@ -48,7 +48,10 @@ namespace cat
    /**
     * @brief The CACat class represents category of categories
     */
-   class CAT_EXPORT CACat : public Frame<Cat, CatKeyHasher, Func>
+
+   using CACatFrame = Frame<Cat, CatKeyHasher, Func>;
+
+   class CAT_EXPORT CACat : public CACatFrame
    {
    public:
 
@@ -65,7 +68,7 @@ namespace cat
        * @param arrow_ - arrow
        * @return True if successful
        */
-      bool AddArrow(Func arrow_, EExpType type_ = EExpType::eProof);
+      bool AddArrow(Func arrow_);
 
       /**
        * @brief Proof functor

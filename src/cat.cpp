@@ -87,9 +87,9 @@ bool Cat::operator !=(const Cat& cat_) const
 }
 
 //-----------------------------------------------------------------------------------------
-bool Cat::AddArrow(const Morph& arrow_, EExpType type_)
+bool Cat::AddArrow(const Morph& arrow_)
 {
-   return addArrow(arrow_, type_);
+   return addArrow(arrow_);
 }
 
 //-----------------------------------------------------------------------------------------

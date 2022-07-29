@@ -28,6 +28,15 @@ static const char* const sExt = ".cat";
 
 using namespace cat;
 
+/**
+ * @brief The EExpType enum represents type of the expression
+ */
+enum class EExpType
+{
+      eStatement
+   ,  eProof
+};
+
 //-----------------------------------------------------------------------------------------
 template <typename TMapType>
 std::set<typename TMapType::key_type> umapk2set(const TMapType& map_)
@@ -64,6 +73,9 @@ static std::vector<TArrow> get_chains(const std::string& name_, const TNode& sou
 
    auto fnCheckSource = [&]()
    {
+      if (expr_type_ == EExpType::eStatement)
+         return true;
+
       if (domain_.find(source_) == domain_.end())
       {
          print_error("No such source: " + source_.GetName());
@@ -291,7 +303,7 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
          return false;
       }
 
-      const ObjUMap& objs = crt_cat_.value().Nodes();
+      const ObjUMap& objs = crt_cat_->Nodes();
 
       std::vector<Morph> morphs = get_chain<Morph, Obj>(line_, objs, objs, expr_type_);
       if (morphs.empty())
@@ -302,6 +314,15 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
 
       for (const Morph& morph : morphs)
       {
+         if (expr_type_ == EExpType::eStatement)
+         {
+            if (!crt_cat_->CatFrame::Proof(Obj(morph.source)))
+               crt_cat_->AddNode(Obj(morph.source));
+
+            if (!crt_cat_->CatFrame::Proof(Obj(morph.target)))
+               crt_cat_->AddNode(Obj(morph.target));
+         }
+
          if (!crt_cat_->AddArrow(morph))
             return false;
       }
@@ -320,7 +341,10 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
 
       if (expr_type_ == EExpType::eStatement)
       {
-         if (ccat_.Nodes().find(Cat(funcs.front().target)) == ccat_.Nodes().end())
+         if (!ccat_.CACatFrame::Proof(Cat(funcs.front().source)))
+            ccat_.AddNode(Cat(funcs.front().source));
+
+         if (!ccat_.CACatFrame::Proof(Cat(funcs.front().target)))
             ccat_.AddNode(Cat(funcs.front().target));
       }
 
@@ -329,11 +353,29 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
       return true;
    };
 
-   auto fnEndFunctor = [&]()
+   auto fnEndFunctor = [&](EExpType expr_type_)
    {
       if (crt_func)
       {
-         if (!ccat_.AddArrow(crt_func.value(), expr_type))
+         if (expr_type_ == EExpType::eStatement)
+         {
+            if (crt_func->morphisms.empty())
+            {
+               auto it = ccat_.Nodes().find(Cat(crt_func->source));
+               if (it == ccat_.Nodes().end())
+                  return false;
+
+               const auto& [cat, _] = *it;
+
+               for (const auto& [obj, _] : cat.Nodes())
+                  crt_func->morphisms.emplace_back(obj.GetName(), obj.GetName());
+            }
+
+            if (!ccat_.Statement(crt_func.value()))
+               return false;
+         }
+
+         if (!ccat_.AddArrow(crt_func.value()))
             return false;
 
          crt_func.reset();
@@ -364,7 +406,7 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
 
    auto fnStateSwitch = [&]()
    {
-      return fnEndCategory(crt_cat, ccat_) && fnEndFunctor();
+      return fnEndCategory(crt_cat, ccat_) && fnEndFunctor(expr_type);
    };
 
    auto fnImport = [](const std::filesystem::path& path_, const std::string& line_, int line_index_, StringVec& lines_)

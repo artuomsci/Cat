@@ -69,7 +69,7 @@ std::optional<Obj> cat::MapObject(const std::optional<Func>& func_, const std::o
 
 //-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
-bool CACat::AddArrow(Func arrow_, EExpType type_)
+bool CACat::AddArrow(Func arrow_)
 {
    for (const Func& func : m_arrows)
    {
@@ -80,35 +80,9 @@ bool CACat::AddArrow(Func arrow_, EExpType type_)
       }
    }
 
-   if (type_ == EExpType::eProof)
-   {
-      m_arrows.push_back(arrow_);
+   m_arrows.push_back(arrow_);
 
-      if (!Proof(Cat(arrow_.source), Cat(arrow_.target)))
-         return false;
-   }
-   else if (type_ == EExpType::eStatement)
-   {
-      if (arrow_.morphisms.empty())
-      {
-         auto itSourceCat = m_nodes.find(Cat(arrow_.source));
-         if (itSourceCat == m_nodes.end())
-         {
-            print_error("Missing source category: " + arrow_.source);
-            return false;
-         }
-
-         const auto& [source_cat, _] = *itSourceCat;
-
-         for (const auto& [obj, _] : source_cat.Nodes())
-            arrow_.morphisms.emplace_back(obj.GetName(), obj.GetName());
-      }
-
-      if (!Statement(arrow_))
-         return false;
-   }
-
-   return true;
+   return Proof(arrow_);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -303,21 +277,27 @@ bool CACat::Proof(const Cat& source_, const Cat& target_) const
 bool CACat::Statement(const Func& func_)
 {
    auto itSourceCat = m_nodes.find(Cat(func_.source));
-   if (itSourceCat == m_nodes.end())
-   {
-      print_error("Missing source category: " + func_.source);
-      return false;
-   }
-
-   const auto& [source_cat, _] = *itSourceCat;
-
    auto itTargetCat = m_nodes.find(Cat(func_.target));
 
+   Cat source_cat("");
    Cat target_cat("");
 
-   CatNameVec backup_targets;
-   CatNameVec backup_sources;
+   CatNameVec backup_targets[2];
+   CatNameVec backup_sources[2];
 
+   // source
+   if (itSourceCat == m_nodes.end())
+      source_cat = Cat(func_.source);
+   else
+   {
+      source_cat = (*itSourceCat).first;
+
+      // Backup relations
+      backup_targets[0] = FindTargets(source_cat.GetName());
+      backup_sources[0] = FindSources(source_cat.GetName());
+   }
+
+   // target
    if (itTargetCat == m_nodes.end())
       target_cat = Cat(func_.target);
    else
@@ -325,10 +305,17 @@ bool CACat::Statement(const Func& func_)
       target_cat = (*itTargetCat).first;
 
       // Backup relations
-      backup_targets = FindTargets(target_cat.GetName());
-      backup_sources = FindSources(target_cat.GetName());
+      backup_targets[1] = FindTargets(target_cat.GetName());
+      backup_sources[1] = FindSources(target_cat.GetName());
    }
 
+   //
+   for (auto& [_, nodes_set] : m_nodes)
+      nodes_set.erase(source_cat);
+
+   m_nodes.erase(source_cat);
+
+   //
    for (auto& [_, nodes_set] : m_nodes)
       nodes_set.erase(target_cat);
 
@@ -338,13 +325,13 @@ bool CACat::Statement(const Func& func_)
    for (const auto& [obj, _] : source_cat.Nodes())
    {
       std::optional<Obj> tobj = MapObject(func_, obj);
-      if (!tobj.has_value())
+      if (!tobj)
       {
          print_error("Missing functor morphism for object: " + obj.GetName());
          return false;
       }
 
-      if (target_cat.Nodes().find(tobj.value()) == target_cat.Nodes().end())
+      if (!target_cat.CatFrame::Proof(tobj.value()))
          target_cat.AddNode(tobj.value());
    }
 
@@ -358,18 +345,36 @@ bool CACat::Statement(const Func& func_)
          target_cat.AddArrow(Morph(objs->GetName(), objt->GetName()));
    }
 
+   if (!AddNode(source_cat))
+      return false;
+
    if (!AddNode(target_cat))
       return false;
 
    // Restoring relations
-   for (const auto& scat : backup_sources)
-      m_nodes[Cat(scat)].insert(target_cat);
-
-   auto crt_category_targets = m_nodes[Cat(target_cat)];
-   for (const auto& tcat : backup_targets)
    {
-      const auto& [cat, _] = *m_nodes.find(Cat(tcat));
-      crt_category_targets.insert(cat);
+      for (const auto& scat : backup_sources[0])
+         m_nodes[Cat(scat)].insert(source_cat);
+
+      auto crt_category_targets = m_nodes[Cat(source_cat)];
+      for (const auto& tcat : backup_targets[0])
+      {
+         const auto& [cat, _] = *m_nodes.find(Cat(tcat));
+         crt_category_targets.insert(cat);
+      }
+   }
+
+   // Restoring relations
+   {
+      for (const auto& scat : backup_sources[1])
+         m_nodes[Cat(scat)].insert(target_cat);
+
+      auto crt_category_targets = m_nodes[Cat(target_cat)];
+      for (const auto& tcat : backup_targets[1])
+      {
+         const auto& [cat, _] = *m_nodes.find(Cat(tcat));
+         crt_category_targets.insert(cat);
+      }
    }
 
    m_arrows.push_back(func_);

@@ -156,34 +156,34 @@ namespace cat
       // Testing of morphism compositions
       //============================================================
       {
-//         Cat cat("cat");
+         Cat cat("cat");
 
-//         solve_compositions(cat);
+         solve_compositions(cat);
 
-//         Obj a("a"), b("b"), c("c"), d("d");
+         Obj a("a"), b("b"), c("c"), d("d");
 
-//         cat.AddNodes(a, b, c, d);
+         cat.AddNodes(a, b, c, d);
 
-//         solve_compositions(cat);
+         solve_compositions(cat);
 
-//         cat.AddArrows(Morph(a, b, "f0"), Morph(b, c, "f1"), Morph(c, d, "f2"));
-//         cat.AddArrows(Morph(d, c, "f3"), Morph(c, b, "f4"), Morph(b, a, "f5"));
+         cat.AddArrows(Morph(a, b, "f0"), Morph(b, c, "f1"), Morph(c, d, "f2"));
+         cat.AddArrows(Morph(d, c, "f3"), Morph(c, b, "f4"), Morph(b, a, "f5"));
 
-//         solve_compositions(cat);
+         solve_compositions(cat);
 
-//         assert(fnCheckMorph(cat.Arrows(), Morph(a, c)));
-//         assert(fnCheckMorph(cat.Arrows(), Morph(a, d)));
-//         assert(fnCheckMorph(cat.Arrows(), Morph(b, d)));
+         assert(fnCheckMorph(cat.Arrows(), Morph(a, c)));
+         assert(fnCheckMorph(cat.Arrows(), Morph(a, d)));
+         assert(fnCheckMorph(cat.Arrows(), Morph(b, d)));
 
-//         assert(fnCheckMorph(cat.Arrows(), Morph(d, b)));
-//         assert(fnCheckMorph(cat.Arrows(), Morph(d, a)));
-//         assert(fnCheckMorph(cat.Arrows(), Morph(c, a)));
+         assert(fnCheckMorph(cat.Arrows(), Morph(d, b)));
+         assert(fnCheckMorph(cat.Arrows(), Morph(d, a)));
+         assert(fnCheckMorph(cat.Arrows(), Morph(c, a)));
 
-//         auto prev_count = cat.Arrows().size();
-//         solve_compositions(cat);
-//         auto new_count = cat.Arrows().size();
+         auto prev_count = cat.Arrows().size();
+         solve_compositions(cat);
+         auto new_count = cat.Arrows().size();
 
-//         assert(new_count == prev_count);
+         assert(new_count == prev_count);
       }
 
       //============================================================
@@ -196,27 +196,27 @@ namespace cat
 
          cat.AddNodes(a, b, c, d, e, f);
 
-//         cat.AddArrows(
-//                     Morph(a, b)
-//                  ,  Morph(b, a)
-//                  ,  Morph(a, c)
-//                  ,  Morph(b, d)
-//                  ,  Morph(c, d)
-//                  ,  Morph(c, f)
-//                  ,  Morph(d, e));
+         cat.AddArrows(
+                     Morph(a, b)
+                  ,  Morph(b, a)
+                  ,  Morph(a, c)
+                  ,  Morph(b, d)
+                  ,  Morph(c, d)
+                  ,  Morph(c, f)
+                  ,  Morph(d, e));
 
-//         ObjVec seq = solve_sequence(cat, a, e);
+         ObjVec seq = solve_sequence(cat, a, e);
 
-//         assert(seq.size() == 4);
+         assert(seq.size() == 4);
 
-//         std::vector<Morph> morphs = map_obj2morphism(seq, cat);
-//         assert(morphs[0] == Morph(a, b));
-//         assert(morphs[1] == Morph(b, d));
-//         assert(morphs[2] == Morph(d, e));
+         std::vector<Morph> morphs = map_obj2morphism(seq, cat);
+         assert(morphs[0] == Morph(a, b));
+         assert(morphs[1] == Morph(b, d));
+         assert(morphs[2] == Morph(d, e));
 
-//         seq = solve_sequence(cat, e, a);
+         seq = solve_sequence(cat, e, a);
 
-//         assert(seq.size() == 0);
+         assert(seq.size() == 0);
       }
 
       //============================================================
@@ -229,44 +229,44 @@ namespace cat
 
          cat.AddNodes(a, b, c, d, e, f);
 
-//         cat.AddArrows(
-//                     Morph(a, b)
-//                  ,  Morph(b, a)
-//                  ,  Morph(a, c)
-//                  ,  Morph(b, d)
-//                  ,  Morph(c, d)
-//                  ,  Morph(c, f)
-//                  ,  Morph(d, e)
-//                  ,  Morph(f, e));
+         cat.AddArrows(
+                     Morph(a, b)
+                  ,  Morph(b, a)
+                  ,  Morph(a, c)
+                  ,  Morph(b, d)
+                  ,  Morph(c, d)
+                  ,  Morph(c, f)
+                  ,  Morph(d, e)
+                  ,  Morph(f, e));
 
-//         std::vector<ObjVec> seqs = solve_sequences(cat, a, e);
+         std::vector<ObjVec> seqs = solve_sequences(cat, a, e);
 
-//         assert(seqs.size() == 3);
+         assert(seqs.size() == 3);
 
-//         {
-//            std::vector<Morph> morphs = map_obj2morphism(seqs[0], cat);
-//            assert(morphs[0] == Morph(a, b));
-//            assert(morphs[1] == Morph(b, d));
-//            assert(morphs[2] == Morph(d, e));
-//         }
+         {
+            std::vector<Morph> morphs = map_obj2morphism(seqs[0], cat);
+            assert(morphs[0] == Morph(a, b));
+            assert(morphs[1] == Morph(b, d));
+            assert(morphs[2] == Morph(d, e));
+         }
 
-//         {
-//            std::vector<Morph> morphs = map_obj2morphism(seqs[1], cat);
-//            assert(morphs[0] == Morph(a, c));
-//            assert(morphs[1] == Morph(c, d));
-//            assert(morphs[2] == Morph(d, e));
-//         }
+         {
+            std::vector<Morph> morphs = map_obj2morphism(seqs[1], cat);
+            assert(morphs[0] == Morph(a, c));
+            assert(morphs[1] == Morph(c, d));
+            assert(morphs[2] == Morph(d, e));
+         }
 
-//         {
-//            std::vector<Morph> morphs = map_obj2morphism(seqs[2], cat);
-//            assert(morphs[0] == Morph(a, c));
-//            assert(morphs[1] == Morph(c, f));
-//            assert(morphs[2] == Morph(f, e));
-//         }
+         {
+            std::vector<Morph> morphs = map_obj2morphism(seqs[2], cat);
+            assert(morphs[0] == Morph(a, c));
+            assert(morphs[1] == Morph(c, f));
+            assert(morphs[2] == Morph(f, e));
+         }
 
-//         seqs = solve_sequences(cat, e, a);
+         seqs = solve_sequences(cat, e, a);
 
-//         assert(seqs.size() == 0);
+         assert(seqs.size() == 0);
       }
 
       //============================================================
@@ -304,43 +304,43 @@ namespace cat
 
          cat.AddNodes(a0, a1, b, c, d0, d1);
 
-//         cat.AddArrows(Morph(a0, a1), Morph(a1, a0));
+         cat.AddArrows(Morph(a0, a1), Morph(a1, a0));
 
-//         cat.AddArrow(Morph(a0, b));
-//         cat.AddArrow(Morph(a0, c));
+         cat.AddArrow(Morph(a0, b));
+         cat.AddArrow(Morph(a0, c));
 
-//         cat.AddArrow(Morph(a1, b));
-//         cat.AddArrow(Morph(a1, c));
+         cat.AddArrow(Morph(a1, b));
+         cat.AddArrow(Morph(a1, c));
 
-//         cat.AddArrow(Morph(b, d0));
-//         cat.AddArrow(Morph(c, d0));
+         cat.AddArrow(Morph(b, d0));
+         cat.AddArrow(Morph(c, d0));
 
-//         cat.AddArrow(Morph(b, d1));
-//         cat.AddArrow(Morph(c, d1));
+         cat.AddArrow(Morph(b, d1));
+         cat.AddArrow(Morph(c, d1));
 
-//         cat.AddArrows(Morph(d0, d1), Morph(d1, d0));
+         cat.AddArrows(Morph(d0, d1), Morph(d1, d0));
 
-//         solve_compositions(cat);
+         solve_compositions(cat);
 
-//         ObjVec initial_obj = initial(cat);
-//         assert(initial_obj.size() == 2);
-//         std::sort(initial_obj.begin(), initial_obj.end());
-//         assert(initial_obj[0] == a0);
-//         assert(initial_obj[1] == a1);
+         ObjVec initial_obj = initial(cat);
+         assert(initial_obj.size() == 2);
+         std::sort(initial_obj.begin(), initial_obj.end());
+         assert(initial_obj[0] == a0);
+         assert(initial_obj[1] == a1);
 
-//         ObjVec terminal_obj = terminal(cat);
-//         assert(terminal_obj.size() == 2);
-//         std::sort(terminal_obj.begin(), terminal_obj.end());
-//         assert(terminal_obj[0] == d0);
-//         assert(terminal_obj[1] == d1);
+         ObjVec terminal_obj = terminal(cat);
+         assert(terminal_obj.size() == 2);
+         std::sort(terminal_obj.begin(), terminal_obj.end());
+         assert(terminal_obj[0] == d0);
+         assert(terminal_obj[1] == d1);
 
-//         cat.EraseNodes();
+         cat.EraseNodes();
 
-//         cat.AddNode(a0);
-//         initial_obj = initial(cat);
-//         terminal_obj = terminal(cat);
-//         assert(initial_obj.size() == terminal_obj.size() == 1);
-//         assert(initial_obj[0] == terminal_obj[0]);
+         cat.AddNode(a0);
+         initial_obj = initial(cat);
+         terminal_obj = terminal(cat);
+         assert(initial_obj.size() == terminal_obj.size() == 1);
+         assert(initial_obj[0] == terminal_obj[0]);
       }
 
       //============================================================

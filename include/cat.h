@@ -27,7 +27,10 @@ namespace cat
    /**
     * @brief The Cat class represents categories
     */
-   class CAT_EXPORT Cat : public Frame<Obj, ObjKeyHasher, Morph>
+
+   using CatFrame = Frame<Obj, ObjKeyHasher, Morph>;
+
+   class CAT_EXPORT Cat : public CatFrame
    {
    public:
 
@@ -44,7 +47,7 @@ namespace cat
        * @param arrow_ - arrow
        * @return True if successful
        */
-      bool AddArrow(const Morph& arrow_, EExpType type_ = EExpType::eProof);
+      bool AddArrow(const Morph& arrow_);
 
       /**
        * @brief Return category name

@@ -11,15 +11,6 @@
 namespace cat
 {
    /**
-    * @brief The EExpType enum represents type of the expression
-    */
-   enum class EExpType
-   {
-         eStatement
-      ,  eProof
-   };
-
-   /**
     * @brief Return default arrow name
     * @param source_ - source name
     * @param target_ - target name
@@ -76,19 +67,22 @@ namespace cat
 
       using ArrowVec = std::vector<TArrow>;
 
-//      /**
-//       * @brief Add arrow
-//       * @param arrow_ - arrow
-//       * @return True if successful
-//       */
-//      template <typename T, typename... TArgs>
-//      bool AddArrows(const T& arrow_, const TArgs&... arrows_, EExpType type_ = EExpType::eProof)
-//      {
-//         return addArrow(arrow_, type_) ? AddArrows(arrows_..., type_) : false;
-//      }
+      /**
+       * @brief Add arrow
+       * @param arrow_ - arrow
+       * @return True if successful
+       */
+      template <typename T, typename... TArgs>
+      bool AddArrows(const T& arrow_, const TArgs&... arrows_)
+      {
+         return addArrow(arrow_) ? AddArrows(arrows_...) : false;
+      }
 
-//      // terminal condition
-//      bool AddArrows(EExpType type_ = EExpType::eProof) { return true; }
+      /**
+       * @brief Terminal condition
+       * @return True
+       */
+      bool AddArrows() { return true; }
 
       /**
        * @brief Erase arrow
@@ -340,7 +334,7 @@ namespace cat
        * @param node_ - node
        * @return True if successful
        */
-      bool Proof(const TNode& node_)
+      bool Proof(const TNode& node_) const
       {
          return m_nodes.find(node_) != m_nodes.end();
       }
@@ -352,8 +346,20 @@ namespace cat
        * @param arrow_ - arrow
        * @return True if successful
        */
-      bool addArrow(const TArrow& arrow_, EExpType type_ = EExpType::eProof)
+      bool addArrow(const TArrow& arrow_)
       {
+         if (!Proof(TNode(arrow_.source)))
+         {
+            print_error("No such source node: " + arrow_.source);
+            return false;
+         }
+
+         if (!Proof(TNode(arrow_.target)))
+         {
+            print_error("No such target node: " + arrow_.target);
+            return false;
+         }
+
          for (auto& arrow : m_arrows)
          {
             if (arrow_.name == arrow.name && arrow_.target != arrow.target)
@@ -361,28 +367,6 @@ namespace cat
                print_error("Arrow redefinition: " + arrow_.name);
                return false;
             }
-         }
-
-         if (!Proof(TNode(arrow_.source)))
-         {
-            if (type_ == EExpType::eProof)
-            {
-               print_error("No such source node: " + arrow_.source);
-               return false;
-            }
-            else
-               AddNode(TNode(arrow_.source));
-         }
-
-         if (!Proof(TNode(arrow_.target)))
-         {
-            if (type_ == EExpType::eProof)
-            {
-               print_error("No such target node: " + arrow_.target);
-               return false;
-            }
-            else
-               AddNode(TNode(arrow_.target));
          }
 
          m_nodes[TNode(arrow_.source)].insert(TNode(arrow_.target));
