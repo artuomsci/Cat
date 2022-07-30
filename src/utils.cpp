@@ -71,45 +71,46 @@ static std::string get_template()
       </html>)";
 }
 
-void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std::string& prefix_, const TCoords<Obj>& coords_, bool skip_identity_, bool show_morphisms_)
+template <typename T, typename TNode>
+static void export_cytoscape_t(const std::string& name_, const T& ccat_, const std::string& path_, const std::string& prefix_, const TCoords<TNode>& coords_, bool skip_identity_, bool show_arrows_)
 {
    std::string nodes;
 
-   for (const auto& [obj, objset] : cat_.Nodes())
+   for (const auto& [node, _] : ccat_.Nodes())
    {
       // nodes
       char buffern[1024];
       if (coords_.empty())
-         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", obj.GetName().c_str(), obj.GetName().c_str(), "Node");
+         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", node.GetName().c_str(), node.GetName().c_str(), "Node");
       else
       {
-         const TVec2& crd = coords_.at(obj);
-         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", obj.GetName().c_str(), obj.GetName().c_str(), "Node", crd.first, crd.second);
+         const TVec2& crd = coords_.at(node);
+         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", node.GetName().c_str(), node.GetName().c_str(), "Node", crd.first, crd.second);
       }
 
       nodes += (nodes.empty() ? "" : ",") +  std::string(buffern) + "\n";
    }
 
-   if (show_morphisms_)
+   if (show_arrows_)
    {
-      for (const Morph& mrph : cat_.Arrows())
+      for (const auto& arrow : ccat_.Arrows())
       {
-         if (skip_identity_ && mrph.source == mrph.target)
+         if (skip_identity_ && arrow.source == arrow.target)
             continue;
 
          // nodes
          char buffern[1024];
          if (coords_.empty())
-            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", mrph.name.c_str(), mrph.name.c_str(), "Link");
+            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", arrow.name.c_str(), arrow.name.c_str(), "Link");
          else
          {
-            const TVec2& source_crd = coords_.at(Obj(mrph.source));
-            const TVec2& target_crd = coords_.at(Obj(mrph.target));
+            const TVec2& source_crd = coords_.at(TNode(arrow.source));
+            const TVec2& target_crd = coords_.at(TNode(arrow.target));
 
             int x = (source_crd.first + target_crd.first) * 0.5;
             int y = (source_crd.second + target_crd.second) * 0.5;
 
-            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", mrph.name.c_str(), mrph.name.c_str(), "Link", x, y);
+            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", arrow.name.c_str(), arrow.name.c_str(), "Link", x, y);
          }
 
          nodes += (nodes.empty() ? "" : ",") +  std::string(buffern) + "\n";
@@ -118,135 +119,35 @@ void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std:
 
    std::string edges;
 
-   if (!show_morphisms_)
+   if (!show_arrows_)
    {
-      for (const auto& [obj, objset] : cat_.Nodes())
+      for (const auto& arrow : ccat_.Arrows())
       {
-         const Obj& source = obj;
+         if (skip_identity_ && arrow.source == arrow.target)
+            continue;
 
-         for (const Obj& target : objset)
-         {
-            if (skip_identity_ && source == target)
-               continue;
+         // edges
+         char buffere[1024];
+         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", arrow.source.c_str(), arrow.target.c_str());
 
-            // edges
-            char buffere[1024];
-            sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", source.GetName().c_str(), target.GetName().c_str());
-
-            edges += (edges.empty() ? "" : ",") +  std::string(buffere) + "\n";
-         }
+         edges += (edges.empty() ? "" : ",") +  std::string(buffere) + "\n";
       }
    }
    else
    {
-      for (const Morph& mrph : cat_.Arrows())
+      for (const auto& arrow : ccat_.Arrows())
       {
-         if (skip_identity_ & mrph.source == mrph.target)
+         if (skip_identity_ && arrow.source == arrow.target)
             continue;
 
          // edges
          char buffere[1024];
 
-         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", mrph.source.c_str(), mrph.name.c_str());
+         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", arrow.source.c_str(), arrow.name.c_str());
 
          edges += (edges.empty() ? "" : ",") +  std::string(buffere) + "\n";
 
-         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", mrph.name.c_str(), mrph.target.c_str());
-
-         edges += (edges.empty() ? "" : ",") +  std::string(buffere) + "\n";
-      }
-   }
-
-   // aggregate data into string
-   std::string data = "nodes: [" + nodes + "]" + "," + "edges: [" + edges + "]";
-
-   std::string srctemplate = get_template();
-   // filling template
-   auto ind = srctemplate.find("$(title)");
-   srctemplate.replace(ind, std::string("$(title)").length(), cat_.GetName());
-
-   ind = srctemplate.find("$(data)");
-   srctemplate.replace(ind, std::string("$(data)").length(), data);
-
-   ind = srctemplate.find("$(pattern)");
-   srctemplate.replace(ind, std::string("$(pattern)").length(), coords_.empty() ? "circle" : "preset");
-   
-   // file dumping
-   std::ofstream file(path_ + "/" + prefix_ + cat_.GetName() +  ".html", std::ofstream::out);
-   if (file.is_open())
-   {
-      file << srctemplate;
-      file.close();
-   }
-}
-
-void cat::export_cytoscape(const CACat& ccat_, const std::string& path_, const std::string& prefix_, const TCoords<Cat>& coords_, bool show_functors_)
-{
-   std::string nodes;
-
-   for (const auto& [cat, _] : ccat_.Nodes())
-   {
-      // nodes
-      char buffern[1024];
-      if (coords_.empty())
-         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", cat.GetName().c_str(), cat.GetName().c_str(), "Node");
-      else
-      {
-         const TVec2& crd = coords_.at(cat);
-         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", cat.GetName().c_str(), cat.GetName().c_str(), "Node", crd.first, crd.second);
-      }
-
-      nodes += (nodes.empty() ? "" : ",") +  std::string(buffern) + "\n";
-   }
-
-   if (show_functors_)
-   {
-      for (const Func& func : ccat_.Arrows())
-      {
-         // nodes
-         char buffern[1024];
-         if (coords_.empty())
-            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", func.name.c_str(), func.name.c_str(), "Link");
-         else
-         {
-            const TVec2& source_crd = coords_.at(Cat(func.source));
-            const TVec2& target_crd = coords_.at(Cat(func.target));
-
-            int x = (source_crd.first + target_crd.first) * 0.5;
-            int y = (source_crd.second + target_crd.second) * 0.5;
-
-            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", func.name.c_str(), func.name.c_str(), "Link", x, y);
-         }
-
-         nodes += (nodes.empty() ? "" : ",") +  std::string(buffern) + "\n";
-      }
-   }
-
-   std::string edges;
-
-   if (!show_functors_)
-   {
-      for (const Func& func : ccat_.Arrows())
-      {
-         // edges
-         char buffere[1024];
-         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", func.source.c_str(), func.target.c_str());
-
-         edges += (edges.empty() ? "" : ",") +  std::string(buffere) + "\n";
-      }
-   }
-   else
-   {
-      for (const Func& func : ccat_.Arrows())
-      {
-         // edges
-         char buffere[1024];
-
-         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", func.source.c_str(), func.name.c_str());
-
-         edges += (edges.empty() ? "" : ",") +  std::string(buffere) + "\n";
-
-         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", func.name.c_str(), func.target.c_str());
+         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", arrow.name.c_str(), arrow.target.c_str());
 
          edges += (edges.empty() ? "" : ",") +  std::string(buffere) + "\n";
       }
@@ -267,10 +168,20 @@ void cat::export_cytoscape(const CACat& ccat_, const std::string& path_, const s
    srctemplate.replace(ind, std::string("$(pattern)").length(), coords_.empty() ? "circle" : "preset");
 
    // file dumping
-   std::ofstream file(path_ + "/" + prefix_ + "CACat" +  ".html", std::ofstream::out);
+   std::ofstream file(path_ + "/" + prefix_ + name_ +  ".html", std::ofstream::out);
    if (file.is_open())
    {
       file << srctemplate;
       file.close();
    }
+}
+
+void cat::export_cytoscape(const CACat& ccat_, const std::string& path_, const std::string& prefix_, const TCoords<Cat>& coords_, bool skip_identity_, bool show_functors_)
+{
+   export_cytoscape_t<CACat, Cat>("CACat", ccat_, path_, prefix_, coords_, skip_identity_, show_functors_);
+}
+
+void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std::string& prefix_, const TCoords<Obj>& coords_, bool skip_identity_, bool show_morphisms_)
+{
+   export_cytoscape_t<Cat, Obj>(cat_.GetName(), cat_, path_, prefix_, coords_, skip_identity_, show_morphisms_);
 }
