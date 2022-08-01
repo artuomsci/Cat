@@ -34,9 +34,9 @@ bool Arrow::operator==(const Arrow& arrow_) const
 }
 
 //-----------------------------------------------------------------------------------------
-bool Arrow::operator!=(const Arrow& morph_) const
+bool Arrow::operator!=(const Arrow& arrow_) const
 {
-   return source != morph_.source || target != morph_.target || name != morph_.name;
+   return source != arrow_.source || target != arrow_.target || name != arrow_.name;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -62,6 +62,18 @@ Morph::Morph(const Obj& source_, const Obj& target_, const std::string& name_) :
 Morph::Morph(const Obj& source_, const Obj& target_) :
    Arrow(source_.GetName(), target_.GetName(), default_arrow_name(source_.GetName(), target_.GetName()))
 {
+}
+
+//-----------------------------------------------------------------------------------------
+bool Morph::operator==(const Morph& morph_) const
+{
+   return source == morph_.source && target == morph_.target && name == morph_.name;
+}
+
+//-----------------------------------------------------------------------------------------
+bool Morph::operator!=(const Morph& morph_) const
+{
+   return source != morph_.source || target != morph_.target || name != morph_.name;
 }
 
 //-----------------------------------------------------------------------------------------

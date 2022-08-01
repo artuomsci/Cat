@@ -68,7 +68,7 @@ namespace cat
        * @param arrow_ - arrow
        * @return True if successful
        */
-      bool AddArrow(Func arrow_);
+      bool AddArrow(const Func& arrow_);
 
       /**
        * @brief Proof functor

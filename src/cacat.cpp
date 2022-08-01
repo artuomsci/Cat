@@ -69,7 +69,7 @@ std::optional<Obj> cat::MapObject(const std::optional<Func>& func_, const std::o
 
 //-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
-bool CACat::AddArrow(Func arrow_)
+bool CACat::AddArrow(const Func& arrow_)
 {
    for (const Func& func : m_arrows)
    {
