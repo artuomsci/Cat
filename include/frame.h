@@ -68,21 +68,20 @@ namespace cat
       using ArrowVec = std::vector<TArrow>;
 
       /**
-       * @brief Add arrow
-       * @param arrow_ - arrow
+       * @brief Add arrows
+       * @param arrows_ - vector of arrows
        * @return True if successful
        */
-      template <typename T, typename... TArgs>
-      bool AddArrows(const T& arrow_, const TArgs&... arrows_)
+      bool AddArrows(const std::vector<TArrow>& arrows_)
       {
-         return addArrow(arrow_) ? AddArrows(arrows_...) : false;
-      }
+         for (const TArrow& arrow : arrows_)
+         {
+            if (!addArrow(arrow))
+               return false;
+         }
 
-      /**
-       * @brief Terminal condition
-       * @return True
-       */
-      bool AddArrows() { return true; }
+         return true;
+      }
 
       /**
        * @brief Erase arrow
@@ -160,19 +159,19 @@ namespace cat
 
       /**
        * @brief Add multiple nodes
-       * @param node_ - node
+       * @param nodes_ - vector of nodes
        * @return True if successful
        */
-      template <typename T, typename... TArgs>
-      bool AddNodes(const T& node_, const TArgs&... nodes_)
+      bool AddNodes(const std::vector<TNode>& nodes_)
       {
-         return AddNode(node_) ? AddNodes(nodes_...) : false;
-      }
+         for (const TNode& node : nodes_)
+         {
+            if (!AddNode(node))
+               return false;
+         }
 
-      /**
-       * @brief Terminal condition
-       */
-      bool AddNodes() { return true; }
+         return true;
+      }
 
       /**
        * @brief Erase node

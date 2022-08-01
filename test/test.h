@@ -25,7 +25,7 @@ namespace cat
 
          assert(cat.Nodes().size() == 0);
 
-         assert(cat.AddNodes(a, b));
+         assert(cat.AddNodes({a, b}));
 
          assert(cat.Nodes().size() == 2);
 
@@ -42,7 +42,7 @@ namespace cat
 
          Obj a("a"), b("b"), c("c");
 
-         cat.AddNodes(a, b);
+         cat.AddNodes({a, b});
 
          cat.AddArrow(Morph(a, b));
 
@@ -58,7 +58,7 @@ namespace cat
 
          assert(cat.Nodes().size() == 0);
 
-         cat.AddNodes(a, b);
+         cat.AddNodes({a, b});
 
          cat.EraseNodes();
 
@@ -84,7 +84,7 @@ namespace cat
 
          Obj a("a"), b("b"), c("c"), d("d");
 
-         cat.AddNodes(a, b, c);
+         cat.AddNodes({a, b, c});
 
          assert(cat.MatchArrow(a, a));
          assert(cat.MatchArrow(b, b));
@@ -116,7 +116,7 @@ namespace cat
 
          Obj a("a"), b("b"), c("c");
 
-         cat.AddNodes(a, b, c);
+         cat.AddNodes({a, b, c});
 
          cat.AddArrow(Morph(a, b, "f0"));
          cat.AddArrow(Morph(a, c, "f1"));
@@ -162,12 +162,12 @@ namespace cat
 
          Obj a("a"), b("b"), c("c"), d("d");
 
-         cat.AddNodes(a, b, c, d);
+         cat.AddNodes({a, b, c, d});
 
          solve_compositions(cat);
 
-         cat.AddArrows(Morph(a, b, "f0"), Morph(b, c, "f1"), Morph(c, d, "f2"));
-         cat.AddArrows(Morph(d, c, "f3"), Morph(c, b, "f4"), Morph(b, a, "f5"));
+         cat.AddArrows({Morph(a, b, "f0"), Morph(b, c, "f1"), Morph(c, d, "f2")});
+         cat.AddArrows({Morph(d, c, "f3"), Morph(c, b, "f4"), Morph(b, a, "f5")});
 
          solve_compositions(cat);
 
@@ -194,16 +194,16 @@ namespace cat
 
          Obj a("a"), b("b"), c("c"), d("d"), e("e"), f("f");
 
-         cat.AddNodes(a, b, c, d, e, f);
+         cat.AddNodes({a, b, c, d, e, f});
 
-         cat.AddArrows(
+         cat.AddArrows({
                      Morph(a, b)
                   ,  Morph(b, a)
                   ,  Morph(a, c)
                   ,  Morph(b, d)
                   ,  Morph(c, d)
                   ,  Morph(c, f)
-                  ,  Morph(d, e));
+                  ,  Morph(d, e)});
 
          ObjVec seq = solve_sequence(cat, a, e);
 
@@ -227,9 +227,9 @@ namespace cat
 
          Obj a("a"), b("b"), c("c"), d("d"), e("e"), f("f");
 
-         cat.AddNodes(a, b, c, d, e, f);
+         cat.AddNodes({a, b, c, d, e, f});
 
-         cat.AddArrows(
+         cat.AddArrows({
                      Morph(a, b)
                   ,  Morph(b, a)
                   ,  Morph(a, c)
@@ -237,7 +237,7 @@ namespace cat
                   ,  Morph(c, d)
                   ,  Morph(c, f)
                   ,  Morph(d, e)
-                  ,  Morph(f, e));
+                  ,  Morph(f, e)});
 
          std::vector<ObjVec> seqs = solve_sequences(cat, a, e);
 
@@ -277,7 +277,7 @@ namespace cat
 
          Obj a("a"), b("b"), c("c"), d("d");
 
-         cat.AddNodes(a, b, c, d);
+         cat.AddNodes({a, b, c, d});
 
          cat.AddArrow(Morph(a, b, "f0"));
          cat.AddArrow(Morph(a, c, "f1"));
@@ -302,9 +302,9 @@ namespace cat
 
          Obj a0("a0"), a1("a1"), b("b"), c("c"), d0("d0"), d1("d1");
 
-         cat.AddNodes(a0, a1, b, c, d0, d1);
+         cat.AddNodes({a0, a1, b, c, d0, d1});
 
-         cat.AddArrows(Morph(a0, a1), Morph(a1, a0));
+         cat.AddArrows({Morph(a0, a1), Morph(a1, a0)});
 
          cat.AddArrow(Morph(a0, b));
          cat.AddArrow(Morph(a0, c));
@@ -318,7 +318,7 @@ namespace cat
          cat.AddArrow(Morph(b, d1));
          cat.AddArrow(Morph(c, d1));
 
-         cat.AddArrows(Morph(d0, d1), Morph(d1, d0));
+         cat.AddArrows({Morph(d0, d1), Morph(d1, d0)});
 
          solve_compositions(cat);
 
