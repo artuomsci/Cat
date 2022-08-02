@@ -1,10 +1,5 @@
 #include "cat.h"
 
-#include <algorithm>
-
-#include "common.h"
-#include "log.h"
-
 using namespace cat;
 
 //-----------------------------------------------------------------------------------------
@@ -99,27 +94,9 @@ bool Cat::operator !=(const Cat& cat_) const
 }
 
 //-----------------------------------------------------------------------------------------
-bool Cat::AddArrow(const Morph& arrow_)
-{
-   return addArrow(arrow_);
-}
-
-//-----------------------------------------------------------------------------------------
 const Cat::CatName& Cat::GetName() const
 {
    return m_name;
-}
-
-//-----------------------------------------------------------------------------------------
-bool Cat::Proof(const Morph& morph_) const
-{
-   return proof(morph_);
-}
-
-//-----------------------------------------------------------------------------------------
-bool Cat::Proof(const Obj& source_, const Obj& target_) const
-{
-   return proof(source_, target_);
 }
 
 //-----------------------------------------------------------------------------------------

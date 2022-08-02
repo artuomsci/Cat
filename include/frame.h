@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <algorithm>
 #include <set>
+#include <optional>
 
 #include "types.h"
 #include "log.h"
@@ -76,7 +77,7 @@ namespace cat
       {
          for (const TArrow& arrow : arrows_)
          {
-            if (!addArrow(arrow))
+            if (!AddArrow(arrow))
                return false;
          }
 
@@ -129,32 +130,6 @@ namespace cat
 
          for (auto& [_, nodeset] : m_nodes)
             nodeset.clear();
-      }
-
-      /**
-       * @brief Add node
-       * @param node_ - node
-       * @return True if successful
-       */
-      bool AddNode(const TNode& node_)
-      {
-         if (node_.GetName().empty())
-            return false;
-
-         if (m_nodes.find(node_) == m_nodes.end())
-         {
-            m_nodes[node_];
-
-            if (!addArrow(TArrow(node_, node_, id_arrow_name(node_.GetName()))))
-               return false;
-         }
-         else
-         {
-            print_error("Node redefinition: " + node_.GetName());
-            return false;
-         }
-
-         return true;
       }
 
       /**
@@ -214,23 +189,6 @@ namespace cat
       {
          m_nodes .clear();
          m_arrows.clear();
-      }
-
-      /**
-      * @brief Check for arrow
-      * @param source_ - source
-      * @param target_ - target
-      * @return True if arrow exists
-      */
-      bool MatchArrow(const TNode& source_, const TNode& target_) const
-      {
-         auto it = m_nodes.find(source_);
-         if (it == m_nodes.end())
-            return false;
-
-         const auto& [_, codomain] = *it;
-
-         return codomain.find(target_) != codomain.end();
       }
 
       /**
@@ -300,7 +258,7 @@ namespace cat
             for (int i = 0; i < (int)targets_.size(); ++i)
             {
                if (!FindArrow(domain.GetName(), targets_[i]))
-                  continue;
+                  break;
 
                if (i == targets_.size() - 1)
                   ret.push_back(domain);
@@ -338,54 +296,17 @@ namespace cat
          return m_nodes.find(node_) != m_nodes.end();
       }
 
-      protected:
-
-      /**
-       * @brief Add arrow
-       * @param arrow_ - arrow
-       * @return True if successful
-       */
-      bool addArrow(const TArrow& arrow_)
-      {
-         if (!Proof(TNode(arrow_.source)))
-         {
-            print_error("No such source node: " + arrow_.source);
-            return false;
-         }
-
-         if (!Proof(TNode(arrow_.target)))
-         {
-            print_error("No such target node: " + arrow_.target);
-            return false;
-         }
-
-         for (auto& arrow : m_arrows)
-         {
-            if (arrow_.name == arrow.name && arrow_.target != arrow.target)
-            {
-               print_error("Arrow redefinition: " + arrow_.name);
-               return false;
-            }
-         }
-
-         m_nodes[TNode(arrow_.source)].insert(TNode(arrow_.target));
-
-         m_arrows.push_back(arrow_);
-
-         return true;
-      }
-
       /**
        * @brief Proof arrow
        * @param arrow_ - arrow
        * @return True if successful
        */
-      bool proof(const TArrow& arrow_) const
+      bool Proof(const TArrow& arrow_) const
       {
          auto it = std::find_if(m_arrows.begin(), m_arrows.end(), [&](const typename ArrowVec::value_type& element_)
-         {
-            return element_.source == arrow_.source && element_.target == arrow_.target && element_.name == arrow_.name;
-         });
+            {
+               return element_.source == arrow_.source && element_.target == arrow_.target && element_.name == arrow_.name;
+            });
 
          return it != m_arrows.end();
       }
@@ -396,9 +317,9 @@ namespace cat
        * @param target_ - target
        * @return True if successful
        */
-      bool proof(const TNode& source_, const TNode& target_) const
+      bool Proof(const TNode& source_, const TNode& target_) const
       {
-         bool result {};
+         bool result{};
 
          auto its = m_nodes.find(TNode(source_));
          if (its != m_nodes.end())
@@ -414,6 +335,82 @@ namespace cat
 
          return result;
       }
+
+      /**
+       * @brief Verifying arrow
+       * @param arrow_ - arrow
+       * @return True if successful
+       */
+      bool Verify(const TArrow& arrow_) const
+      {
+         if (!Proof(TNode(arrow_.source)))
+         {
+            print_error("No such source node: " + arrow_.source);
+            return false;
+         }
+
+         if (!Proof(TNode(arrow_.target)))
+         {
+            print_error("No such target node: " + arrow_.target);
+            return false;
+         }
+
+         return true;
+      }
+
+      /**
+         * @brief Add node
+         * @param node_ - node
+         * @return True if successful
+         */
+      bool AddNode(const TNode& node_)
+      {
+         if (node_.GetName().empty())
+            return false;
+
+         if (m_nodes.find(node_) == m_nodes.end())
+         {
+            m_nodes[node_];
+
+            if (!AddArrow(TArrow(node_, node_, id_arrow_name(node_.GetName()))))
+               return false;
+         }
+         else
+         {
+            print_error("Node redefinition: " + node_.GetName());
+            return false;
+         }
+
+         return true;
+      }
+
+      /**
+       * @brief Add arrow
+       * @param arrow_ - arrow
+       * @return True if successful
+       */
+      bool AddArrow(const TArrow& arrow_)
+      {
+         for (auto& arrow : m_arrows)
+         {
+            if (arrow_.name == arrow.name && arrow_.target != arrow.target)
+            {
+               print_error("Arrow redefinition: " + arrow_.name);
+               return false;
+            }
+         }
+
+         if (!Verify(arrow_))
+            return false;
+
+         m_nodes[TNode(arrow_.source)].insert(TNode(arrow_.target));
+
+         m_arrows.push_back(arrow_);
+
+         return true;
+      }
+
+      protected:
 
       NodeUMap m_nodes;
       ArrowVec m_arrows;

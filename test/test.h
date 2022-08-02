@@ -86,9 +86,9 @@ namespace cat
 
          cat.AddNodes({a, b, c});
 
-         assert(cat.MatchArrow(a, a));
-         assert(cat.MatchArrow(b, b));
-         assert(cat.MatchArrow(c, c));
+         assert(cat.Proof(a, a));
+         assert(cat.Proof(b, b));
+         assert(cat.Proof(c, c));
 
          assert(cat.Arrows().size() == 3);
 

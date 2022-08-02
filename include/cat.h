@@ -5,7 +5,6 @@
 #include "cat_export.h"
 
 #include "frame.h"
-#include "types.h"
 #include "obj.h"
 
 namespace cat
@@ -46,32 +45,10 @@ namespace cat
       bool operator != (const Cat& cat_) const;
 
       /**
-       * @brief Add arrow
-       * @param arrow_ - arrow
-       * @return True if successful
-       */
-      bool AddArrow(const Morph& arrow_);
-
-      /**
        * @brief Return category name
        * @return Name of the category
        */
       const CatName& GetName() const;
-
-      /**
-       * @brief Proof morphism
-       * @param morph_ - morphism
-       * @return True if successful
-       */
-      bool Proof(const Morph& morph_) const;
-
-      /**
-       * @brief Proof morphism
-       * @param source_ - source
-       * @param target_ - target
-       * @return True if successful
-       */
-      bool Proof(const Obj& source_, const Obj& target_) const;
 
    private:
 

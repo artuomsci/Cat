@@ -64,6 +64,13 @@ namespace cat
       CACat& operator = (const CACat&) = delete;
 
       /**
+         * @brief Add node
+         * @param node_ - node
+         * @return True if successful
+         */
+      bool AddNode(const Cat& node_);
+
+      /**
        * @brief Add arrow
        * @param arrow_ - arrow
        * @return True if successful
@@ -71,19 +78,11 @@ namespace cat
       bool AddArrow(const Func& arrow_);
 
       /**
-       * @brief Proof functor
+       * @brief Verifying functor
        * @param func_ - functor
        * @return True if successful
        */
-      bool Proof(const Func& func_) const;
-
-      /**
-       * @brief Proof functor
-       * @param source_ - source
-       * @param target_ - target
-       * @return True if successful
-       */
-      bool Proof(const Cat& source_, const Cat& target_) const;
+      bool Verify(const Func& func_) const;
 
       /**
        * @brief Create right side of the functor expression

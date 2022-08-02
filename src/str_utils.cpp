@@ -115,7 +115,7 @@ std::string cat::trim_left(const std::string& string_, std::string::value_type s
 //-----------------------------------------------------------------------------------------
 std::string cat::trim_right(const std::string& string_, std::string::value_type symbol_)
 {
-   int end_ind = string_.length() - 1;
+   int end_ind = (int)string_.length() - 1;
    while (true)
    {
       if (string_.at(end_ind) != symbol_)
