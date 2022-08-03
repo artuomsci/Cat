@@ -81,11 +81,11 @@ static void export_cytoscape_t(const std::string& name_, const T& ccat_, const s
       // nodes
       char buffern[1024];
       if (coords_.empty())
-         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", node.GetName().c_str(), node.GetName().c_str(), "Node");
+         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", node.Name().c_str(), node.Name().c_str(), "Node");
       else
       {
          const TVec2& crd = coords_.at(node);
-         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", node.GetName().c_str(), node.GetName().c_str(), "Node", crd.first, crd.second);
+         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", node.Name().c_str(), node.Name().c_str(), "Node", crd.first, crd.second);
       }
 
       nodes += (nodes.empty() ? "" : ",") +  std::string(buffern) + "\n";
@@ -183,5 +183,5 @@ void cat::export_cytoscape(const CACat& ccat_, const std::string& path_, const s
 
 void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std::string& prefix_, const TCoords<Obj>& coords_, bool skip_identity_, bool show_morphisms_)
 {
-   export_cytoscape_t<Cat, Obj>(cat_.GetName(), cat_, path_, prefix_, coords_, skip_identity_, show_morphisms_);
+   export_cytoscape_t<Cat, Obj>(cat_.Name(), cat_, path_, prefix_, coords_, skip_identity_, show_morphisms_);
 }

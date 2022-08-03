@@ -137,10 +137,10 @@ namespace cat
          // before the object has been removed
          {
             auto prev_count = cat.Arrows().size();
-            assert(cat.EraseArrow(id_arrow_name(a.GetName())) == false);
+            assert(cat.EraseArrow(id_arrow_name(a.Name())) == false);
             auto new_count = cat.Arrows().size();
             assert(prev_count == new_count);
-            assert(fnCheckMorph(cat.Arrows(), Morph(a, a, id_arrow_name(a.GetName()))));
+            assert(fnCheckMorph(cat.Arrows(), Morph(a, a, id_arrow_name(a.Name()))));
          }
 
          // Non existent morphism can't be deleted

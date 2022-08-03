@@ -33,7 +33,7 @@ namespace cat
        * @brief Return object name
        * @return Name of the object
        */
-      const std::string& GetName() const;
+      const std::string& Name() const;
 
       /**
        * @brief Return object as a "set"

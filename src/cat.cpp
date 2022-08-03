@@ -49,13 +49,13 @@ Morph::Morph(const std::string& source_, const std::string& target_) :
 
 //-----------------------------------------------------------------------------------------
 Morph::Morph(const Obj& source_, const Obj& target_, const std::string& name_) :
-   Arrow(source_.GetName(), target_.GetName(), name_)
+   Arrow(source_.Name(), target_.Name(), name_)
 {
 }
 
 //-----------------------------------------------------------------------------------------
 Morph::Morph(const Obj& source_, const Obj& target_) :
-   Arrow(source_.GetName(), target_.GetName(), default_arrow_name(source_.GetName(), target_.GetName()))
+   Arrow(source_.Name(), target_.Name(), default_arrow_name(source_.Name(), target_.Name()))
 {
 }
 
@@ -73,7 +73,7 @@ bool Morph::operator!=(const Morph& morph_) const
 
 //-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
-Cat::Cat(const CatName& name_) : m_name(name_) {};
+Cat::Cat(const CName& name_) : m_name(name_) {};
 
 //-----------------------------------------------------------------------------------------
 bool Cat::operator < (const Cat& cat_) const
@@ -84,17 +84,17 @@ bool Cat::operator < (const Cat& cat_) const
 //-----------------------------------------------------------------------------------------
 bool Cat::operator ==(const Cat& cat_) const
 {
-   return m_name == cat_.GetName();
+   return m_name == cat_.Name();
 }
 
 //-----------------------------------------------------------------------------------------
 bool Cat::operator !=(const Cat& cat_) const
 {
-   return m_name != cat_.GetName();
+   return m_name != cat_.Name();
 }
 
 //-----------------------------------------------------------------------------------------
-const Cat::CatName& Cat::GetName() const
+const Cat::CName& Cat::Name() const
 {
    return m_name;
 }
@@ -102,5 +102,5 @@ const Cat::CatName& Cat::GetName() const
 //-----------------------------------------------------------------------------------------
 std::size_t CatKeyHasher::operator()(const Cat& k_) const
 {
-   return std::hash<std::string>{}(k_.GetName());
+   return std::hash<std::string>{}(k_.Name());
 }

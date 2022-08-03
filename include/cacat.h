@@ -16,8 +16,8 @@ namespace cat
    {
       using FuncName = std::string;
 
-      explicit Func(const Cat::CatName& source_, const Cat::CatName& target_, const FuncName& name_);
-      explicit Func(const Cat::CatName& source_, const Cat::CatName& target_);
+      explicit Func(const Cat::CName& source_, const Cat::CName& target_, const FuncName& name_);
+      explicit Func(const Cat::CName& source_, const Cat::CName& target_);
 
       explicit Func(const Cat& source_, const Cat& target_, const FuncName& name_);
       explicit Func(const Cat& source_, const Cat& target_);
@@ -31,6 +31,8 @@ namespace cat
       bool operator  < (const Func& func_) const;
       bool operator == (const Func& func_) const;
       bool operator != (const Func& func_) const;
+
+      std::optional<Obj> operator()(const std::optional<Obj>& obj_) const;
 
       MorphVec morphisms;
    };

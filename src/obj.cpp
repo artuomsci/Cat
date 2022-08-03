@@ -24,7 +24,7 @@ bool Obj::operator!=(const Obj& obj_) const
 }
 
 //-----------------------------------------------------------------------------------------
-const std::string& Obj::GetName() const
+const std::string& Obj::Name() const
 {
    return m_name;
 }
@@ -45,5 +45,5 @@ void Obj::SetValue(const TSet& value_)
 //-----------------------------------------------------------------------------------------
 std::size_t ObjKeyHasher::operator()(const Obj& k_) const
 {
-   return std::hash<std::string>{}(k_.GetName());
+   return std::hash<std::string>{}(k_.Name());
 }

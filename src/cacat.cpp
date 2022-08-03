@@ -9,23 +9,23 @@
 using namespace cat;
 
 //-----------------------------------------------------------------------------------------
-Func::Func(const Cat::CatName& source_, const Cat::CatName& target_, const FuncName& name_) :
+Func::Func(const Cat::CName& source_, const Cat::CName& target_, const FuncName& name_) :
    Arrow(source_, target_, name_)
 {}
 
 //-----------------------------------------------------------------------------------------
-Func::Func(const Cat::CatName& source_, const Cat::CatName& target_) :
+Func::Func(const Cat::CName& source_, const Cat::CName& target_) :
    Arrow(source_, target_, default_arrow_name(source_, target_))
 {}
 
 //-----------------------------------------------------------------------------------------
 Func::Func(const Cat& source_, const Cat& target_, const FuncName& name_) :
-   Arrow(source_.GetName(), target_.GetName(), name_)
+   Arrow(source_.Name(), target_.Name(), name_)
 {}
 
 //-----------------------------------------------------------------------------------------
 Func::Func(const Cat& source_, const Cat& target_) :
-   Arrow(source_.GetName(), target_.GetName(), default_arrow_name(source_.GetName(), target_.GetName()))
+   Arrow(source_.Name(), target_.Name(), default_arrow_name(source_.Name(), target_.Name()))
 {}
 
 //-----------------------------------------------------------------------------------------
@@ -51,6 +51,12 @@ bool Func::operator!=(const Func& func_) const
 }
 
 //-----------------------------------------------------------------------------------------
+std::optional<Obj> Func::operator()(const std::optional<Obj>& obj_) const
+{
+   return MapObject(*this, obj_);
+}
+
+//-----------------------------------------------------------------------------------------
 std::optional<Obj> cat::MapObject(const std::optional<Func>& func_, const std::optional<Obj>& obj_)
 {
    if (!func_ || !obj_)
@@ -58,7 +64,7 @@ std::optional<Obj> cat::MapObject(const std::optional<Func>& func_, const std::o
 
    for (const Morph& morph : func_.value().morphisms)
    {
-      if (morph.source == obj_->GetName())
+      if (morph.source == obj_->Name())
       {
          return std::optional<Obj>(morph.target);
       }
@@ -71,14 +77,14 @@ std::optional<Obj> cat::MapObject(const std::optional<Func>& func_, const std::o
 //-----------------------------------------------------------------------------------------
 bool CACat::AddNode(const Cat& node_)
 {
-   if (node_.GetName().empty())
+   if (node_.Name().empty())
       return false;
 
    if (m_nodes.find(node_) == m_nodes.end())
    {
       m_nodes[node_];
 
-      Func func(node_, node_, id_arrow_name(node_.GetName()));
+      Func func(node_, node_, id_arrow_name(node_.Name()));
 
       for (const auto& [id, _] : node_.Nodes())
          func.morphisms.emplace_back(Obj(id), Obj(id));
@@ -88,7 +94,7 @@ bool CACat::AddNode(const Cat& node_)
    }
    else
    {
-      print_error("Node redefinition: " + node_.GetName());
+      print_error("Node redefinition: " + node_.Name());
       return false;
    }
 
@@ -147,7 +153,7 @@ bool CACat::Verify(const Func& func_) const
    {
       if (!MapObject(func_, obj))
       {
-         print_error("Failure to map object: " + obj.GetName());
+         print_error("Failure to map object: " + obj.Name());
          return false;
       }
    }
@@ -165,13 +171,13 @@ bool CACat::Verify(const Func& func_) const
 
       if (!source_cat.CatFrame::Proof(Obj(morph.source)))
       {
-         print_error("No such object '" + morph.source + "' in category '" + source_cat.GetName() + "'");
+         print_error("No such object '" + morph.source + "' in category '" + source_cat.Name() + "'");
          return false;
       }
 
       if (!target_cat.CatFrame::Proof(objs.value()))
       {
-         print_error("No such object '" + objs.value().GetName() + "' in category '" + target_cat.GetName() + "'");
+         print_error("No such object '" + objs.value().Name() + "' in category '" + target_cat.Name() + "'");
          return false;
       }
 
@@ -183,20 +189,20 @@ bool CACat::Verify(const Func& func_) const
 
       if (!source_cat.CatFrame::Proof(Obj(morph.target)))
       {
-         print_error("No such object '" + morph.target + "' in category '" + source_cat.GetName() + "'");
+         print_error("No such object '" + morph.target + "' in category '" + source_cat.Name() + "'");
          return false;
       }
 
       if (!target_cat.CatFrame::Proof(objt.value()))
       {
-         print_error("No such object '" + objt.value().GetName() + "' in category '" + target_cat.GetName() + "'");
+         print_error("No such object '" + objt.value().Name() + "' in category '" + target_cat.Name() + "'");
          return false;
       }
 
       // Checking mapping of morphisms
       if (!target_cat.Proof(objs.value(), objt.value()))
       {
-         print_error("Failure to match morphism: " + objs.value().GetName() + "->" + objt.value().GetName());
+         print_error("Failure to match morphism: " + objs.value().Name() + "->" + objt.value().Name());
          return false;
       }
    }
@@ -213,8 +219,8 @@ bool CACat::Statement(const Func& func_)
    Cat source_cat("");
    Cat target_cat("");
 
-   CatNameVec backup_targets[2];
-   CatNameVec backup_sources[2];
+   NameVec backup_targets[2];
+   NameVec backup_sources[2];
 
    // source
    if (itSourceCat == m_nodes.end())
@@ -224,8 +230,8 @@ bool CACat::Statement(const Func& func_)
       source_cat = (*itSourceCat).first;
 
       // Backup relations
-      backup_targets[0] = FindTargets(source_cat.GetName());
-      backup_sources[0] = FindSources(source_cat.GetName());
+      backup_targets[0] = FindTargets(source_cat.Name());
+      backup_sources[0] = FindSources(source_cat.Name());
    }
 
    // target
@@ -236,8 +242,8 @@ bool CACat::Statement(const Func& func_)
       target_cat = (*itTargetCat).first;
 
       // Backup relations
-      backup_targets[1] = FindTargets(target_cat.GetName());
-      backup_sources[1] = FindSources(target_cat.GetName());
+      backup_targets[1] = FindTargets(target_cat.Name());
+      backup_sources[1] = FindSources(target_cat.Name());
    }
 
    //
@@ -258,7 +264,7 @@ bool CACat::Statement(const Func& func_)
       std::optional<Obj> tobj = MapObject(func_, obj);
       if (!tobj)
       {
-         print_error("Missing functor morphism for object: " + obj.GetName());
+         print_error("Missing functor morphism for object: " + obj.Name());
          return false;
       }
 
@@ -273,7 +279,7 @@ bool CACat::Statement(const Func& func_)
       auto objt = MapObject(func_, Obj(morph.target));
 
       if (!target_cat.Proof(objs.value(), objt.value()))
-         target_cat.AddArrow(Morph(objs->GetName(), objt->GetName()));
+         target_cat.AddArrow(Morph(objs->Name(), objt->Name()));
    }
 
    if (!AddNode(source_cat))

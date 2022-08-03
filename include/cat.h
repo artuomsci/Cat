@@ -36,9 +36,9 @@ namespace cat
    {
    public:
 
-      using CatName = std::string;
+      using CName = std::string;
 
-      explicit Cat(const CatName& name_);
+      explicit Cat(const CName& name_);
 
       bool operator  < (const Cat& cat_) const;
       bool operator == (const Cat& cat_) const;
@@ -48,11 +48,11 @@ namespace cat
        * @brief Return category name
        * @return Name of the category
        */
-      const CatName& GetName() const;
+      const CName& Name() const;
 
    private:
 
-      CatName m_name;
+      CName m_name;
    };
 
    struct CAT_EXPORT CatKeyHasher
@@ -63,6 +63,6 @@ namespace cat
    using CatSet      = std::set<Cat>;
    using CatSetPair  = std::pair<Cat, CatSet>;
    using CatVec      = std::vector<Cat>;
-   using CatNameVec  = std::vector<Cat::CatName>;
+   using NameVec     = std::vector<Cat::CName>;
    using CatUMap     = std::unordered_map<Cat, CatSet, CatKeyHasher>;
 }

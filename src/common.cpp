@@ -78,7 +78,7 @@ static std::vector<TArrow> get_chains(const std::string& name_, const TNode& sou
 
       if (domain_.find(source_) == domain_.end())
       {
-         print_error("No such source: " + source_.GetName());
+         print_error("No such source: " + source_.Name());
          return false;
       }
       return true;
@@ -91,14 +91,14 @@ static std::vector<TArrow> get_chains(const std::string& name_, const TNode& sou
 
       if (codomain_.find(target_) == codomain_.end())
       {
-         print_error("No such target: " + target_.GetName());
+         print_error("No such target: " + target_.Name());
          return false;
       }
       return true;
    };
 
    // f :: a -> b
-   if       (name_ != sAny && source_.GetName() != sAny && target_.GetName() != sAny)
+   if       (name_ != sAny && source_.Name() != sAny && target_.Name() != sAny)
    {
       if (!fnCheckSource())
          return ret;
@@ -108,7 +108,7 @@ static std::vector<TArrow> get_chains(const std::string& name_, const TNode& sou
       ret.push_back(TArrow(source_, target_, name_));
    }
    // * :: a -> b
-   else if  (name_ == sAny && source_.GetName() != sAny && target_.GetName() != sAny)
+   else if  (name_ == sAny && source_.Name() != sAny && target_.Name() != sAny)
    {
       if (!fnCheckSource())
          return ret;
@@ -118,7 +118,7 @@ static std::vector<TArrow> get_chains(const std::string& name_, const TNode& sou
       ret.push_back(TArrow(source_, target_));
    }
    // * :: * -> *
-   else if (name_ == sAny && source_.GetName() == sAny && target_.GetName() == sAny)
+   else if (name_ == sAny && source_.Name() == sAny && target_.Name() == sAny)
    {
       for (const auto& [dnode, _d] : domain_)
       {
@@ -129,7 +129,7 @@ static std::vector<TArrow> get_chains(const std::string& name_, const TNode& sou
       }
    }
    // * :: * -> b
-   else if (name_ == sAny && source_.GetName() == sAny && target_.GetName() != sAny)
+   else if (name_ == sAny && source_.Name() == sAny && target_.Name() != sAny)
    {
       if (!fnCheckTarget())
          return ret;
@@ -138,7 +138,7 @@ static std::vector<TArrow> get_chains(const std::string& name_, const TNode& sou
          ret.push_back(TArrow(dnode, target_));
    }
    // * :: a -> *
-   else if (name_ == sAny && source_.GetName() != sAny && target_.GetName() == sAny)
+   else if (name_ == sAny && source_.Name() != sAny && target_.Name() == sAny)
    {
       if (!fnCheckSource())
          return ret;
@@ -147,12 +147,12 @@ static std::vector<TArrow> get_chains(const std::string& name_, const TNode& sou
          ret.push_back(TArrow(source_, cnode));
    }
    // f :: a -> *
-   else if (name_ != sAny && source_.GetName() != sAny && target_.GetName() == sAny)
+   else if (name_ != sAny && source_.Name() != sAny && target_.Name() == sAny)
    {
       print_error("Incorrect definition");
    }
    // f :: * -> b
-   else if (name_ != sAny && source_.GetName() == sAny && target_.GetName() != sAny)
+   else if (name_ != sAny && source_.Name() == sAny && target_.Name() != sAny)
    {
       if (!fnCheckTarget())
          return ret;
@@ -161,7 +161,7 @@ static std::vector<TArrow> get_chains(const std::string& name_, const TNode& sou
          ret.push_back(TArrow(dnode, target_, name_));
    }
    // f :: * -> *
-   else if (name_ != sAny && source_.GetName() == sAny && target_.GetName() == sAny)
+   else if (name_ != sAny && source_.Name() == sAny && target_.Name() == sAny)
    {
       print_error("Incorrect definition");
    }
@@ -368,7 +368,7 @@ bool SParser::parse_source(const std::string& source_, CACat& ccat_)
                const auto& [cat, _] = *it;
 
                for (const auto& [obj, _] : cat.Nodes())
-                  crt_func->morphisms.emplace_back(obj.GetName(), obj.GetName());
+                  crt_func->morphisms.emplace_back(obj.Name(), obj.Name());
             }
 
             if (!ccat_.Statement(crt_func.value()))
@@ -735,7 +735,7 @@ std::vector<Morph> map_obj2morphism(const ObjVec& objs_, const Cat& cat_)
    {
       auto it = std::find_if(morphisms.begin(), morphisms.end(), [&](const MorphVec::value_type& elem_)
       {
-         return objs_[i + 0].GetName() == elem_.source && objs_[i + 1].GetName() == elem_.target;
+         return objs_[i + 0].Name() == elem_.source && objs_[i + 1].Name() == elem_.target;
       });
 
       ret.push_back(it != morphisms.end() ? *it : Morph("", ""));
@@ -849,7 +849,7 @@ static std::optional<cat::Obj> t_coproduct(cat::Obj& fst_, cat::Obj& snd_)
 
    if (pfst && psnd)
    {
-      cat::Obj ret(fst_.GetName() + "+" + snd_.GetName());
+      cat::Obj ret(fst_.Name() + "+" + snd_.Name());
       ret.SetValue(*pfst + *psnd);
 
       return ret;
@@ -880,7 +880,7 @@ static std::optional<cat::Obj> t_product(cat::Obj& fst_, cat::Obj& snd_)
 
    if (pfst && psnd)
    {
-      cat::Obj ret(fst_.GetName() + "*" + snd_.GetName());
+      cat::Obj ret(fst_.Name() + "*" + snd_.Name());
       ret.SetValue(*pfst * *psnd);
 
       return ret;
@@ -897,7 +897,7 @@ static std::optional<cat::Obj> sproduct(cat::Obj& fst_, cat::Obj& snd_)
 
    if (pfst && psnd)
    {
-      cat::Obj ret(fst_.GetName() + "*" + snd_.GetName());
+      cat::Obj ret(fst_.Name() + "*" + snd_.Name());
 
       std::string prod;
 

@@ -162,7 +162,7 @@ namespace cat
 
             std::vector<typename ArrowVec::iterator> arrows; arrows.reserve(m_arrows.size());
 
-            const std::string& node_name = node_.GetName();
+            const std::string& node_name = node_.Name();
 
             for (typename ArrowVec::iterator it = m_arrows.begin(); it != m_arrows.end(); ++it)
             {
@@ -257,7 +257,11 @@ namespace cat
          {
             for (int i = 0; i < (int)targets_.size(); ++i)
             {
-               if (!FindArrow(domain.GetName(), targets_[i]))
+               // skipping identities
+               if (domain.Name() == targets_[i])
+                  continue;
+
+               if (!FindArrow(domain.Name(), targets_[i]))
                   break;
 
                if (i == targets_.size() - 1)
@@ -365,19 +369,19 @@ namespace cat
          */
       bool AddNode(const TNode& node_)
       {
-         if (node_.GetName().empty())
+         if (node_.Name().empty())
             return false;
 
          if (m_nodes.find(node_) == m_nodes.end())
          {
             m_nodes[node_];
 
-            if (!AddArrow(TArrow(node_, node_, id_arrow_name(node_.GetName()))))
+            if (!AddArrow(TArrow(node_, node_, id_arrow_name(node_.Name()))))
                return false;
          }
          else
          {
-            print_error("Node redefinition: " + node_.GetName());
+            print_error("Node redefinition: " + node_.Name());
             return false;
          }
 
