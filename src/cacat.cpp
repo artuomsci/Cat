@@ -57,6 +57,34 @@ std::optional<Obj> Func::operator()(const std::optional<Obj>& obj_) const
 }
 
 //-----------------------------------------------------------------------------------------
+std::optional<Cat> Func::operator()(const std::optional<Cat>& cat_) const
+{
+   if (cat_->Name() != source)
+      return std::optional<Cat>();
+
+   Cat ret(target);
+
+   // Mapping of objects
+   for (const auto& [obj, _] : cat_->Nodes())
+   {
+      Obj mapped_obj = MapObject(*this, obj).value();
+      if (!ret.Proof(mapped_obj))
+         ret.AddNode(mapped_obj);
+   }
+
+   // Mapping of morphisms
+   for (const Morph& morph : cat_->Arrows())
+   {
+      auto source = MapObject(*this, Obj(morph.source));
+      auto target = MapObject(*this, Obj(morph.target));
+
+      ret.AddArrow(Morph(source->Name(), target->Name()));
+   }
+
+   return ret;
+}
+
+//-----------------------------------------------------------------------------------------
 std::optional<Obj> cat::MapObject(const std::optional<Func>& func_, const std::optional<Obj>& obj_)
 {
    if (!func_ || !obj_)

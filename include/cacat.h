@@ -33,6 +33,7 @@ namespace cat
       bool operator != (const Func& func_) const;
 
       std::optional<Obj> operator()(const std::optional<Obj>& obj_) const;
+      std::optional<Cat> operator()(const std::optional<Cat>& cat_) const;
 
       MorphVec morphisms;
    };
