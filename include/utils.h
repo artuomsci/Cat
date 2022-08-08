@@ -17,10 +17,11 @@ namespace cat
     * @param path_ - export folder path
     * @param prefix_ - file name prefix
     * @param coords_ - object coordinates (optional)
+    * @param exclude_ - objects to exclude
     * @param skip_identity_ - flag to skip identity morphisms
     * @param show_morphisms_ - flag to show morphisms as nodes
     */
-   CAT_EXPORT void export_cytoscape(const Cat& cat_, const std::string& path_, const std::string& prefix_, const TCoords<Obj>& coords_, bool skip_identity_ = true, bool show_morphisms_ = false);
+   CAT_EXPORT void export_cytoscape(const Cat& cat_, const std::string& path_, const std::string& prefix_, const TCoords<Obj>& coords_, const std::set<Obj>& exclude_, bool skip_identity_ = true, bool show_morphisms_ = false);
 
    /**
     * @brief Export category of categories data to Cytoscape
@@ -28,8 +29,9 @@ namespace cat
     * @param path_ - export folder path
     * @param prefix_ - file name prefix
     * @param coords_ - category coordinates (optional)
+    * @param exclude_ - categories to exclude
     * @param skip_identity_ - flag to skip identity functors
     * @param show_functors_ - flag to show functors as nodes
     */
-   CAT_EXPORT void export_cytoscape(const CACat& ccat_, const std::string& path_, const std::string& prefix_, const TCoords<Cat>& coords_, bool skip_identity_ = true, bool show_functors_ = false);
+   CAT_EXPORT void export_cytoscape(const CACat& ccat_, const std::string& path_, const std::string& prefix_, const TCoords<Cat>& coords_, const std::set<Cat>& exclude_, bool skip_identity_ = true, bool show_functors_ = false);
 }

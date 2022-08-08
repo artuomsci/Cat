@@ -72,20 +72,27 @@ static std::string get_template()
 }
 
 template <typename T, typename TNode>
-static void export_cytoscape_t(const std::string& name_, const T& ccat_, const std::string& path_, const std::string& prefix_, const TCoords<TNode>& coords_, bool skip_identity_, bool show_arrows_)
+static void export_cytoscape_t(const std::string& name_, const T& ccat_, const std::string& path_, const std::string& prefix_, const TCoords<TNode>& coords_, const std::set<TNode>& exclude_, bool skip_identity_, bool show_arrows_)
 {
    std::string nodes;
 
    for (const auto& [node, _] : ccat_.Nodes())
    {
+      if (exclude_.find(node) != exclude_.end())
+         continue;
+
       // nodes
       char buffern[1024];
-      if (coords_.empty())
-         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", node.Name().c_str(), node.Name().c_str(), "Node");
+
+      auto it_crd = coords_.find(node);
+      if (it_crd != coords_.end())
+      {
+         const TVec2& crd = it_crd->second;
+         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", node.Name().c_str(), node.Name().c_str(), "Node", crd.first, crd.second);
+      }
       else
       {
-         const TVec2& crd = coords_.at(node);
-         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", node.Name().c_str(), node.Name().c_str(), "Node", crd.first, crd.second);
+         sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", node.Name().c_str(), node.Name().c_str(), "Node");
       }
 
       nodes += (nodes.empty() ? "" : ",") +  std::string(buffern) + "\n";
@@ -100,9 +107,17 @@ static void export_cytoscape_t(const std::string& name_, const T& ccat_, const s
 
          // nodes
          char buffern[1024];
-         if (coords_.empty())
-            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", arrow.name.c_str(), arrow.name.c_str(), "Link");
-         else
+
+         auto it_source_crd = coords_.find(TNode(arrow.source));
+         auto it_target_crd = coords_.find(TNode(arrow.target));
+
+         if (exclude_.find(TNode(arrow.source)) != exclude_.end())
+            continue;
+
+         if (exclude_.find(TNode(arrow.target)) != exclude_.end())
+            continue;
+
+         if (it_source_crd != coords_.end() && it_target_crd != coords_.end())
          {
             const TVec2& source_crd = coords_.at(TNode(arrow.source));
             const TVec2& target_crd = coords_.at(TNode(arrow.target));
@@ -111,6 +126,10 @@ static void export_cytoscape_t(const std::string& name_, const T& ccat_, const s
             int y = (source_crd.second + target_crd.second) * 0.5;
 
             sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", arrow.name.c_str(), arrow.name.c_str(), "Link", x, y);
+         }
+         else
+         {
+            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", arrow.name.c_str(), arrow.name.c_str(), "Link");
          }
 
          nodes += (nodes.empty() ? "" : ",") +  std::string(buffern) + "\n";
@@ -126,6 +145,12 @@ static void export_cytoscape_t(const std::string& name_, const T& ccat_, const s
          if (skip_identity_ && arrow.source == arrow.target)
             continue;
 
+         if (exclude_.find(TNode(arrow.source)) != exclude_.end())
+            continue;
+
+         if (exclude_.find(TNode(arrow.target)) != exclude_.end())
+            continue;
+
          // edges
          char buffere[1024];
          sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", arrow.source.c_str(), arrow.target.c_str());
@@ -138,6 +163,12 @@ static void export_cytoscape_t(const std::string& name_, const T& ccat_, const s
       for (const auto& arrow : ccat_.Arrows())
       {
          if (skip_identity_ && arrow.source == arrow.target)
+            continue;
+
+         if (exclude_.find(TNode(arrow.source)) != exclude_.end())
+            continue;
+
+         if (exclude_.find(TNode(arrow.target)) != exclude_.end())
             continue;
 
          // edges
@@ -176,12 +207,12 @@ static void export_cytoscape_t(const std::string& name_, const T& ccat_, const s
    }
 }
 
-void cat::export_cytoscape(const CACat& ccat_, const std::string& path_, const std::string& prefix_, const TCoords<Cat>& coords_, bool skip_identity_, bool show_functors_)
+void cat::export_cytoscape(const CACat& ccat_, const std::string& path_, const std::string& prefix_, const TCoords<Cat>& coords_, const std::set<Cat>& exclude_, bool skip_identity_, bool show_functors_)
 {
-   export_cytoscape_t<CACat, Cat>("CACat", ccat_, path_, prefix_, coords_, skip_identity_, show_functors_);
+   export_cytoscape_t<CACat, Cat>("CACat", ccat_, path_, prefix_, coords_, exclude_, skip_identity_, show_functors_);
 }
 
-void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std::string& prefix_, const TCoords<Obj>& coords_, bool skip_identity_, bool show_morphisms_)
+void cat::export_cytoscape(const Cat& cat_, const std::string& path_, const std::string& prefix_, const TCoords<Obj>& coords_, const std::set<Obj>& exclude_, bool skip_identity_, bool show_morphisms_)
 {
-   export_cytoscape_t<Cat, Obj>(cat_.Name(), cat_, path_, prefix_, coords_, skip_identity_, show_morphisms_);
+   export_cytoscape_t<Cat, Obj>(cat_.Name(), cat_, path_, prefix_, coords_, exclude_, skip_identity_, show_morphisms_);
 }
