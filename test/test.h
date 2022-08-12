@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <algorithm>
 
-#include "../include/cat.h"
 #include "../include/common.h"
 #include "../include/log.h"
 
@@ -19,9 +18,9 @@ namespace cat
       // Testing of object addition methods
       //============================================================
       {
-         Cat cat("cat");
+         Node cat("cat");
 
-         Obj a("a"), b("b");
+         Node a("a"), b("b");
 
          assert(cat.Nodes().size() == 0);
 
@@ -38,13 +37,13 @@ namespace cat
       // Testing of object deletion methods
       //============================================================
       {
-         Cat cat("cat");
+         Node cat("cat");
 
-         Obj a("a"), b("b"), c("c");
+         Node a("a"), b("b"), c("c");
 
          cat.AddNodes({a, b});
 
-         cat.AddArrow(Morph(a, b));
+         cat.AddArrow(Arrow(a.Name(), b.Name()));
 
          assert(cat.EraseNode(a) == true);
 
@@ -66,9 +65,9 @@ namespace cat
          assert(cat.Arrows().size() == 0);
       }
 
-      auto fnCheckMorph = [](const MorphVec& morphs_, const Morph& morph_)
+      auto fnCheckArrow = [](const Arrow::Vec& morphs_, const Arrow& morph_)
       {
-         auto it = std::find_if(morphs_.begin(), morphs_.end(), [&](const MorphVec::value_type& element_)
+         auto it = std::find_if(morphs_.begin(), morphs_.end(), [&](const Arrow::Vec::value_type& element_)
          {
             return element_.name == morph_.name && element_.source == morph_.source && element_.target == morph_.target;
          });
@@ -80,9 +79,9 @@ namespace cat
       // Testing of morphism addition methods
       //============================================================
       {
-         Cat cat("cat");
+         Node cat("cat");
 
-         Obj a("a"), b("b"), c("c"), d("d");
+         Node a("a"), b("b"), c("c"), d("d");
 
          cat.AddNodes({a, b, c});
 
@@ -92,44 +91,44 @@ namespace cat
 
          assert(cat.Arrows().size() == 3);
 
-         assert(cat.AddArrow(Morph(a, b, "f0")));
-         assert(fnCheckMorph(cat.Arrows(), Morph(a, b, "f0")));
+         assert(cat.AddArrow(Arrow(a.Name(), b.Name(), "f0")));
+         assert(fnCheckArrow(cat.Arrows(), Arrow(a.Name(), b.Name(), "f0")));
 
-         assert(cat.AddArrow(Morph(a, c, "f1")));
-         assert(fnCheckMorph(cat.Arrows(), Morph(a, c, "f1")));
+         assert(cat.AddArrow(Arrow(a.Name(), c.Name(), "f1")));
+         assert(fnCheckArrow(cat.Arrows(), Arrow(a.Name(), c.Name(), "f1")));
 
          assert(cat.Arrows().size() == 5);
 
-         assert(cat.AddArrow(Morph(a, d, "f2")) == false);
-         assert(!fnCheckMorph(cat.Arrows(), Morph(a, d, "f2")));
+         assert(cat.AddArrow(Arrow(a.Name(), d.Name(), "f2")) == false);
+         assert(!fnCheckArrow(cat.Arrows(), Arrow(a.Name(), d.Name(), "f2")));
          assert(cat.Arrows().size() == 5);
 
-         assert(cat.AddArrow(Morph(b, c, "f0")) == false);
-         assert(cat.AddArrow(Morph(a, b, "f0")));
+         assert(cat.AddArrow(Arrow(b.Name(), c.Name(), "f0")) == false);
+         assert(cat.AddArrow(Arrow(a.Name(), b.Name(), "f0")));
       }
 
       //============================================================
       // Testing of morphism deletion methods
       //============================================================
       {
-         Cat cat("cat");
+         Node cat("cat");
 
-         Obj a("a"), b("b"), c("c");
+         Node a("a"), b("b"), c("c");
 
          cat.AddNodes({a, b, c});
 
-         cat.AddArrow(Morph(a, b, "f0"));
-         cat.AddArrow(Morph(a, c, "f1"));
+         cat.AddArrow(Arrow(a.Name(), b.Name(), "f0"));
+         cat.AddArrow(Arrow(a.Name(), c.Name(), "f1"));
 
          // Deleting morphisms one at a time
          {
             auto prev_count = cat.Arrows().size();
             assert(cat.EraseArrow("f0") == true);
-            assert(!fnCheckMorph(cat.Arrows(), Morph(a, b, "f0")));
+            assert(!fnCheckArrow(cat.Arrows(), Arrow(a.Name(), b.Name(), "f0")));
             assert(prev_count = cat.Arrows().size() - 1);
 
             assert(cat.EraseArrow("f1") == true);
-            assert(!fnCheckMorph(cat.Arrows(), Morph(a, c, "f1")));
+            assert(!fnCheckArrow(cat.Arrows(), Arrow(a.Name(), c.Name(), "f1")));
             assert(prev_count = cat.Arrows().size() - 2);
          }
 
@@ -140,7 +139,7 @@ namespace cat
             assert(cat.EraseArrow(id_arrow_name(a.Name())) == false);
             auto new_count = cat.Arrows().size();
             assert(prev_count == new_count);
-            assert(fnCheckMorph(cat.Arrows(), Morph(a, a, id_arrow_name(a.Name()))));
+            assert(fnCheckArrow(cat.Arrows(), Arrow(a.Name(), a.Name(), id_arrow_name(a.Name()))));
          }
 
          // Non existent morphism can't be deleted
@@ -156,28 +155,28 @@ namespace cat
       // Testing of morphism compositions
       //============================================================
       {
-         Cat cat("cat");
+         Node cat("cat");
 
          solve_compositions(cat);
 
-         Obj a("a"), b("b"), c("c"), d("d");
+         Node a("a"), b("b"), c("c"), d("d");
 
          cat.AddNodes({a, b, c, d});
 
          solve_compositions(cat);
 
-         cat.AddArrows({Morph(a, b, "f0"), Morph(b, c, "f1"), Morph(c, d, "f2")});
-         cat.AddArrows({Morph(d, c, "f3"), Morph(c, b, "f4"), Morph(b, a, "f5")});
+         cat.AddArrows({Arrow(a.Name(), b.Name(), "f0"), Arrow(b.Name(), c.Name(), "f1"), Arrow(c.Name(), d.Name(), "f2")});
+         cat.AddArrows({Arrow(d.Name(), c.Name(), "f3"), Arrow(c.Name(), b.Name(), "f4"), Arrow(b.Name(), a.Name(), "f5")});
 
          solve_compositions(cat);
 
-         assert(fnCheckMorph(cat.Arrows(), Morph(a, c)));
-         assert(fnCheckMorph(cat.Arrows(), Morph(a, d)));
-         assert(fnCheckMorph(cat.Arrows(), Morph(b, d)));
+         assert(fnCheckArrow(cat.Arrows(), Arrow(a.Name(), c.Name())));
+         assert(fnCheckArrow(cat.Arrows(), Arrow(a.Name(), d.Name())));
+         assert(fnCheckArrow(cat.Arrows(), Arrow(b.Name(), d.Name())));
 
-         assert(fnCheckMorph(cat.Arrows(), Morph(d, b)));
-         assert(fnCheckMorph(cat.Arrows(), Morph(d, a)));
-         assert(fnCheckMorph(cat.Arrows(), Morph(c, a)));
+         assert(fnCheckArrow(cat.Arrows(), Arrow(d.Name(), b.Name())));
+         assert(fnCheckArrow(cat.Arrows(), Arrow(d.Name(), a.Name())));
+         assert(fnCheckArrow(cat.Arrows(), Arrow(c.Name(), a.Name())));
 
          auto prev_count = cat.Arrows().size();
          solve_compositions(cat);
@@ -190,29 +189,29 @@ namespace cat
       // Testing morphism sequence
       //============================================================
       {
-         Cat cat("cat");
+         Node cat("cat");
 
-         Obj a("a"), b("b"), c("c"), d("d"), e("e"), f("f");
+         Node a("a"), b("b"), c("c"), d("d"), e("e"), f("f");
 
          cat.AddNodes({a, b, c, d, e, f});
 
          cat.AddArrows({
-                     Morph(a, b)
-                  ,  Morph(b, a)
-                  ,  Morph(a, c)
-                  ,  Morph(b, d)
-                  ,  Morph(c, d)
-                  ,  Morph(c, f)
-                  ,  Morph(d, e)});
+                     Arrow(a.Name(), b.Name())
+                  ,  Arrow(b.Name(), a.Name())
+                  ,  Arrow(a.Name(), c.Name())
+                  ,  Arrow(b.Name(), d.Name())
+                  ,  Arrow(c.Name(), d.Name())
+                  ,  Arrow(c.Name(), f.Name())
+                  ,  Arrow(d.Name(), e.Name())});
 
-         ObjVec seq = solve_sequence(cat, a, e);
+         Node::Vec seq = solve_sequence(cat, a, e);
 
          assert(seq.size() == 4);
 
-         std::vector<Morph> morphs = map_obj2morphism(seq, cat);
-         assert(morphs[0] == Morph(a, b));
-         assert(morphs[1] == Morph(b, d));
-         assert(morphs[2] == Morph(d, e));
+         std::vector<Arrow> morphs = map_obj2morphism(seq, cat);
+         assert(morphs[0] == Arrow(a.Name(), b.Name()));
+         assert(morphs[1] == Arrow(b.Name(), d.Name()));
+         assert(morphs[2] == Arrow(d.Name(), e.Name()));
 
          seq = solve_sequence(cat, e, a);
 
@@ -223,45 +222,45 @@ namespace cat
       // Testing morphism sequences
       //============================================================
       {
-         Cat cat("cat");
+         Node cat("cat");
 
-         Obj a("a"), b("b"), c("c"), d("d"), e("e"), f("f");
+         Node a("a"), b("b"), c("c"), d("d"), e("e"), f("f");
 
          cat.AddNodes({a, b, c, d, e, f});
 
          cat.AddArrows({
-                     Morph(a, b)
-                  ,  Morph(b, a)
-                  ,  Morph(a, c)
-                  ,  Morph(b, d)
-                  ,  Morph(c, d)
-                  ,  Morph(c, f)
-                  ,  Morph(d, e)
-                  ,  Morph(f, e)});
+                     Arrow(a.Name(), b.Name())
+                  ,  Arrow(b.Name(), a.Name())
+                  ,  Arrow(a.Name(), c.Name())
+                  ,  Arrow(b.Name(), d.Name())
+                  ,  Arrow(c.Name(), d.Name())
+                  ,  Arrow(c.Name(), f.Name())
+                  ,  Arrow(d.Name(), e.Name())
+                  ,  Arrow(f.Name(), e.Name())});
 
-         std::vector<ObjVec> seqs = solve_sequences(cat, a, e);
+         std::vector<Node::Vec> seqs = solve_sequences(cat, a, e);
 
          assert(seqs.size() == 3);
 
          {
-            std::vector<Morph> morphs = map_obj2morphism(seqs[0], cat);
-            assert(morphs[0] == Morph(a, b));
-            assert(morphs[1] == Morph(b, d));
-            assert(morphs[2] == Morph(d, e));
+            std::vector<Arrow> morphs = map_obj2morphism(seqs[0], cat);
+            assert(morphs[0] == Arrow(a.Name(), b.Name()));
+            assert(morphs[1] == Arrow(b.Name(), d.Name()));
+            assert(morphs[2] == Arrow(d.Name(), e.Name()));
          }
 
          {
-            std::vector<Morph> morphs = map_obj2morphism(seqs[1], cat);
-            assert(morphs[0] == Morph(a, c));
-            assert(morphs[1] == Morph(c, d));
-            assert(morphs[2] == Morph(d, e));
+            std::vector<Arrow> morphs = map_obj2morphism(seqs[1], cat);
+            assert(morphs[0] == Arrow(a.Name(), c.Name()));
+            assert(morphs[1] == Arrow(c.Name(), d.Name()));
+            assert(morphs[2] == Arrow(d.Name(), e.Name()));
          }
 
          {
-            std::vector<Morph> morphs = map_obj2morphism(seqs[2], cat);
-            assert(morphs[0] == Morph(a, c));
-            assert(morphs[1] == Morph(c, f));
-            assert(morphs[2] == Morph(f, e));
+            std::vector<Arrow> morphs = map_obj2morphism(seqs[2], cat);
+            assert(morphs[0] == Arrow(a.Name(), c.Name()));
+            assert(morphs[1] == Arrow(c.Name(), f.Name()));
+            assert(morphs[2] == Arrow(f.Name(), e.Name()));
          }
 
          seqs = solve_sequences(cat, e, a);
@@ -273,62 +272,62 @@ namespace cat
       // Testing of inversion
       //============================================================
       {
-         Cat cat("cat");
+         Node cat("cat");
 
-         Obj a("a"), b("b"), c("c"), d("d");
+         Node a("a"), b("b"), c("c"), d("d");
 
          cat.AddNodes({a, b, c, d});
 
-         cat.AddArrow(Morph(a, b, "f0"));
-         cat.AddArrow(Morph(a, c, "f1"));
+         cat.AddArrow(Arrow(a.Name(), b.Name(), "f0"));
+         cat.AddArrow(Arrow(a.Name(), c.Name(), "f1"));
 
-         cat.AddArrow(Morph(b, d, "f2"));
-         cat.AddArrow(Morph(c, d, "f3"));
+         cat.AddArrow(Arrow(b.Name(), d.Name(), "f2"));
+         cat.AddArrow(Arrow(c.Name(), d.Name(), "f3"));
 
          inverse(cat);
 
-         assert(fnCheckMorph(cat.Arrows(), Morph(b, a, "f0")));
-         assert(fnCheckMorph(cat.Arrows(), Morph(c, a, "f1")));
+         assert(fnCheckArrow(cat.Arrows(), Arrow(b.Name(), a.Name(), "f0")));
+         assert(fnCheckArrow(cat.Arrows(), Arrow(c.Name(), a.Name(), "f1")));
 
-         assert(fnCheckMorph(cat.Arrows(), Morph(d, b, "f2")));
-         assert(fnCheckMorph(cat.Arrows(), Morph(d, c, "f3")));
+         assert(fnCheckArrow(cat.Arrows(), Arrow(d.Name(), b.Name(), "f2")));
+         assert(fnCheckArrow(cat.Arrows(), Arrow(d.Name(), c.Name(), "f3")));
       }
 
       //============================================================
       // Testing of initial/terminal objects
       //============================================================
       {
-         Cat cat("cat");
+         Node cat("cat");
 
-         Obj a0("a0"), a1("a1"), b("b"), c("c"), d0("d0"), d1("d1");
+         Node a0("a0"), a1("a1"), b("b"), c("c"), d0("d0"), d1("d1");
 
          cat.AddNodes({a0, a1, b, c, d0, d1});
 
-         cat.AddArrows({Morph(a0, a1), Morph(a1, a0)});
+         cat.AddArrows({Arrow(a0.Name(), a1.Name()), Arrow(a1.Name(), a0.Name())});
 
-         cat.AddArrow(Morph(a0, b));
-         cat.AddArrow(Morph(a0, c));
+         cat.AddArrow(Arrow(a0.Name(), b.Name()));
+         cat.AddArrow(Arrow(a0.Name(), c.Name()));
 
-         cat.AddArrow(Morph(a1, b));
-         cat.AddArrow(Morph(a1, c));
+         cat.AddArrow(Arrow(a1.Name(), b.Name()));
+         cat.AddArrow(Arrow(a1.Name(), c.Name()));
 
-         cat.AddArrow(Morph(b, d0));
-         cat.AddArrow(Morph(c, d0));
+         cat.AddArrow(Arrow(b.Name(), d0.Name()));
+         cat.AddArrow(Arrow(c.Name(), d0.Name()));
 
-         cat.AddArrow(Morph(b, d1));
-         cat.AddArrow(Morph(c, d1));
+         cat.AddArrow(Arrow(b.Name(), d1.Name()));
+         cat.AddArrow(Arrow(c.Name(), d1.Name()));
 
-         cat.AddArrows({Morph(d0, d1), Morph(d1, d0)});
+         cat.AddArrows({Arrow(d0.Name(), d1.Name()), Arrow(d1.Name(), d0.Name())});
 
          solve_compositions(cat);
 
-         ObjVec initial_obj = initial(cat);
+         Node::Vec initial_obj = initial(cat);
          assert(initial_obj.size() == 2);
          std::sort(initial_obj.begin(), initial_obj.end());
          assert(initial_obj[0] == a0);
          assert(initial_obj[1] == a1);
 
-         ObjVec terminal_obj = terminal(cat);
+         Node::Vec terminal_obj = terminal(cat);
          assert(terminal_obj.size() == 2);
          std::sort(terminal_obj.begin(), terminal_obj.end());
          assert(terminal_obj[0] == d0);
@@ -347,70 +346,70 @@ namespace cat
       // Coproduct test
       //============================================================
       {
-         Obj a("a");
-         a.SetValue("a");
-         Obj b("b");
-         b.SetValue("b");
-         assert(coproduct(a, b)->Value() == Obj::TSet("ab"));
+         //Obj a("a");
+         //a.SetValue("a");
+         //Obj b("b");
+         //b.SetValue("b");
+         //assert(coproduct(a, b)->Value() == Obj::TSet("ab"));
 
-         Obj f("f");
-         f.SetValue(4);
-         Obj s("s");
-         s.SetValue(5);
-         assert(coproduct(f, s)->Value() == Obj::TSet(9));
+         //Obj f("f");
+         //f.SetValue(4);
+         //Obj s("s");
+         //s.SetValue(5);
+         //assert(coproduct(f, s)->Value() == Obj::TSet(9));
 
-         Obj fd("0.1");
-         fd.SetValue(0.1);
-         Obj sd("0.5");
-         sd.SetValue(0.5);
-         double result = std::get<double>(coproduct(fd, sd)->Value());
-         assert(std::abs(result - 0.6) < std::numeric_limits<double>::epsilon());
+         //Obj fd("0.1");
+         //fd.SetValue(0.1);
+         //Obj sd("0.5");
+         //sd.SetValue(0.5);
+         //double result = std::get<double>(coproduct(fd, sd)->Value());
+         //assert(std::abs(result - 0.6) < std::numeric_limits<double>::epsilon());
       }
 
-      //============================================================
-      // Product test
-      //============================================================
-      {
-         Obj a("ac");
-         a.SetValue("ac");
-         Obj b("bd");
-         b.SetValue("bd");
-         assert(product(a, b)->Value() == Obj::TSet("abadcbcd"));
-
-         Obj f("4");
-         f.SetValue(4);
-         Obj s("5");
-         s.SetValue(5);
-         assert(product(f, s)->Value() == Obj::TSet(20));
-
-         Obj fd("1.1");
-         fd.SetValue(1.1);
-         Obj sd("5");
-         sd.SetValue(5.0);
-         double result = std::get<double>(product(fd, sd)->Value());
-         assert(std::abs(result - 5.5) < std::numeric_limits<double>::epsilon());
-      }
-
-      //============================================================
-      // Testing functor
-      //============================================================
-      {
-//         Cat C0("C0");
-//         Obj a0("a0"), b0("b0");
-
-//         C0.AddNodes(a0, b0);
-
-//         Cat C1("C1");
-//         Obj a1("a1"), b1("b1");
-         
-//         C1.AddNodes(a1, b1);
-
-//         CACat ccat;
-//         ccat.AddArrow(C0);
-//         ccat.AddArrow(C1);
-
-//         Func fn(C0.GetName(), C1.GetName());
-      }
+//      //============================================================
+//      // Product test
+//      //============================================================
+//      {
+//         Obj a("ac");
+//         a.SetValue("ac");
+//         Obj b("bd");
+//         b.SetValue("bd");
+//         assert(product(a, b)->Value() == Obj::TSet("abadcbcd"));
+//
+//         Obj f("4");
+//         f.SetValue(4);
+//         Obj s("5");
+//         s.SetValue(5);
+//         assert(product(f, s)->Value() == Obj::TSet(20));
+//
+//         Obj fd("1.1");
+//         fd.SetValue(1.1);
+//         Obj sd("5");
+//         sd.SetValue(5.0);
+//         double result = std::get<double>(product(fd, sd)->Value());
+//         assert(std::abs(result - 5.5) < std::numeric_limits<double>::epsilon());
+//      }
+//
+//      //============================================================
+//      // Testing functor
+//      //============================================================
+//      {
+////         Cat C0("C0");
+////         Obj a0("a0"), b0("b0");
+//
+////         C0.AddNodes(a0, b0);
+//
+////         Cat C1("C1");
+////         Obj a1("a1"), b1("b1");
+//         
+////         C1.AddNodes(a1, b1);
+//
+////         CACat ccat;
+////         ccat.AddArrow(C0);
+////         ccat.AddArrow(C1);
+//
+////         Func fn(C0.GetName(), C1.GetName());
+//      }
 
       print_info("End test");
 

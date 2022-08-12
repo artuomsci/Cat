@@ -6,7 +6,7 @@
 
 #include "cat_export.h"
 
-#include "cacat.h"
+#include "node.h"
 
 struct CAT_EXPORT SParser
 {
@@ -17,7 +17,7 @@ struct CAT_EXPORT SParser
    * @param ccat_ - category of categories
    * @return True if file was successfully parsed
    */
-   bool parse(cat::CACat& ccat_);
+   bool parse(cat::Node& ccat_);
 
 private:
    /**
@@ -26,7 +26,7 @@ private:
     * @param ccat_ - category of categories
     * @return True if file was successfully loaded
     */
-   bool load_source(const std::string& path_, cat::CACat& ccat_);
+   bool load_source(const std::string& path_, cat::Node& ccat_);
 
    /**
     * @brief Parse the contents of string
@@ -34,7 +34,7 @@ private:
     * @param ccat_ - category of categories
     * @return True if string was successfully parsed
     */
-   bool parse_source(const std::string& source_, cat::CACat& ccat_);
+   bool parse_source(const std::string& source_, cat::Node& ccat_);
 
 private:
 
@@ -55,7 +55,7 @@ CAT_EXPORT std::optional<std::string> get_description(const std::string& filenam
  * @param to_ - terminal object of sequence
  * @return Sequence of objects
  */
-CAT_EXPORT cat::ObjVec solve_sequence(const cat::Cat& cat_, const cat::Obj& from_, const cat::Obj& to_);
+CAT_EXPORT cat::Node::Vec solve_sequence(const cat::Node& cat_, const cat::Node& from_, const cat::Node& to_);
 
 /**
  * @brief Find all sequences of objects between two given objects
@@ -64,7 +64,7 @@ CAT_EXPORT cat::ObjVec solve_sequence(const cat::Cat& cat_, const cat::Obj& from
  * @param to_ - terminal object of sequences
  * @return Sequences of objects
  */
-CAT_EXPORT std::vector<cat::ObjVec> solve_sequences(const cat::Cat& cat_, const cat::Obj& from_, const cat::Obj& to_);
+CAT_EXPORT std::vector<cat::Node::Vec> solve_sequences(const cat::Node& cat_, const cat::Node& from_, const cat::Node& to_);
 
 /**
  * @brief Map sequence of objects onto sequence of morphisms
@@ -72,19 +72,19 @@ CAT_EXPORT std::vector<cat::ObjVec> solve_sequences(const cat::Cat& cat_, const 
  * @param cat_ - category to find morphisms in
  * @return Sequence of morphisms
  */
-CAT_EXPORT std::vector<cat::Morph> map_obj2morphism(const cat::ObjVec& objs_, const cat::Cat& cat_);
+CAT_EXPORT std::vector<cat::Arrow> map_obj2morphism(const cat::Node::Vec& objs_, const cat::Node& cat_);
 
 /**
  * @brief Find all compositions
  * @param cat_ - category to find compositions in
  */
-CAT_EXPORT void solve_compositions(cat::Cat& cat_);
+CAT_EXPORT void solve_compositions(cat::Node& cat_);
 
 /**
  * @brief Inverse category morphisms
  * @param cat_ - category to inverse morphisms
  */
-CAT_EXPORT void inverse(cat::Cat& cat_);
+CAT_EXPORT void inverse(cat::Node& cat_);
 
 /**
  * @brief Find initial objects. All morphism compositions
@@ -92,7 +92,7 @@ CAT_EXPORT void inverse(cat::Cat& cat_);
  * @param cat_ - category to find initial objects in
  * @return Initial objects
  */
-CAT_EXPORT cat::ObjVec initial(cat::Cat& cat_);
+CAT_EXPORT cat::Node::Vec initial(cat::Node& cat_);
 
 /**
  * @brief Find terminal objects. All morphism compositions
@@ -100,20 +100,20 @@ CAT_EXPORT cat::ObjVec initial(cat::Cat& cat_);
  * @param cat_ - category to find terminal objects in
  * @return Terminal objects
  */
-CAT_EXPORT cat::ObjVec terminal(cat::Cat& cat_);
+CAT_EXPORT cat::Node::Vec terminal(cat::Node& cat_);
 
-/**
- * @brief Coproduct
- * @param fst_ - first object
- * @param snd_ - second object
- * @return Coproduct result
- */
-CAT_EXPORT std::optional<cat::Obj> coproduct(cat::Obj& fst_, cat::Obj& snd_);
-
-/**
- * @brief Product
- * @param fst_ - first object
- * @param snd_ - second object
- * @return Product result
- */
-CAT_EXPORT std::optional<cat::Obj> product(cat::Obj& fst_, cat::Obj& snd_);
+///**
+// * @brief Coproduct
+// * @param fst_ - first object
+// * @param snd_ - second object
+// * @return Coproduct result
+// */
+//CAT_EXPORT std::optional<cat::Obj> coproduct(cat::Obj& fst_, cat::Obj& snd_);
+//
+///**
+// * @brief Product
+// * @param fst_ - first object
+// * @param snd_ - second object
+// * @return Product result
+// */
+//CAT_EXPORT std::optional<cat::Obj> product(cat::Obj& fst_, cat::Obj& snd_);
