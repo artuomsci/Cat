@@ -2,7 +2,6 @@
 
 #include <map>
 #include <vector>
-#include <algorithm>
 #include <set>
 #include <optional>
 #include <string>
@@ -29,6 +28,8 @@ namespace cat
     */
    CAT_EXPORT std::string id_arrow_name(const std::string& name_);
 
+   class Node;
+
    /**
     * @brief The Arrow struct represents morphisms and functors
     */
@@ -47,6 +48,8 @@ namespace cat
       Arrow& operator = (Arrow&&) = default;
       Arrow& operator = (const Arrow&) = default;
 
+      std::optional<Node> operator()(const std::optional<Node>& node_) const;
+
       using Vec = std::vector<Arrow>;
 
       std::string source;
@@ -62,6 +65,13 @@ namespace cat
    {
    public:
 
+      Node(const Node&) = default;
+      Node(Node&&) = default;
+      ~Node() = default;
+
+      Node& operator = (Node&&) = default;
+      Node& operator = (const Node&) = default;
+
       using Set      = std::set<Node>;
       using Map      = std::map<Node, Set>;
       using Vec      = std::vector<Node>;
@@ -71,7 +81,7 @@ namespace cat
       * @brief Node constructor
       * @param name_ - node name
       */
-      Node(const std::string& name_);
+      explicit Node(const std::string& name_);
 
       /**
        * @brief Add arrows
@@ -101,23 +111,15 @@ namespace cat
 
       /**
        * @brief Erase node
-       * @param node_ - node
+       * @param node_ - node name
        * @return True if successfull
        */
-      bool EraseNode(const Node& node_);
+      bool EraseNode(const std::string& node_);
 
       /**
        * @brief Erase all nodes
        */
       void EraseNodes();
-
-      /**
-       * @brief Find arrow by source and target
-       * @param source_ - source name
-       * @param target_ - target name
-       * @return Arrow
-       */
-      std::optional<Arrow> FindArrow(const std::string& source_, const std::string& target_) const;
 
       /**
        * @brief Find source nodes for the target node
@@ -141,10 +143,40 @@ namespace cat
       Vec FindByTargets(const StringVec& targets_) const;
 
       /**
+       * @brief Find node
+       * @param name_ - node name
+       * @return Node
+       */
+      std::optional<Node> FindNode(const std::string& name_) const;
+
+      /**
        * @brief Return nodes
        * @return Nodes
        */
       const Map& Nodes() const;
+
+      /**
+       * @brief Find arrow by source and target
+       * @param source_ - source name
+       * @param target_ - target name
+       * @return Arrow
+       */
+      std::optional<Arrow> FindArrow(const std::string& source_, const std::string& target_) const;
+
+      /**
+       * @brief Find arrows by source and target
+       * @param source_ - source name
+       * @param target_ - target name
+       * @return Arrows
+       */
+      Arrow::Vec FindArrows(const std::string& source_, const std::string& target_) const;
+
+      /**
+       * @brief Find arrow
+       * @param name_ - arrow name
+       * @return Arrow
+       */
+      std::optional<Arrow> FindArrow(const std::string& name_) const;
 
       /**
        * @brief Return arrows
@@ -201,18 +233,13 @@ namespace cat
        */
       const std::string& Name() const;
 
-      /**
-        * @brief Create right side of the functor expression
-        * @param func_ - functor
-        * @return True if successful
-        */
-      bool Statement(const Arrow& func_);
+      bool Statement(const Arrow& arrow_);
 
       bool operator < (const Node& cat_) const;
       bool operator ==(const Node& cat_) const;
       bool operator !=(const Node& cat_) const;
 
-      protected:
+      private:
 
       Map            m_nodes;
       Arrow::Vec     m_arrows;
@@ -231,12 +258,4 @@ namespace cat
    * @return Mapped node
    */
    CAT_EXPORT std::optional<Node> SingleMap(const std::optional<cat::Arrow>& arrow_, const std::optional<Node>& node_);
-
-   /**
-   * @brief Map node with arrow
-   * @param arrow_ - arrow to map with
-   * @param node_ - node for mapping
-   * @return Mapped node
-   */
-   CAT_EXPORT std::optional<Node> Map(const std::optional<cat::Arrow>& arrow_, const std::optional<Node>& node_);
 }

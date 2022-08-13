@@ -1,5 +1,9 @@
 #include "node.h"
 
+#include <algorithm>
+
+#include "str_utils.h"
+
 using namespace cat;
 
 //-----------------------------------------------------------------------------------------
@@ -53,6 +57,34 @@ bool Arrow::operator!=(const Arrow& arrow_) const
       || target      != arrow_.target
       || name        != arrow_.name
       || morphisms   != arrow_.morphisms;
+}
+
+//-----------------------------------------------------------------------------------------
+std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
+{
+   if (node_->Name() != source)
+      return std::optional<Node>();
+
+   Node ret(target);
+
+   // Mapping of nodes
+   for (const auto& [node, _] : node_->Nodes())
+   {
+      Node mapped_node = SingleMap(*this, node).value();
+      if (!ret.Proof(mapped_node))
+         ret.AddNode(mapped_node);
+   }
+
+   // Mapping of arrows
+   for (const Arrow& arrow : node_->Arrows())
+   {
+      auto source = SingleMap(*this, Node(arrow.source));
+      auto target = SingleMap(*this, Node(arrow.target));
+
+      ret.AddArrow(Arrow(source->Name(), target->Name()));
+   }
+
+   return ret;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -128,16 +160,16 @@ bool Node::AddNodes(const Vec& nodes_)
 }
 
 //-----------------------------------------------------------------------------------------
-bool Node::EraseNode(const Node& node_)
+bool Node::EraseNode(const std::string& node_)
 {
-   auto it = m_nodes.find(node_);
+   auto it = m_nodes.find(Node(node_));
    if (it != m_nodes.end())
    {
       m_nodes.erase(it);
 
       std::vector<Arrow::Vec::iterator> arrows; arrows.reserve(m_arrows.size());
 
-      const std::string& node_name = node_.Name();
+      const std::string& node_name = node_;
 
       for (Arrow::Vec::iterator it = m_arrows.begin(); it != m_arrows.end(); ++it)
       {
@@ -160,20 +192,8 @@ bool Node::EraseNode(const Node& node_)
 //-----------------------------------------------------------------------------------------
 void Node::EraseNodes()
 {
-   m_nodes.clear();
+   m_nodes .clear();
    m_arrows.clear();
-}
-
-//-----------------------------------------------------------------------------------------
-std::optional<Arrow> Node::FindArrow(const std::string& source_, const std::string& target_) const
-{
-   for (const Arrow& func : m_arrows)
-   {
-      if (func.source == source_ && func.target == target_)
-         return std::optional<Arrow>(func);
-   }
-
-   return std::optional<Arrow>();
 }
 
 //-----------------------------------------------------------------------------------------
@@ -209,7 +229,7 @@ Node::Vec Node::FindByTargets(const StringVec& targets_) const
 {
    std::vector<Node> ret; ret.reserve(targets_.size());
 
-   for (const auto& [domain, _] : m_nodes)
+   for (const auto& [domain, codomain] : m_nodes)
    {
       for (int i = 0; i < (int)targets_.size(); ++i)
       {
@@ -217,7 +237,7 @@ Node::Vec Node::FindByTargets(const StringVec& targets_) const
          if (domain.Name() == targets_[i])
             continue;
 
-         if (!FindArrow(domain.Name(), targets_[i]))
+         if (codomain.find(Node(targets_[i])) == codomain.end())
             break;
 
          if (i == targets_.size() - 1)
@@ -229,9 +249,57 @@ Node::Vec Node::FindByTargets(const StringVec& targets_) const
 }
 
 //-----------------------------------------------------------------------------------------
+std::optional<Node> Node::FindNode(const std::string& name_) const
+{
+   auto it = m_nodes.find(Node(name_));
+   if (it != m_nodes.end())
+      return it->first;
+
+   return std::optional<Node>();
+}
+
+//-----------------------------------------------------------------------------------------
 const Node::Map& Node::Nodes() const
 {
    return m_nodes;
+}
+
+//-----------------------------------------------------------------------------------------
+std::optional<Arrow> Node::FindArrow(const std::string& source_, const std::string& target_) const
+{
+   for (const Arrow& arrow : m_arrows)
+   {
+      if (arrow.source == source_ && arrow.target == target_)
+         return arrow;
+   }
+
+   return std::optional<Arrow>();
+}
+
+//-----------------------------------------------------------------------------------------
+Arrow::Vec Node::FindArrows(const std::string& source_, const std::string& target_) const
+{
+   Arrow::Vec ret;
+
+   for (const Arrow& arrow : m_arrows)
+   {
+      if (arrow.source == source_ && arrow.target == target_)
+         ret.push_back(arrow);
+   }
+
+   return ret;
+}
+
+//-----------------------------------------------------------------------------------------
+std::optional<Arrow> Node::FindArrow(const std::string& name_) const
+{
+   for (const Arrow& arrow : m_arrows)
+   {
+      if (arrow.name == name_)
+         return std::optional<Arrow>(arrow);
+   }
+
+   return std::optional<Arrow>();
 }
 
 //-----------------------------------------------------------------------------------------
@@ -420,111 +488,69 @@ const std::string& Node::Name() const
 }
 
 //-----------------------------------------------------------------------------------------
-bool Node::Statement(const Arrow& func_)
+bool Node::Statement(const Arrow& arrow_)
 {
-   auto itSourceCat = m_nodes.find(Node(func_.source));
-   auto itTargetCat = m_nodes.find(Node(func_.target));
+   Node target(arrow_.target);
 
-   Node source_cat("");
-   Node target_cat("");
+   auto it = m_nodes.find(Node(arrow_.target));
+   if (it != m_nodes.end())
+      target = it->first;
 
-   StringVec backup_targets[2];
-   StringVec backup_sources[2];
+   auto source = FindNode(arrow_.source);
+   if (!source)
+      return false;
 
-   // source
-   if (itSourceCat == m_nodes.end())
-      source_cat = Node(func_.source);
-   else
+   // Mapping nodes
+   for (const auto& [node, _] : source->Nodes())
    {
-      source_cat = (*itSourceCat).first;
-
-      // Backup relations
-      backup_targets[0] = FindTargets(source_cat.Name());
-      backup_sources[0] = FindSources(source_cat.Name());
-   }
-
-   // target
-   if (itTargetCat == m_nodes.end())
-      target_cat = Node(func_.target);
-   else
-   {
-      target_cat = (*itTargetCat).first;
-
-      // Backup relations
-      backup_targets[1] = FindTargets(target_cat.Name());
-      backup_sources[1] = FindSources(target_cat.Name());
-   }
-
-   //
-   for (auto& [_, nodes_set] : m_nodes)
-      nodes_set.erase(source_cat);
-
-   m_nodes.erase(source_cat);
-
-   //
-   for (auto& [_, nodes_set] : m_nodes)
-      nodes_set.erase(target_cat);
-
-   m_nodes.erase(target_cat);
-
-   // Mapping objects
-   for (const auto& [obj, _] : source_cat.Nodes())
-   {
-      std::optional<Node> tobj = SingleMap(func_, obj);
-      if (!tobj)
+      std::optional<Node> mnode = SingleMap(arrow_, node);
+      if (!mnode)
       {
-         print_error("Missing morphism for object " + obj.Name() + " in functor " + func_.name);
-
+         print_error("Missing morphism for node " + node.Name() + " in functor " + arrow_.name);
          return false;
       }
 
-      if (!target_cat.Node::Proof(tobj.value()))
-         target_cat.AddNode(tobj.value());
+      if (!target.Proof(mnode.value()))
+         target.AddNode(mnode.value());
    }
 
-   // Mapping morphisms
-   for (const Arrow& morph : source_cat.Arrows())
+   // Mapping arrows
+   for (const Arrow& arrow : source->Arrows())
    {
-      auto objs = SingleMap(func_, Node(morph.source));
-      auto objt = SingleMap(func_, Node(morph.target));
+      auto nodes = SingleMap(arrow_, Node(arrow.source));
+      auto nodet = SingleMap(arrow_, Node(arrow.target));
 
-      if (!target_cat.Proof(objs.value(), objt.value()))
-         target_cat.AddArrow(Arrow(objs->Name(), objt->Name()));
+      if (!target.Proof(nodes.value(), nodet.value()))
+         target.AddArrow(Arrow(nodes->Name(), nodet->Name()));
    }
 
-   if (!AddNode(source_cat))
-      return false;
-
-   if (!AddNode(target_cat))
-      return false;
-
-   // Restoring relations
+   for (auto& [domain, codomain] : m_nodes)
    {
-      for (const auto& scat : backup_sources[0])
-         m_nodes[Node(scat)].insert(source_cat);
-
-      auto crt_category_targets = m_nodes[Node(source_cat)];
-      for (const auto& tcat : backup_targets[0])
+      auto itTarget = codomain.find(target);
+      if (itTarget != codomain.end())
       {
-         const auto& [cat, _] = *m_nodes.find(Node(tcat));
-         crt_category_targets.insert(cat);
+         codomain.erase(itTarget);
+         codomain.insert(target);
       }
    }
 
-   // Restoring relations
+   auto itTarget = m_nodes.find(target);
+   if (itTarget != m_nodes.end())
    {
-      for (const auto& scat : backup_sources[1])
-         m_nodes[Node(scat)].insert(target_cat);
+      auto back_up = itTarget->second;
 
-      auto crt_category_targets = m_nodes[Node(target_cat)];
-      for (const auto& tcat : backup_targets[1])
-      {
-         const auto& [cat, _] = *m_nodes.find(Node(tcat));
-         crt_category_targets.insert(cat);
-      }
+      m_nodes.erase(itTarget);
+
+      m_nodes[target] = back_up;
    }
 
-   m_arrows.push_back(func_);
+   if (Proof(arrow_))
+   {
+      print_error("Arrow already defined: " + arrow_.name);
+      return false;
+   }
+
+   m_arrows.push_back(arrow_);
 
    return true;
 }
@@ -563,34 +589,6 @@ std::optional<Node> cat::SingleMap(const std::optional<Arrow>& arrow_, const std
    }
 
    return std::optional<Node>();
-}
-
-//-----------------------------------------------------------------------------------------
-std::optional<Node> cat::Map(const std::optional<Arrow>& arrow_, const std::optional<Node>& node_)
-{
-   if (node_->Name() != arrow_->source)
-      return std::optional<Node>();
-
-   Node ret(arrow_->target);
-
-   // Mapping of objects
-   for (const auto& [obj, _] : node_->Nodes())
-   {
-      Node mapped_obj = SingleMap(arrow_, obj).value();
-      if (!ret.Proof(mapped_obj))
-         ret.AddNode(mapped_obj);
-   }
-
-   // Mapping of morphisms
-   for (const Arrow& morph : node_->Arrows())
-   {
-      auto source = SingleMap(arrow_, Node(morph.source));
-      auto target = SingleMap(arrow_, Node(morph.target));
-
-      ret.AddArrow(Arrow(source->Name(), target->Name()));
-   }
-
-   return ret;
 }
 
 //-----------------------------------------------------------------------------------------

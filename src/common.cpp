@@ -266,7 +266,7 @@ bool SParser::parse_source(const std::string& source_, Node& ccat_)
 
          crt_cat_.emplace(cat);
 
-         ccat_.EraseNode(cat);
+         ccat_.EraseNode(cat.Name());
       }
    };
 

@@ -45,15 +45,15 @@ namespace cat
 
          cat.AddArrow(Arrow(a.Name(), b.Name()));
 
-         assert(cat.EraseNode(a) == true);
+         assert(cat.EraseNode(a.Name()) == true);
 
          assert(cat.Arrows().size() == 1);
 
-         assert(cat.EraseNode(b) == true);
+         assert(cat.EraseNode(b.Name()) == true);
 
          assert(cat.Arrows().size() == 0);
 
-         assert(cat.EraseNode(c) == false);
+         assert(cat.EraseNode(c.Name()) == false);
 
          assert(cat.Nodes().size() == 0);
 
