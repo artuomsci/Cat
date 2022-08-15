@@ -259,21 +259,39 @@ bool SParser::parse_source(const std::string& source_, Node& ccat_)
       auto it = ccat_.Nodes().find(Node(line_));
 
       if (it == ccat_.Nodes().end())
+      {
          crt_cat_.emplace(line_);
+      }
       else
       {
          const auto& [cat, _] = *it;
 
          crt_cat_.emplace(cat);
-
-         ccat_.EraseNode(cat.Name());
       }
    };
 
    auto fnEndCategory = [](std::optional<Node>& crt_cat_, Node& ccat_)
    {
       if (crt_cat_)
+      {
+         Arrow::Vec backup;
+         for (const auto& arrow : ccat_.Arrows())
+         {
+            if (arrow.source == crt_cat_->Name() || arrow.target == crt_cat_->Name())
+               backup.push_back(arrow);
+         }
+
+         ccat_.EraseNode(crt_cat_->Name());
+
          ccat_.AddNode(crt_cat_.value());
+
+         for (const auto& arrow : backup)
+         {
+            if (!ccat_.Proof(arrow))
+               ccat_.AddArrow(arrow);
+         }
+      }
+         
       crt_cat_.reset();
 
       return true;
@@ -380,9 +398,11 @@ bool SParser::parse_source(const std::string& source_, Node& ccat_)
             if (!ccat_.Statement(crt_func.value()))
                return false;
          }
-
-         if (!ccat_.AddArrow(crt_func.value()))
-            return false;
+         else
+         {
+            if (!ccat_.AddArrow(crt_func.value()))
+               return false;
+         }
 
          crt_func.reset();
       }

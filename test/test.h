@@ -104,7 +104,7 @@ namespace cat
          assert(cat.Arrows().size() == 5);
 
          assert(cat.AddArrow(Arrow(b.Name(), c.Name(), "f0")) == false);
-         assert(cat.AddArrow(Arrow(a.Name(), b.Name(), "f0")));
+         assert(cat.AddArrow(Arrow(a.Name(), b.Name(), "f0")) == false);
       }
 
       //============================================================

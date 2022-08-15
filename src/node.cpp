@@ -1,6 +1,7 @@
 #include "node.h"
 
 #include <algorithm>
+#include <assert.h>
 
 #include "str_utils.h"
 
@@ -81,13 +82,26 @@ std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
       auto source = SingleMap(*this, Node(arrow.source));
       auto target = SingleMap(*this, Node(arrow.target));
 
-      ret.AddArrow(Arrow(source->Name(), target->Name()));
+      Arrow mapped_arrow(source->Name(), target->Name());
+      if (!ret.Proof(mapped_arrow))
+         ret.AddArrow(mapped_arrow);
    }
 
    return ret;
 }
 
 //-----------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------
+static bool validate_node_data(const Node& node_)
+{
+   int sz {};
+   for (const auto& [_, codomain] : node_.Nodes())
+   {
+      sz += codomain.size();
+   }
+   return sz == (int)node_.Arrows().size();
+}
+
 //-----------------------------------------------------------------------------------------
 Node::Node(const std::string& name_) : m_name(name_)
 {
@@ -162,26 +176,22 @@ bool Node::AddNodes(const Vec& nodes_)
 //-----------------------------------------------------------------------------------------
 bool Node::EraseNode(const std::string& node_)
 {
-   auto it = m_nodes.find(Node(node_));
+   std::string name_copy = node_;
+
+   auto it = m_nodes.find(Node(name_copy));
    if (it != m_nodes.end())
    {
       m_nodes.erase(it);
 
-      std::vector<Arrow::Vec::iterator> arrows; arrows.reserve(m_arrows.size());
+      for (auto& [_, codomain] : m_nodes)
+         codomain.erase(Node(name_copy));
 
-      const std::string& node_name = node_;
+      auto it_end = std::remove_if(m_arrows.begin(), m_arrows.end(), [&](const Arrow::Vec::value_type& element_)
+         {
+            return element_.source == name_copy || element_.target == name_copy;
+         });
 
-      for (Arrow::Vec::iterator it = m_arrows.begin(); it != m_arrows.end(); ++it)
-      {
-         if (((*it).source == node_name) || ((*it).target == node_name))
-            arrows.push_back(it);
-      }
-
-      while (!arrows.empty())
-      {
-         m_arrows.erase(arrows.back());
-         arrows.pop_back();
-      }
+      m_arrows.erase(it_end, m_arrows.end());
 
       return true;
    }
@@ -458,6 +468,12 @@ bool Node::AddNode(const Node& node_)
 //-----------------------------------------------------------------------------------------
 bool Node::AddArrow(const Arrow& arrow_)
 {
+   if (Proof(arrow_))
+   {
+      print_error("Arrow redefinition: " + arrow_.name);
+      return false;
+   }
+
    for (const Arrow& arrow : m_arrows)
    {
       if (arrow_.name == arrow.name && arrow_.target != arrow.target)
@@ -549,6 +565,8 @@ bool Node::Statement(const Arrow& arrow_)
       print_error("Arrow already defined: " + arrow_.name);
       return false;
    }
+
+   m_nodes[Node(arrow_.source)].insert(Node(arrow_.target));
 
    m_arrows.push_back(arrow_);
 
