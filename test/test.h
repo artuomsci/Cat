@@ -208,7 +208,7 @@ namespace cat
 
          assert(seq.size() == 4);
 
-         std::vector<Arrow> morphs = map_obj2morphism(seq, cat);
+         std::vector<Arrow> morphs = map_nodes2arrows(seq, cat);
          assert(morphs[0] == Arrow(a.Name(), b.Name()));
          assert(morphs[1] == Arrow(b.Name(), d.Name()));
          assert(morphs[2] == Arrow(d.Name(), e.Name()));
@@ -243,21 +243,21 @@ namespace cat
          assert(seqs.size() == 3);
 
          {
-            std::vector<Arrow> morphs = map_obj2morphism(seqs[0], cat);
+            std::vector<Arrow> morphs = map_nodes2arrows(seqs[0], cat);
             assert(morphs[0] == Arrow(a.Name(), b.Name()));
             assert(morphs[1] == Arrow(b.Name(), d.Name()));
             assert(morphs[2] == Arrow(d.Name(), e.Name()));
          }
 
          {
-            std::vector<Arrow> morphs = map_obj2morphism(seqs[1], cat);
+            std::vector<Arrow> morphs = map_nodes2arrows(seqs[1], cat);
             assert(morphs[0] == Arrow(a.Name(), c.Name()));
             assert(morphs[1] == Arrow(c.Name(), d.Name()));
             assert(morphs[2] == Arrow(d.Name(), e.Name()));
          }
 
          {
-            std::vector<Arrow> morphs = map_obj2morphism(seqs[2], cat);
+            std::vector<Arrow> morphs = map_nodes2arrows(seqs[2], cat);
             assert(morphs[0] == Arrow(a.Name(), c.Name()));
             assert(morphs[1] == Arrow(c.Name(), f.Name()));
             assert(morphs[2] == Arrow(f.Name(), e.Name()));

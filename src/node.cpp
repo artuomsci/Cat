@@ -47,7 +47,7 @@ bool Arrow::operator==(const Arrow& arrow_) const
          source      == arrow_.source
       && target      == arrow_.target
       && name        == arrow_.name
-      && morphisms   == arrow_.morphisms;
+      && arrows      == arrow_.arrows;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -57,7 +57,7 @@ bool Arrow::operator!=(const Arrow& arrow_) const
          source      != arrow_.source
       || target      != arrow_.target
       || name        != arrow_.name
-      || morphisms   != arrow_.morphisms;
+      || arrows      != arrow_.arrows;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -122,19 +122,19 @@ bool Node::AddArrows(const Arrow::Vec& arrows_)
 //-----------------------------------------------------------------------------------------
 bool Node::EraseArrow(const std::string& arrow_)
 {
-   for (Arrow& morph : m_arrows)
+   for (Arrow& arrow : m_arrows)
    {
-      if (morph.name == arrow_)
+      if (arrow.name == arrow_)
       {
-         auto it_node = m_nodes.find(Node(morph.source));
+         auto it_node = m_nodes.find(Node(arrow.source));
          if (it_node != m_nodes.end())
          {
-            if (morph.source == morph.target)
+            if (arrow.source == arrow.target)
                return false;
 
             auto& [_, node_set] = *it_node;
 
-            node_set.erase(Node(morph.target));
+            node_set.erase(Node(arrow.target));
          }
       }
    }
@@ -386,20 +386,20 @@ bool Node::Verify(const Arrow& arrow_) const
       }
    }
 
-   for (const Arrow& morph : source_cat.Arrows())
+   for (const Arrow& arrow : source_cat.Arrows())
    {
-      auto objs = SingleMap(arrow_, Node(morph.source));
-      auto objt = SingleMap(arrow_, Node(morph.target));
+      auto objs = SingleMap(arrow_, Node(arrow.source));
+      auto objt = SingleMap(arrow_, Node(arrow.target));
 
       if (!objs)
       {
-         print_error("Failure to map node: " + morph.source);
+         print_error("Failure to map node: " + arrow.source);
          return false;
       }
 
-      if (!source_cat.Node::Proof(Node(morph.source)))
+      if (!source_cat.Node::Proof(Node(arrow.source)))
       {
-         print_error("No such node '" + morph.source + "' in node '" + source_cat.Name() + "'");
+         print_error("No such node '" + arrow.source + "' in node '" + source_cat.Name() + "'");
          return false;
       }
 
@@ -411,13 +411,13 @@ bool Node::Verify(const Arrow& arrow_) const
 
       if (!objt)
       {
-         print_error("Failure to map node: " + morph.target);
+         print_error("Failure to map node: " + arrow.target);
          return false;
       }
 
-      if (!source_cat.Node::Proof(Node(morph.target)))
+      if (!source_cat.Node::Proof(Node(arrow.target)))
       {
-         print_error("No such node '" + morph.target + "' in node '" + source_cat.Name() + "'");
+         print_error("No such node '" + arrow.target + "' in node '" + source_cat.Name() + "'");
          return false;
       }
 
@@ -427,7 +427,7 @@ bool Node::Verify(const Arrow& arrow_) const
          return false;
       }
 
-      // Checking mapping of morphisms
+      // Checking mapping of arrows
       if (!target_cat.Proof(objs.value(), objt.value()))
       {
          print_error("Failure to match arrow: " + objs.value().Name() + "->" + objt.value().Name());
@@ -451,7 +451,7 @@ bool Node::AddNode(const Node& node_)
       Arrow func(node_.Name(), node_.Name(), id_arrow_name(node_.Name()));
 
       for (const auto& [id, _] : node_.Nodes())
-         func.morphisms.emplace_back(id.Name(), id.Name());
+         func.arrows.emplace_back(id.Name(), id.Name());
 
       if (!AddArrow(func))
          return false;
@@ -522,7 +522,7 @@ bool Node::Statement(const Arrow& arrow_)
       std::optional<Node> mnode = SingleMap(arrow_, node);
       if (!mnode)
       {
-         print_error("Missing morphism for node " + node.Name() + " in functor " + arrow_.name);
+         print_error("Missing arrow for node " + node.Name() + " in functor " + arrow_.name);
          return false;
       }
 
@@ -598,11 +598,11 @@ std::optional<Node> cat::SingleMap(const std::optional<Arrow>& arrow_, const std
    if (!arrow_ || !node_)
       return std::optional<Node>();
 
-   for (const Arrow& morph : arrow_->morphisms)
+   for (const Arrow& arrow : arrow_->arrows)
    {
-      if (morph.source == node_->Name())
+      if (arrow.source == node_->Name())
       {
-         return std::optional<Node>(morph.target);
+         return std::optional<Node>(arrow.target);
       }
    }
 

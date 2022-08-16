@@ -14,27 +14,27 @@ struct CAT_EXPORT SParser
 
    /**
    * @brief Parse file
-   * @param ccat_ - category of categories
+   * @param node_ - node
    * @return True if file was successfully parsed
    */
-   bool parse(cat::Node& ccat_);
+   bool parse(cat::Node& node_);
 
 private:
    /**
     * @brief Load source file
     * @param path_ - path to source file
-    * @param ccat_ - category of categories
+    * @param node_ - node
     * @return True if file was successfully loaded
     */
-   bool load_source(const std::string& path_, cat::Node& ccat_);
+   bool load_source(const std::string& path_, cat::Node& node_);
 
    /**
     * @brief Parse the contents of string
     * @param source_ - string to parse
-    * @param ccat_ - category of categories
+    * @param node_ - node
     * @return True if string was successfully parsed
     */
-   bool parse_source(const std::string& source_, cat::Node& ccat_);
+   bool parse_source(const std::string& source_, cat::Node& node_);
 
 private:
 
@@ -49,58 +49,58 @@ private:
 CAT_EXPORT std::optional<std::string> get_description(const std::string& filename_);
 
 /**
- * @brief Find any sequence of objects between two given objects
- * @param cat_ - category to find sequence of objects in
- * @param from_ - initial object of sequence
- * @param to_ - terminal object of sequence
- * @return Sequence of objects
+ * @brief Find any sequence of nodes between two given nodes
+ * @param node_ - node to find sequence of nodes in
+ * @param from_ - source node of the sequence
+ * @param to_ - target node of the sequence
+ * @return Sequence of nodes
  */
-CAT_EXPORT cat::Node::Vec solve_sequence(const cat::Node& cat_, const cat::Node& from_, const cat::Node& to_);
+CAT_EXPORT cat::Node::Vec solve_sequence(const cat::Node& node_, const cat::Node& from_, const cat::Node& to_);
 
 /**
- * @brief Find all sequences of objects between two given objects
- * @param cat_ - category to find sequences of objects in
- * @param from_ - initial object of sequences
- * @param to_ - terminal object of sequences
- * @return Sequences of objects
+ * @brief Find all sequences of nodes between two given nodes
+ * @param node_ - node to find sequences of nodes in
+ * @param from_ - source node of the sequences
+ * @param to_ - target node of the sequences
+ * @return Sequences of nodes
  */
-CAT_EXPORT std::vector<cat::Node::Vec> solve_sequences(const cat::Node& cat_, const cat::Node& from_, const cat::Node& to_);
+CAT_EXPORT std::vector<cat::Node::Vec> solve_sequences(const cat::Node& node_, const cat::Node& from_, const cat::Node& to_);
 
 /**
- * @brief Map sequence of objects onto sequence of morphisms
- * @param objs_ - sequence of objects
- * @param cat_ - category to find morphisms in
- * @return Sequence of morphisms
+ * @brief Map sequence of nodes onto sequence of arrows
+ * @param nodes_ - sequence of nodes
+ * @param node_ - node to find arrows in
+ * @return Sequence of arrows
  */
-CAT_EXPORT std::vector<cat::Arrow> map_obj2morphism(const cat::Node::Vec& objs_, const cat::Node& cat_);
+CAT_EXPORT std::vector<cat::Arrow> map_nodes2arrows(const cat::Node::Vec& nodes_, const cat::Node& node_);
 
 /**
  * @brief Find all compositions
- * @param cat_ - category to find compositions in
+ * @param nodes_ - node to find compositions in
  */
-CAT_EXPORT void solve_compositions(cat::Node& cat_);
+CAT_EXPORT void solve_compositions(cat::Node& node_);
 
 /**
- * @brief Inverse category morphisms
- * @param cat_ - category to inverse morphisms
+ * @brief Inverse arrows
+ * @param node_ - node to inverse arrows
  */
-CAT_EXPORT void inverse(cat::Node& cat_);
+CAT_EXPORT void inverse(cat::Node& node_);
 
 /**
- * @brief Find initial objects. All morphism compositions
+ * @brief Find initial nodes. All arrow compositions
  * must be resolved before calling this method i.e. call "solve_compositions" first
- * @param cat_ - category to find initial objects in
- * @return Initial objects
+ * @param node_ - node to find initial nodes in
+ * @return Initial nodes
  */
-CAT_EXPORT cat::Node::Vec initial(cat::Node& cat_);
+CAT_EXPORT cat::Node::Vec initial(cat::Node& node_);
 
 /**
- * @brief Find terminal objects. All morphism compositions
+ * @brief Find terminal nodes. All arrow compositions
  * must be resolved before calling this method i.e. call "solve_compositions" first
- * @param cat_ - category to find terminal objects in
- * @return Terminal objects
+ * @param node_ - node to find terminal nodes in
+ * @return Terminal nodes
  */
-CAT_EXPORT cat::Node::Vec terminal(cat::Node& cat_);
+CAT_EXPORT cat::Node::Vec terminal(cat::Node& node_);
 
 ///**
 // * @brief Coproduct

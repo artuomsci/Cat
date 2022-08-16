@@ -239,7 +239,7 @@ static std::string conform(std::string string_)
 }
 
 //-----------------------------------------------------------------------------------------
-bool SParser::parse_source(const std::string& source_, Node& ccat_)
+bool SParser::parse_source(const std::string& source_, Node& node_)
 {
    enum class ECurrentEntity
    {
@@ -297,21 +297,21 @@ bool SParser::parse_source(const std::string& source_, Node& ccat_)
       return true;
    };
 
-   auto fnAddObjects = [](const std::string& line_, std::optional<Node>& crt_cat_)
+   auto fnAddNodes = [](const std::string& line_, std::optional<Node>& crt_cat_)
    {
       if (!crt_cat_)
       {
-         print_error("No category to add object: " + line_);
+         print_error("No category to add node: " + line_);
          return false;
       }
 
-      for (auto& itObjName : split(line_, ',', false))
+      for (auto& itNodeName : split(line_, ',', false))
       {
-         auto objName = trim_sp(itObjName);
+         auto nodeName = trim_sp(itNodeName);
 
-         if (!crt_cat_->AddNode(Node(objName)))
+         if (!crt_cat_->AddNode(Node(nodeName)))
          {
-            print_error("Failure to add object: " + objName);
+            print_error("Failure to add node: " + nodeName);
             return false;
          }
       }
@@ -327,9 +327,9 @@ bool SParser::parse_source(const std::string& source_, Node& ccat_)
          return false;
       }
 
-      const Node::Node::Map& objs = crt_cat_->Nodes();
+      const Node::Node::Map& nodes = crt_cat_->Nodes();
 
-      std::vector<Arrow> morphs = get_chain<ArrowType::eMorphism, Node>(line_, objs, objs, expr_type_);
+      std::vector<Arrow> morphs = get_chain<ArrowType::eMorphism, Node>(line_, nodes, nodes, expr_type_);
       if (morphs.empty())
       {
          print_error("Incorrect morphism definition " + line_ + " in category " + crt_cat_->Name());
@@ -383,24 +383,24 @@ bool SParser::parse_source(const std::string& source_, Node& ccat_)
       {
          if (expr_type_ == EExpType::eStatement)
          {
-            if (crt_func->morphisms.empty())
+            if (crt_func->arrows.empty())
             {
-               auto it = ccat_.Nodes().find(Node(crt_func->source));
-               if (it == ccat_.Nodes().end())
+               auto it = node_.Nodes().find(Node(crt_func->source));
+               if (it == node_.Nodes().end())
                   return false;
 
                const auto& [cat, _] = *it;
 
-               for (const auto& [obj, _] : cat.Nodes())
-                  crt_func->morphisms.emplace_back(obj.Name(), obj.Name());
+               for (const auto& [domain, _] : cat.Nodes())
+                  crt_func->arrows.emplace_back(domain.Name(), domain.Name());
             }
 
-            if (!ccat_.Statement(crt_func.value()))
+            if (!node_.Statement(crt_func.value()))
                return false;
          }
          else
          {
-            if (!ccat_.AddArrow(crt_func.value()))
+            if (!node_.AddArrow(crt_func.value()))
                return false;
          }
 
@@ -426,14 +426,14 @@ bool SParser::parse_source(const std::string& source_, Node& ccat_)
       }
 
       for (const Arrow& morph : morphs)
-         crt_func_.value().morphisms.push_back(morph);
+         crt_func_.value().arrows.push_back(morph);
 
      return true;
    };
 
    auto fnStateSwitch = [&]()
    {
-      return fnEndCategory(crt_cat, ccat_) && fnEndFunctor(expr_type);
+      return fnEndCategory(crt_cat, node_) && fnEndFunctor(expr_type);
    };
 
    auto fnImport = [](const std::filesystem::path& path_, const std::string& line_, int line_index_, StringVec& lines_)
@@ -527,23 +527,23 @@ bool SParser::parse_source(const std::string& source_, Node& ccat_)
          if (!fnStateSwitch())
             return false;
 
-         fnBeginCategory(tail, crt_cat, ccat_);
+         fnBeginCategory(tail, crt_cat, node_);
 
          process_entity = ECurrentEntity::eCategory;
       }
-      // Object
+      // Nodes
       else if (process_entity == ECurrentEntity::eCategory && head == sObj)
       {
-         if (!fnAddObjects(tail, crt_cat))
+         if (!fnAddNodes(tail, crt_cat))
             return false;
       }
-      // Morphism
+      // Arrow
       else if (process_entity == ECurrentEntity::eCategory && is_morphism(line))
       {
          if (!fnAddMorphisms(line, crt_cat, expr_type))
             return false;
       }
-      // Functor
+      // Arrow
       else if (is_functor(line))
       {
          process_entity = ECurrentEntity::eFunctor;
@@ -551,13 +551,13 @@ bool SParser::parse_source(const std::string& source_, Node& ccat_)
          if (!fnStateSwitch())
             return false;
 
-         if (!fnBeginFunctor(line, crt_func, ccat_, expr_type))
+         if (!fnBeginFunctor(line, crt_func, node_, expr_type))
             return false;
       }
       // Functor morphism
       else if (process_entity == ECurrentEntity::eFunctor && is_morphism(line))
       {
-         if (!fnAddFMorphisms(line, crt_func, ccat_, expr_type))
+         if (!fnAddFMorphisms(line, crt_func, node_, expr_type))
             return false;
       }
       else
@@ -579,13 +579,13 @@ SParser::SParser(const std::string& file_path_) : m_path(file_path_)
 }
 
 //-----------------------------------------------------------------------------------------
-bool SParser::parse(cat::Node& ccat_)
+bool SParser::parse(cat::Node& node_)
 {
-   return load_source(m_path.string(), ccat_);
+   return load_source(m_path.string(), node_);
 }
 
 //-----------------------------------------------------------------------------------------
-bool SParser::load_source(const std::string& path_, Node& ccat_)
+bool SParser::load_source(const std::string& path_, Node& node_)
 {
    std::ifstream input(path_);
    if (input.is_open())
@@ -595,7 +595,7 @@ bool SParser::load_source(const std::string& path_, Node& ccat_)
 
       input.close();
 
-      return parse_source(descr.str(), ccat_);
+      return parse_source(descr.str(), node_);
    }
 
    return false;
@@ -619,39 +619,39 @@ std::optional<std::string> get_description(const std::string& filename_)
 }
 
 //-----------------------------------------------------------------------------------------
-Node::Vec solve_sequence(const Node& cat_, const Node& from_, const Node& to_)
+Node::Vec solve_sequence(const Node& node_, const Node& from_, const Node& to_)
 {
    Node::Vec ret;
 
    std::vector<Node::PairSet> stack;
 
-   std::optional<Node> current_obj(from_);
+   std::optional<Node> current_node(from_);
 
    while (true)
    {
       // Checking for destination
-      if (current_obj.value() == to_)
+      if (current_node.value() == to_)
       {
          ret.reserve(stack.size() + 1);
 
-         for (auto & [obji, objset] : stack)
-            ret.push_back(obji);
+         for (auto & [nodei, _] : stack)
+            ret.push_back(nodei);
 
-         ret.push_back(current_obj.value());
+         ret.push_back(current_node.value());
 
          return ret;
       }
 
-      stack.emplace_back(current_obj.value(), cat_.Nodes().at(current_obj.value()));
+      stack.emplace_back(current_node.value(), node_.Nodes().at(current_node.value()));
 
       // Remove identity morphism
-      stack.back().second.erase(current_obj.value());
+      stack.back().second.erase(current_node.value());
 
-      current_obj.reset();
+      current_node.reset();
 
-      while (!current_obj.has_value())
+      while (!current_node.has_value())
       {
-         // Trying new set of objects
+         // Trying new set of nodes
          Node::Set& forward_codomain = stack.back().second;
 
          if (forward_codomain.empty())
@@ -664,16 +664,16 @@ Node::Vec solve_sequence(const Node& cat_, const Node& from_, const Node& to_)
             continue;
          }
 
-         // Moving one object forward
-         current_obj.emplace(forward_codomain.extract(forward_codomain.begin()).value());
+         // Moving one node forward
+         current_node.emplace(forward_codomain.extract(forward_codomain.begin()).value());
 
          // Checking for loops
-         for (const auto& [obj, objset] : stack)
+         for (const auto& [node, _] : stack)
          {
             // Is already visited
-            if (obj == current_obj.value())
+            if (node == current_node.value())
             {
-               current_obj.reset();
+               current_node.reset();
                break;
             }
          }
@@ -684,42 +684,42 @@ Node::Vec solve_sequence(const Node& cat_, const Node& from_, const Node& to_)
 }
 
 //-----------------------------------------------------------------------------------------
-std::vector<Node::Vec> solve_sequences(const Node& cat_, const Node& from_, const Node& to_)
+std::vector<Node::Vec> solve_sequences(const Node& node_, const Node& from_, const Node& to_)
 {
    std::vector<Node::Vec> ret;
 
    std::vector<Node::PairSet> stack;
 
-   std::optional<Node> current_obj(from_);
+   std::optional<Node> current_node(from_);
 
    while (true)
    {
       // Checking for destination
-      if (current_obj.value() == to_)
+      if (current_node.value() == to_)
       {
          Node::Vec seq; seq.reserve(stack.size() + 1);
 
-         for (auto & [obji, objset] : stack)
-            seq.push_back(obji);
+         for (auto & [nodei, _] : stack)
+            seq.push_back(nodei);
 
-         seq.push_back(current_obj.value());
+         seq.push_back(current_node.value());
 
          ret.push_back(seq);
       }
       else
       {
          // Stacking forward movements
-         stack.emplace_back(current_obj.value(), cat_.Nodes().at(current_obj.value()));
+         stack.emplace_back(current_node.value(), node_.Nodes().at(current_node.value()));
 
          // Removing identity morphism
-         stack.back().second.erase(current_obj.value());
+         stack.back().second.erase(current_node.value());
       }
 
-      current_obj.reset();
+      current_node.reset();
 
-      while (!current_obj.has_value())
+      while (!current_node.has_value())
       {
-         // Trying new sets of objects
+         // Trying new sets of nodes
          Node::Set& forward_codomain = stack.back().second;
 
          if (forward_codomain.empty())
@@ -732,16 +732,16 @@ std::vector<Node::Vec> solve_sequences(const Node& cat_, const Node& from_, cons
             continue;
          }
 
-         // Moving one object forward
-         current_obj.emplace(forward_codomain.extract(forward_codomain.begin()).value());
+         // Moving one node forward
+         current_node.emplace(forward_codomain.extract(forward_codomain.begin()).value());
 
          // Checking for loops
-         for (const auto& [obj, objset] : stack)
+         for (const auto& [node, _] : stack)
          {
             // Is already visited
-            if (obj == current_obj.value())
+            if (node == current_node.value())
             {
-               current_obj.reset();
+               current_node.reset();
                break;
             }
          }
@@ -752,29 +752,29 @@ std::vector<Node::Vec> solve_sequences(const Node& cat_, const Node& from_, cons
 }
 
 //-----------------------------------------------------------------------------------------
-std::vector<Arrow> map_obj2morphism(const Node::Vec& objs_, const Node& cat_)
+std::vector<Arrow> map_nodes2arrows(const Node::Vec& nodes_, const Node& node_)
 {
    std::vector<Arrow> ret;
 
-   const Arrow::Vec& morphisms = cat_.Arrows();
+   const Arrow::Vec& arrows = node_.Arrows();
 
-   for (int i = 0; i < (int)objs_.size() - 1; ++i)
+   for (int i = 0; i < (int)nodes_.size() - 1; ++i)
    {
-      auto it = std::find_if(morphisms.begin(), morphisms.end(), [&](const Arrow::Vec::value_type& elem_)
+      auto it = std::find_if(arrows.begin(), arrows.end(), [&](const Arrow::Vec::value_type& elem_)
       {
-         return objs_[i + 0].Name() == elem_.source && objs_[i + 1].Name() == elem_.target;
+         return nodes_[i + 0].Name() == elem_.source && nodes_[i + 1].Name() == elem_.target;
       });
 
-      ret.push_back(it != morphisms.end() ? *it : Arrow("", ""));
+      ret.push_back(it != arrows.end() ? *it : Arrow("", ""));
    }
 
    return ret;
 }
 
 //-----------------------------------------------------------------------------------------
-void solve_compositions(Node& cat_)
+void solve_compositions(Node& node_)
 {
-   for (const auto & [domain, codomain] : cat_.Nodes())
+   for (const auto & [domain, codomain] : node_.Nodes())
    {
       Node::Set traverse = codomain;
 
@@ -785,19 +785,19 @@ void solve_compositions(Node& cat_)
             new_codomain.insert(it);
 
          Node::Set new_traverse;
-         for (const Node& obj : traverse)
+         for (const Node& node : traverse)
          {
-            if (obj == domain)
+            if (node == domain)
                continue;
 
-            const Node::Set& sub_codomain = cat_.Nodes().at(obj);
+            const Node::Set& sub_codomain = node_.Nodes().at(node);
 
-            for (const Node& sub_obj : sub_codomain)
+            for (const Node& sub_node : sub_codomain)
             {
-               if (new_codomain.find(sub_obj) != new_codomain.end())
+               if (new_codomain.find(sub_node) != new_codomain.end())
                   continue;
 
-               new_traverse.insert(sub_obj);
+               new_traverse.insert(sub_node);
             }
          }
 
@@ -807,53 +807,53 @@ void solve_compositions(Node& cat_)
       Node::Set domain_diff;
       std::set_difference(new_codomain.begin(), new_codomain.end(), codomain.begin(), codomain.end(), std::inserter(domain_diff, domain_diff.begin()));
 
-      for (const auto& codomain_obj : domain_diff)
-         cat_.AddArrow(Arrow(domain.Name(), codomain_obj.Name()));
+      for (const auto& codomain_node : domain_diff)
+         node_.AddArrow(Arrow(domain.Name(), codomain_node.Name()));
    }
 }
 
 //-----------------------------------------------------------------------------------------
-void inverse(Node& cat_)
+void inverse(Node& node_)
 {
-   Arrow::Vec morphs = cat_.Arrows();
+   Arrow::Vec morphs = node_.Arrows();
 
-   cat_.EraseArrows();
+   node_.EraseArrows();
 
    for (const Arrow& morph : morphs)
    {
       std::string name = default_arrow_name(morph.source, morph.target) == morph.name ? default_arrow_name(morph.target, morph.source) : morph.name;
-      cat_.AddArrow(Arrow(morph.target, morph.source, name));
+      node_.AddArrow(Arrow(morph.target, morph.source, name));
    }
 }
 
 //-----------------------------------------------------------------------------------------
-Node::Vec initial(Node& cat_)
+Node::Vec initial(Node& node_)
 {
    Node::Vec ret;
 
-   const Node::Node::Map& objs = cat_.Nodes();
+   const Node::Node::Map& nodes = node_.Nodes();
 
-   for (const auto& [obj, objset] : objs)
+   for (const auto& [domain, codomain] : nodes)
    {
-      if (objs.size() == objset.size())
-         ret.push_back(obj);
+      if (nodes.size() == codomain.size())
+         ret.push_back(domain);
    }
 
    return ret;
 }
 
 //-----------------------------------------------------------------------------------------
-Node::Vec terminal(Node& cat_)
+Node::Vec terminal(Node& node_)
 {
    Node::Vec ret;
 
-   for (const auto& [obj, objset] : cat_.Nodes())
+   for (const auto& [domain, _] : node_.Nodes())
    {
       bool is_terminal { true };
 
-      for (const auto& [obj_int, objset_int] : cat_.Nodes())
+      for (const auto& [domain_int, codomain_int] : node_.Nodes())
       {
-         if (std::find_if(objset_int.begin(), objset_int.end(), [&](const Node& obj_){ return obj == obj_; }) == objset_int.end())
+         if (std::find_if(codomain_int.begin(), codomain_int.end(), [&](const Node& node_){ return domain == node_; }) == codomain_int.end())
          {
             is_terminal = false;
             break;
@@ -861,7 +861,7 @@ Node::Vec terminal(Node& cat_)
       }
 
       if (is_terminal)
-         ret.push_back(obj);
+         ret.push_back(domain);
    }
 
    return ret;

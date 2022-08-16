@@ -55,7 +55,7 @@ namespace cat
       std::string source;
       std::string target;
       std::string name;
-      Vec         morphisms;
+      Vec         arrows;
    };
 
    /**
