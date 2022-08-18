@@ -204,14 +204,15 @@ namespace cat
                   ,  Arrow(c.Name(), f.Name())
                   ,  Arrow(d.Name(), e.Name())});
 
-         Node::Vec seq = solve_sequence(cat, a, e);
+         Node::List seq = solve_sequence(cat, a, e);
 
          assert(seq.size() == 4);
 
-         std::vector<Arrow> morphs = map_nodes2arrows(seq, cat);
-         assert(morphs[0] == Arrow(a.Name(), b.Name()));
-         assert(morphs[1] == Arrow(b.Name(), d.Name()));
-         assert(morphs[2] == Arrow(d.Name(), e.Name()));
+         Arrow::List morphs = map_nodes2arrows(seq, cat);
+         auto it = morphs.begin();
+         assert(*(it) == Arrow(a.Name(), b.Name()));
+         assert(*(++it) == Arrow(b.Name(), d.Name()));
+         assert(*(++it) == Arrow(d.Name(), e.Name()));
 
          seq = solve_sequence(cat, e, a);
 
@@ -238,29 +239,32 @@ namespace cat
                   ,  Arrow(d.Name(), e.Name())
                   ,  Arrow(f.Name(), e.Name())});
 
-         std::vector<Node::Vec> seqs = solve_sequences(cat, a, e);
+         std::vector<Node::List> seqs = solve_sequences(cat, a, e);
 
          assert(seqs.size() == 3);
 
          {
-            std::vector<Arrow> morphs = map_nodes2arrows(seqs[0], cat);
-            assert(morphs[0] == Arrow(a.Name(), b.Name()));
-            assert(morphs[1] == Arrow(b.Name(), d.Name()));
-            assert(morphs[2] == Arrow(d.Name(), e.Name()));
+            Arrow::List morphs = map_nodes2arrows(seqs[0], cat);
+            auto it = morphs.begin();
+            assert(*it == Arrow(a.Name(), b.Name()));
+            assert(*(++it) == Arrow(b.Name(), d.Name()));
+            assert(*(++it) == Arrow(d.Name(), e.Name()));
          }
 
          {
-            std::vector<Arrow> morphs = map_nodes2arrows(seqs[1], cat);
-            assert(morphs[0] == Arrow(a.Name(), c.Name()));
-            assert(morphs[1] == Arrow(c.Name(), d.Name()));
-            assert(morphs[2] == Arrow(d.Name(), e.Name()));
+            Arrow::List morphs = map_nodes2arrows(seqs[1], cat);
+            auto it = morphs.begin();
+            assert(*(it) == Arrow(a.Name(), c.Name()));
+            assert(*(++it) == Arrow(c.Name(), d.Name()));
+            assert(*(++it) == Arrow(d.Name(), e.Name()));
          }
 
          {
-            std::vector<Arrow> morphs = map_nodes2arrows(seqs[2], cat);
-            assert(morphs[0] == Arrow(a.Name(), c.Name()));
-            assert(morphs[1] == Arrow(c.Name(), f.Name()));
-            assert(morphs[2] == Arrow(f.Name(), e.Name()));
+            Arrow::List morphs = map_nodes2arrows(seqs[2], cat);
+            auto it = morphs.begin();
+            assert(*(it) == Arrow(a.Name(), c.Name()));
+            assert(*(++it) == Arrow(c.Name(), f.Name()));
+            assert(*(++it) == Arrow(f.Name(), e.Name()));
          }
 
          seqs = solve_sequences(cat, e, a);
@@ -321,17 +325,19 @@ namespace cat
 
          solve_compositions(cat);
 
-         Node::Vec initial_obj = initial(cat);
+         Node::List initial_obj = initial(cat);
          assert(initial_obj.size() == 2);
-         std::sort(initial_obj.begin(), initial_obj.end());
-         assert(initial_obj[0] == a0);
-         assert(initial_obj[1] == a1);
+         initial_obj.sort();
+         auto it_initial = initial_obj.begin();
+         assert(*it_initial == a0);
+         assert(*(++it_initial) == a1);
 
-         Node::Vec terminal_obj = terminal(cat);
+         Node::List terminal_obj = terminal(cat);
          assert(terminal_obj.size() == 2);
-         std::sort(terminal_obj.begin(), terminal_obj.end());
-         assert(terminal_obj[0] == d0);
-         assert(terminal_obj[1] == d1);
+         terminal_obj.sort();
+         auto it_terminal = terminal_obj.begin();
+         assert(*(it_terminal) == d0);
+         assert(*(++it_terminal) == d1);
 
          cat.EraseNodes();
 
@@ -339,7 +345,7 @@ namespace cat
          initial_obj = initial(cat);
          terminal_obj = terminal(cat);
          assert(initial_obj.size() == terminal_obj.size() == 1);
-         assert(initial_obj[0] == terminal_obj[0]);
+         assert(*initial_obj.begin() == *terminal_obj.begin());
       }
 
       //============================================================

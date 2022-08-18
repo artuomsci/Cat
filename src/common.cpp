@@ -619,9 +619,9 @@ std::optional<std::string> get_description(const std::string& filename_)
 }
 
 //-----------------------------------------------------------------------------------------
-Node::Vec solve_sequence(const Node& node_, const Node& from_, const Node& to_)
+Node::List solve_sequence(const Node& node_, const Node& from_, const Node& to_)
 {
-   Node::Vec ret;
+   Node::List ret;
 
    std::vector<Node::PairSet> stack;
 
@@ -632,8 +632,6 @@ Node::Vec solve_sequence(const Node& node_, const Node& from_, const Node& to_)
       // Checking for destination
       if (current_node.value() == to_)
       {
-         ret.reserve(stack.size() + 1);
-
          for (auto & [nodei, _] : stack)
             ret.push_back(nodei);
 
@@ -684,9 +682,9 @@ Node::Vec solve_sequence(const Node& node_, const Node& from_, const Node& to_)
 }
 
 //-----------------------------------------------------------------------------------------
-std::vector<Node::Vec> solve_sequences(const Node& node_, const Node& from_, const Node& to_)
+std::vector<Node::List> solve_sequences(const Node& node_, const Node& from_, const Node& to_)
 {
-   std::vector<Node::Vec> ret;
+   std::vector<Node::List> ret;
 
    std::vector<Node::PairSet> stack;
 
@@ -697,7 +695,7 @@ std::vector<Node::Vec> solve_sequences(const Node& node_, const Node& from_, con
       // Checking for destination
       if (current_node.value() == to_)
       {
-         Node::Vec seq; seq.reserve(stack.size() + 1);
+         Node::List seq;
 
          for (auto & [nodei, _] : stack)
             seq.push_back(nodei);
@@ -752,17 +750,17 @@ std::vector<Node::Vec> solve_sequences(const Node& node_, const Node& from_, con
 }
 
 //-----------------------------------------------------------------------------------------
-std::vector<Arrow> map_nodes2arrows(const Node::Vec& nodes_, const Node& node_)
+Arrow::List map_nodes2arrows(const Node::List& nodes_, const Node& node_)
 {
-   std::vector<Arrow> ret;
+   Arrow::List ret;
 
    const Arrow::List& arrows = node_.Arrows();
 
-   for (int i = 0; i < (int)nodes_.size() - 1; ++i)
+   for (auto itn = nodes_.begin(); itn != nodes_.end(); ++itn)
    {
       auto it = std::find_if(arrows.begin(), arrows.end(), [&](const Arrow::List::value_type& elem_)
       {
-         return nodes_[i + 0].Name() == elem_.source && nodes_[i + 1].Name() == elem_.target;
+         return itn->Name() == elem_.source && std::next(itn)->Name() == elem_.target;
       });
 
       ret.push_back(it != arrows.end() ? *it : Arrow("", ""));
@@ -826,9 +824,9 @@ void inverse(Node& node_)
 }
 
 //-----------------------------------------------------------------------------------------
-Node::Vec initial(Node& node_)
+Node::List initial(Node& node_)
 {
-   Node::Vec ret;
+   Node::List ret;
 
    const Node::Node::Map& nodes = node_.Nodes();
 
@@ -842,9 +840,9 @@ Node::Vec initial(Node& node_)
 }
 
 //-----------------------------------------------------------------------------------------
-Node::Vec terminal(Node& node_)
+Node::List terminal(Node& node_)
 {
-   Node::Vec ret;
+   Node::List ret;
 
    for (const auto& [domain, _] : node_.Nodes())
    {

@@ -55,7 +55,7 @@ CAT_EXPORT std::optional<std::string> get_description(const std::string& filenam
  * @param to_ - target node of the sequence
  * @return Sequence of nodes
  */
-CAT_EXPORT cat::Node::Vec solve_sequence(const cat::Node& node_, const cat::Node& from_, const cat::Node& to_);
+CAT_EXPORT cat::Node::List solve_sequence(const cat::Node& node_, const cat::Node& from_, const cat::Node& to_);
 
 /**
  * @brief Find all sequences of nodes between two given nodes
@@ -64,7 +64,7 @@ CAT_EXPORT cat::Node::Vec solve_sequence(const cat::Node& node_, const cat::Node
  * @param to_ - target node of the sequences
  * @return Sequences of nodes
  */
-CAT_EXPORT std::vector<cat::Node::Vec> solve_sequences(const cat::Node& node_, const cat::Node& from_, const cat::Node& to_);
+CAT_EXPORT std::vector<cat::Node::List> solve_sequences(const cat::Node& node_, const cat::Node& from_, const cat::Node& to_);
 
 /**
  * @brief Map sequence of nodes onto sequence of arrows
@@ -72,7 +72,7 @@ CAT_EXPORT std::vector<cat::Node::Vec> solve_sequences(const cat::Node& node_, c
  * @param node_ - node to find arrows in
  * @return Sequence of arrows
  */
-CAT_EXPORT std::vector<cat::Arrow> map_nodes2arrows(const cat::Node::Vec& nodes_, const cat::Node& node_);
+CAT_EXPORT cat::Arrow::List map_nodes2arrows(const cat::Node::List& nodes_, const cat::Node& node_);
 
 /**
  * @brief Find all compositions
@@ -92,7 +92,7 @@ CAT_EXPORT void inverse(cat::Node& node_);
  * @param node_ - node to find initial nodes in
  * @return Initial nodes
  */
-CAT_EXPORT cat::Node::Vec initial(cat::Node& node_);
+CAT_EXPORT cat::Node::List initial(cat::Node& node_);
 
 /**
  * @brief Find terminal nodes. All arrow compositions
@@ -100,7 +100,7 @@ CAT_EXPORT cat::Node::Vec initial(cat::Node& node_);
  * @param node_ - node to find terminal nodes in
  * @return Terminal nodes
  */
-CAT_EXPORT cat::Node::Vec terminal(cat::Node& node_);
+CAT_EXPORT cat::Node::List terminal(cat::Node& node_);
 
 ///**
 // * @brief Coproduct
