@@ -65,9 +65,9 @@ namespace cat
          assert(cat.Arrows().size() == 0);
       }
 
-      auto fnCheckArrow = [](const Arrow::Vec& morphs_, const Arrow& morph_)
+      auto fnCheckArrow = [](const Arrow::List& morphs_, const Arrow& morph_)
       {
-         auto it = std::find_if(morphs_.begin(), morphs_.end(), [&](const Arrow::Vec::value_type& element_)
+         auto it = std::find_if(morphs_.begin(), morphs_.end(), [&](const Arrow::List::value_type& element_)
          {
             return element_.name == morph_.name && element_.source == morph_.source && element_.target == morph_.target;
          });

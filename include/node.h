@@ -5,6 +5,7 @@
 #include <set>
 #include <optional>
 #include <string>
+#include <list>
 
 #include "cat_export.h"
 
@@ -50,11 +51,13 @@ namespace cat
 
       std::optional<Node> operator()(const std::optional<Node>& node_) const;
 
-      using Vec = std::vector<Arrow>;
+      using Vec   = std::vector<Arrow>;
+      using List  = std::list<Arrow>;
+      using AName = std::string;
 
       std::string source;
       std::string target;
-      std::string name;
+      AName       name;
       Vec         arrows;
    };
 
@@ -75,13 +78,22 @@ namespace cat
       using Set      = std::set<Node>;
       using Map      = std::map<Node, Set>;
       using Vec      = std::vector<Node>;
+      using List     = std::list<Node>;
       using PairSet  = std::pair<Node, Set>;
+      using NName    = std::string;
 
       /**
       * @brief Node constructor
       * @param name_ - node name
       */
-      explicit Node(const std::string& name_);
+      explicit Node(const NName& name_);
+
+      /**
+       * @brief Add arrow
+       * @param arrow_ - arrow
+       * @return True if successful
+       */
+      bool AddArrow(const Arrow& arrow_);
 
       /**
        * @brief Add arrows
@@ -95,12 +107,19 @@ namespace cat
        * @param arrow_ - arrow name
        * @return True if successfull
        */
-      bool EraseArrow(const std::string& arrow_);
+      bool EraseArrow(const Arrow::AName& arrow_);
 
       /**
        * @brief Erase all arrows
        */
       void EraseArrows();
+
+      /**
+      * @brief Add node
+      * @param node_ - node
+      * @return True if successful
+      */
+      bool AddNode(const Node& node_);
 
       /**
        * @brief Add nodes
@@ -114,7 +133,7 @@ namespace cat
        * @param node_ - node name
        * @return True if successfull
        */
-      bool EraseNode(const std::string& node_);
+      bool EraseNode(const NName& node_);
 
       /**
        * @brief Erase all nodes
@@ -126,28 +145,28 @@ namespace cat
        * @param target_ - target name
        * @return Source nodes
        */
-      StringVec FindSources(const std::string& target_) const;
+      std::list<NName> FindSources(const NName& target_) const;
 
       /**
        * @brief Find target nodes for the source node
        * @param source_ - source name
        * @return Target nodes
        */
-      StringVec FindTargets(const std::string& source_) const;
+      std::list<NName> FindTargets(const NName& source_) const;
 
       /**
       * @brief Find nodes as sources to the identified targets
       * @param targets_ - target node names
       * @return Nodes
       */
-      Vec FindByTargets(const StringVec& targets_) const;
+      List FindByTargets(const std::list<NName>& targets_) const;
 
       /**
        * @brief Find node
        * @param name_ - node name
        * @return Node
        */
-      std::optional<Node> FindNode(const std::string& name_) const;
+      std::optional<Node> FindNode(const NName& name_) const;
 
       /**
        * @brief Return nodes
@@ -161,7 +180,7 @@ namespace cat
        * @param target_ - target name
        * @return Arrow
        */
-      std::optional<Arrow> FindArrow(const std::string& source_, const std::string& target_) const;
+      std::optional<Arrow> FindArrow(const NName& source_, const NName& target_) const;
 
       /**
        * @brief Find arrows by source and target
@@ -169,20 +188,20 @@ namespace cat
        * @param target_ - target name
        * @return Arrows
        */
-      Arrow::Vec FindArrows(const std::string& source_, const std::string& target_) const;
+      Arrow::List FindArrows(const NName& source_, const NName& target_) const;
 
       /**
        * @brief Find arrow
        * @param name_ - arrow name
        * @return Arrow
        */
-      std::optional<Arrow> FindArrow(const std::string& name_) const;
+      std::optional<Arrow> FindArrow(const Arrow::AName& name_) const;
 
       /**
        * @brief Return arrows
        * @return Arrows
        */
-      const Arrow::Vec& Arrows() const;
+      const Arrow::List& Arrows() const;
 
       /**
        * @brief Proof node
@@ -214,24 +233,10 @@ namespace cat
       bool Verify(const Arrow& arrow_) const;
 
       /**
-         * @brief Add node
-         * @param node_ - node
-         * @return True if successful
-         */
-      bool AddNode(const Node& node_);
-
-      /**
-       * @brief Add arrow
-       * @param arrow_ - arrow
-       * @return True if successful
-       */
-      bool AddArrow(const Arrow& arrow_);
-
-      /**
        * @brief Return node name
        * @return Name
        */
-      const std::string& Name() const;
+      const NName& Name() const;
 
       bool Statement(const Arrow& arrow_);
 
@@ -242,8 +247,8 @@ namespace cat
       private:
 
       Map            m_nodes;
-      Arrow::Vec     m_arrows;
-      std::string    m_name;
+      Arrow::List    m_arrows;
+      NName          m_name;
    };
 
    struct CAT_EXPORT NodeKeyHasher

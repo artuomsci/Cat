@@ -103,8 +103,40 @@ static bool validate_node_data(const Node& node_)
 }
 
 //-----------------------------------------------------------------------------------------
-Node::Node(const std::string& name_) : m_name(name_)
+Node::Node(const NName& name_) : m_name(name_)
 {
+}
+
+//-----------------------------------------------------------------------------------------
+bool Node::AddArrow(const Arrow& arrow_)
+{
+   if (Proof(arrow_))
+   {
+      print_error("Arrow redefinition: " + arrow_.name);
+      return false;
+   }
+
+   for (const Arrow& arrow : m_arrows)
+   {
+      if (arrow_.name == arrow.name && arrow_.target != arrow.target)
+      {
+         print_error("Arrow redefinition: " + arrow_.name);
+         return false;
+      }
+   }
+
+   if (!Verify(arrow_))
+      return false;
+
+   auto it = m_nodes.find(Node(arrow_.target));
+
+   const auto& [target, _] = *it;
+
+   m_nodes.at(Node(arrow_.source)).insert(target);
+
+   m_arrows.push_back(arrow_);
+
+   return true;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -120,7 +152,7 @@ bool Node::AddArrows(const Arrow::Vec& arrows_)
 }
 
 //-----------------------------------------------------------------------------------------
-bool Node::EraseArrow(const std::string& arrow_)
+bool Node::EraseArrow(const Arrow::AName& arrow_)
 {
    for (Arrow& arrow : m_arrows)
    {
@@ -139,15 +171,15 @@ bool Node::EraseArrow(const std::string& arrow_)
       }
    }
 
-   auto it_begin = std::remove_if(m_arrows.begin(), m_arrows.end(), [&](const Arrow::Vec::value_type& element_)
-      {
-         return element_.name == arrow_;
-      });
+   auto it_delete = std::find_if(m_arrows.begin(), m_arrows.end(), [&](const Arrow::Vec::value_type& element_)
+   {
+      return element_.name == arrow_;
+   });
 
-   if (it_begin == m_arrows.end())
+   if (it_delete == m_arrows.end())
       return false;
 
-   m_arrows.erase(it_begin, m_arrows.end());
+   m_arrows.erase(it_delete);
 
    return true;
 }
@@ -159,6 +191,33 @@ void Node::EraseArrows()
 
    for (auto& [_, nodeset] : m_nodes)
       nodeset.clear();
+}
+
+//-----------------------------------------------------------------------------------------
+bool Node::AddNode(const Node& node_)
+{
+   if (node_.Name().empty())
+      return false;
+
+   if (m_nodes.find(node_) == m_nodes.end())
+   {
+      m_nodes[node_];
+
+      Arrow func(node_.Name(), node_.Name(), id_arrow_name(node_.Name()));
+
+      for (const auto& [id, _] : node_.Nodes())
+         func.arrows.emplace_back(id.Name(), id.Name());
+
+      if (!AddArrow(func))
+         return false;
+   }
+   else
+   {
+      print_error("Node redefinition: " + node_.Name());
+      return false;
+   }
+
+   return true;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -174,9 +233,9 @@ bool Node::AddNodes(const Vec& nodes_)
 }
 
 //-----------------------------------------------------------------------------------------
-bool Node::EraseNode(const std::string& node_)
+bool Node::EraseNode(const NName& node_)
 {
-   std::string name_copy = node_;
+   NName name_copy = node_;
 
    auto it = m_nodes.find(Node(name_copy));
    if (it != m_nodes.end())
@@ -187,9 +246,9 @@ bool Node::EraseNode(const std::string& node_)
          codomain.erase(Node(name_copy));
 
       auto it_end = std::remove_if(m_arrows.begin(), m_arrows.end(), [&](const Arrow::Vec::value_type& element_)
-         {
-            return element_.source == name_copy || element_.target == name_copy;
-         });
+      {
+         return element_.source == name_copy || element_.target == name_copy;
+      });
 
       m_arrows.erase(it_end, m_arrows.end());
 
@@ -207,9 +266,9 @@ void Node::EraseNodes()
 }
 
 //-----------------------------------------------------------------------------------------
-StringVec Node::FindSources(const std::string& target_) const
+std::list<Node::NName> Node::FindSources(const NName& target_) const
 {
-   StringVec ret; ret.reserve(m_arrows.size());
+   std::list<NName> ret;
 
    for (const Arrow& func : m_arrows)
    {
@@ -221,9 +280,9 @@ StringVec Node::FindSources(const std::string& target_) const
 }
 
 //-----------------------------------------------------------------------------------------
-StringVec Node::FindTargets(const std::string& source_) const
+std::list<Node::NName> Node::FindTargets(const NName& source_) const
 {
-   StringVec ret; ret.reserve(m_arrows.size());
+   std::list<NName> ret;
 
    for (const Arrow& func : m_arrows)
    {
@@ -235,22 +294,24 @@ StringVec Node::FindTargets(const std::string& source_) const
 }
 
 //-----------------------------------------------------------------------------------------
-Node::Vec Node::FindByTargets(const StringVec& targets_) const
+Node::List Node::FindByTargets(const std::list<Node::NName>& targets_) const
 {
-   std::vector<Node> ret; ret.reserve(targets_.size());
+   Node::List ret;
 
    for (const auto& [domain, codomain] : m_nodes)
    {
-      for (int i = 0; i < (int)targets_.size(); ++i)
+      auto it_last = std::prev(targets_.end());
+
+      for (auto it = targets_.begin(); it != targets_.end(); ++it)
       {
          // skipping identities
-         if (domain.Name() == targets_[i])
+         if (domain.Name() == *it)
             continue;
 
-         if (codomain.find(Node(targets_[i])) == codomain.end())
+         if (codomain.find(Node(*it)) == codomain.end())
             break;
 
-         if (i == targets_.size() - 1)
+         if (it == it_last)
             ret.push_back(domain);
       }
    }
@@ -259,7 +320,7 @@ Node::Vec Node::FindByTargets(const StringVec& targets_) const
 }
 
 //-----------------------------------------------------------------------------------------
-std::optional<Node> Node::FindNode(const std::string& name_) const
+std::optional<Node> Node::FindNode(const NName& name_) const
 {
    auto it = m_nodes.find(Node(name_));
    if (it != m_nodes.end())
@@ -275,7 +336,7 @@ const Node::Map& Node::Nodes() const
 }
 
 //-----------------------------------------------------------------------------------------
-std::optional<Arrow> Node::FindArrow(const std::string& source_, const std::string& target_) const
+std::optional<Arrow> Node::FindArrow(const NName& source_, const NName& target_) const
 {
    for (const Arrow& arrow : m_arrows)
    {
@@ -287,9 +348,9 @@ std::optional<Arrow> Node::FindArrow(const std::string& source_, const std::stri
 }
 
 //-----------------------------------------------------------------------------------------
-Arrow::Vec Node::FindArrows(const std::string& source_, const std::string& target_) const
+Arrow::List Node::FindArrows(const NName& source_, const NName& target_) const
 {
-   Arrow::Vec ret;
+   Arrow::List ret;
 
    for (const Arrow& arrow : m_arrows)
    {
@@ -301,7 +362,7 @@ Arrow::Vec Node::FindArrows(const std::string& source_, const std::string& targe
 }
 
 //-----------------------------------------------------------------------------------------
-std::optional<Arrow> Node::FindArrow(const std::string& name_) const
+std::optional<Arrow> Node::FindArrow(const Arrow::AName& name_) const
 {
    for (const Arrow& arrow : m_arrows)
    {
@@ -313,7 +374,7 @@ std::optional<Arrow> Node::FindArrow(const std::string& name_) const
 }
 
 //-----------------------------------------------------------------------------------------
-const Arrow::Vec& Node::Arrows() const
+const Arrow::List& Node::Arrows() const
 {
    return m_arrows;
 }
@@ -439,66 +500,7 @@ bool Node::Verify(const Arrow& arrow_) const
 }
 
 //-----------------------------------------------------------------------------------------
-bool Node::AddNode(const Node& node_)
-{
-   if (node_.Name().empty())
-      return false;
-
-   if (m_nodes.find(node_) == m_nodes.end())
-   {
-      m_nodes[node_];
-
-      Arrow func(node_.Name(), node_.Name(), id_arrow_name(node_.Name()));
-
-      for (const auto& [id, _] : node_.Nodes())
-         func.arrows.emplace_back(id.Name(), id.Name());
-
-      if (!AddArrow(func))
-         return false;
-   }
-   else
-   {
-      print_error("Node redefinition: " + node_.Name());
-      return false;
-   }
-
-   return true;
-}
-
-//-----------------------------------------------------------------------------------------
-bool Node::AddArrow(const Arrow& arrow_)
-{
-   if (Proof(arrow_))
-   {
-      print_error("Arrow redefinition: " + arrow_.name);
-      return false;
-   }
-
-   for (const Arrow& arrow : m_arrows)
-   {
-      if (arrow_.name == arrow.name && arrow_.target != arrow.target)
-      {
-         print_error("Arrow redefinition: " + arrow_.name);
-         return false;
-      }
-   }
-
-   if (!Verify(arrow_))
-      return false;
-
-   auto it = m_nodes.find(Node(arrow_.target));
-
-   const auto& [target, _] = *it;
-
-   m_nodes.at(Node(arrow_.source)).insert(target);
-
-   m_arrows.push_back(arrow_);
-
-   return true;
-}
-
-//-----------------------------------------------------------------------------------------
-const std::string& Node::Name() const
+const Node::NName& Node::Name() const
 {
    return m_name;
 }

@@ -756,11 +756,11 @@ std::vector<Arrow> map_nodes2arrows(const Node::Vec& nodes_, const Node& node_)
 {
    std::vector<Arrow> ret;
 
-   const Arrow::Vec& arrows = node_.Arrows();
+   const Arrow::List& arrows = node_.Arrows();
 
    for (int i = 0; i < (int)nodes_.size() - 1; ++i)
    {
-      auto it = std::find_if(arrows.begin(), arrows.end(), [&](const Arrow::Vec::value_type& elem_)
+      auto it = std::find_if(arrows.begin(), arrows.end(), [&](const Arrow::List::value_type& elem_)
       {
          return nodes_[i + 0].Name() == elem_.source && nodes_[i + 1].Name() == elem_.target;
       });
@@ -781,8 +781,7 @@ void solve_compositions(Node& node_)
       Node::Set new_codomain;
       while (!traverse.empty())
       {
-         for (const Node& it : traverse)
-            new_codomain.insert(it);
+         new_codomain.insert(traverse.begin(), traverse.end());
 
          Node::Set new_traverse;
          for (const Node& node : traverse)
@@ -815,14 +814,14 @@ void solve_compositions(Node& node_)
 //-----------------------------------------------------------------------------------------
 void inverse(Node& node_)
 {
-   Arrow::Vec morphs = node_.Arrows();
+   Arrow::List arrows = node_.Arrows();
 
    node_.EraseArrows();
 
-   for (const Arrow& morph : morphs)
+   for (const Arrow& arrow : arrows)
    {
-      std::string name = default_arrow_name(morph.source, morph.target) == morph.name ? default_arrow_name(morph.target, morph.source) : morph.name;
-      node_.AddArrow(Arrow(morph.target, morph.source, name));
+      std::string name = default_arrow_name(arrow.source, arrow.target) == arrow.name ? default_arrow_name(arrow.target, arrow.source) : arrow.name;
+      node_.AddArrow(Arrow(arrow.target, arrow.source, name));
    }
 }
 
