@@ -58,7 +58,7 @@ namespace cat
       std::string source;
       std::string target;
       AName       name;
-      Vec         arrows;
+      List        arrows;
    };
 
    /**

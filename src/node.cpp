@@ -437,6 +437,12 @@ bool Node::Verify(const Arrow& arrow_) const
    const auto& [source_cat, _s] = *itSourceCat;
    const auto& [target_cat, _t] = *itTargetCat;
 
+   if (arrow_.arrows.size() > source_cat.Nodes().size())
+   {
+      print_error("Number of arrows exceeds the number of nodes in the: " + source_cat.Name());
+      return false;
+   }
+
    // Checking mapping of objects
    for (const auto& [obj, _] : source_cat.Nodes())
    {
