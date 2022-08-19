@@ -756,7 +756,9 @@ Arrow::List map_nodes2arrows(const Node::List& nodes_, const Node& node_)
 
    const Arrow::List& arrows = node_.Arrows();
 
-   for (auto itn = nodes_.begin(); itn != nodes_.end(); ++itn)
+   auto it_last = std::prev(nodes_.end());
+
+   for (auto itn = nodes_.begin(); itn != it_last; ++itn)
    {
       auto it = std::find_if(arrows.begin(), arrows.end(), [&](const Arrow::List::value_type& elem_)
       {
@@ -821,6 +823,114 @@ void inverse(Node& node_)
       std::string name = default_arrow_name(arrow.source, arrow.target) == arrow.name ? default_arrow_name(arrow.target, arrow.source) : arrow.name;
       node_.AddArrow(Arrow(arrow.target, arrow.source, name));
    }
+}
+
+//-----------------------------------------------------------------------------------------
+CAT_EXPORT std::optional<cat::Node> mask(cat::Node& node_, std::string mask_)
+{
+   cat::Node ret(node_.Name());
+
+   std::string tr_mask = trim_sp(mask_);
+
+   StringVec argss = split(tr_mask, "->");
+   for (std::string& it : argss)
+      it = trim_sp(it);
+
+   if (argss.size() == 1)
+   {
+      StringVec args = split(argss.front(), ':');
+      for (std::string& it : args)
+         it = trim_sp(it);
+
+      if (args.size() == 1)
+      {
+         if (args.front() == sAny)
+            return node_;
+         else
+         {
+            for (const StringVec::value_type& name : split(args.front(), ','))
+            {
+               if (std::optional<Node> node = node_.FindNode(trim_sp(name)))
+               {
+                  if (!ret.AddNode(*node))
+                     return std::optional<cat::Node>();
+               }
+            }
+
+            for (const Arrow& arrow : node_.Arrows())
+            {
+               if (ret.Proof(Node(arrow.source)) && ret.Proof(Node(arrow.target)) && arrow.source != arrow.target)
+               {
+                  if (!ret.AddArrow(arrow))
+                     return std::optional<cat::Node>();
+               }
+            }
+         }
+      }
+      else
+      {
+         const auto& node_name = args.front();
+         const auto& sub_mask  = args.back ();
+
+         if (auto node = node_.FindNode(node_name))
+         {
+            auto masked_node = mask(*node, sub_mask);
+            if (!masked_node)
+               return std::optional<cat::Node>();
+
+            if (!ret.AddNode(*masked_node))
+               return std::optional<cat::Node>();
+         }
+         else
+            return std::optional<cat::Node>();
+      }
+
+      return ret;
+   }
+   else
+   {
+      auto it_last = std::prev(argss.end());
+
+      for (StringVec::iterator it = argss.begin(); it != it_last; ++it)
+      {
+         auto source_arg = *it;
+         auto target_arg = *std::next(it);
+
+         auto source_holder = mask(node_, source_arg);
+         if (!source_holder)
+            return std::optional<cat::Node>();
+
+         auto target_holder = mask(node_, target_arg);
+         if (!target_holder)
+            return std::optional<cat::Node>();
+
+         auto [source, src_set] = *source_holder->Nodes().begin();
+         auto [target, trg_set] = *target_holder->Nodes().begin();
+
+         if (!ret.AddNode(source))
+            return std::optional<cat::Node>();
+
+         if (!ret.AddNode(target))
+            return std::optional<cat::Node>();
+
+         auto arrow = node_.FindArrow(source.Name(), target.Name());
+         if (!arrow)
+            return std::optional<cat::Node>();
+
+         for (Arrow::List::iterator it = arrow->arrows.begin(); it != arrow->arrows.end();)
+         {
+            if (!source.Proof(Node(it->source)))
+               it = arrow->arrows.erase(it);
+            else
+               it++;
+         }
+
+         if (!ret.AddArrow(*arrow))
+            return std::optional<cat::Node>();
+      }
+   }
+
+   return ret;
 }
 
 //-----------------------------------------------------------------------------------------

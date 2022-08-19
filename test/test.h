@@ -349,6 +349,117 @@ namespace cat
       }
 
       //============================================================
+      // Mask test
+      //============================================================
+      {
+         //
+         Node A("A");
+
+         {
+            Node a0("a0"), a1("a1"), b("b"), c("c"), d0("d0"), d1("d1");
+
+            A.AddNodes({ a0, a1, b, c, d0, d1 });
+
+            A.AddArrow(cat::Arrow(a0.Name(), a1.Name()));
+            A.AddArrow(cat::Arrow(d0.Name(), d1.Name()));
+            A.AddArrow(cat::Arrow(a1.Name(), d1.Name()));
+         }
+
+         //
+         Node D("D");
+
+         {
+            Node a0("a0"), a1("a1"), b("b"), c("c"), d0("d0"), d1("d1");
+
+            D.AddNodes({ a0, a1, b, c, d0, d1 });
+
+            D.AddArrow(cat::Arrow(a0.Name(), a1.Name()));
+            D.AddArrow(cat::Arrow(d0.Name(), d1.Name()));
+            D.AddArrow(cat::Arrow(a1.Name(), d1.Name()));
+         }
+
+         //
+         Node cat("cat");
+
+         cat.AddNode(A);
+         cat.AddNode(D);
+         cat.AddNode(Node("B"));
+         cat.AddNode(Node("C"));
+
+         cat.AddArrow(Arrow("B", "C"));
+         cat.AddArrow(Arrow("B", "A"));
+
+         Arrow AD("A", "D");
+         AD.arrows.push_back(Arrow("a0", "a0"));
+         AD.arrows.push_back(Arrow("a1", "a1"));
+         AD.arrows.push_back(Arrow("b", "d0"));
+         AD.arrows.push_back(Arrow("c", "d0"));
+         AD.arrows.push_back(Arrow("d0", "d0"));
+         AD.arrows.push_back(Arrow("d1", "d1"));
+
+         cat.AddArrow(AD);
+
+         // Matching everything
+         Node mcat = *mask(cat, "*");
+
+         assert(mcat == cat);
+
+         // Matching single node
+         mcat = *mask(cat, "A");
+
+         assert(mcat.Name() == cat.Name());
+         assert(mcat.Nodes().size() == 1);
+         assert(mcat.FindNode("A"));
+         assert(mcat.Arrows().size() == 1);
+
+         assert(mcat.FindNode("A")->Nodes().size() == 6);
+         assert(mcat.FindNode("A")->Arrows().size() == 9);
+
+         // Matching multiple nodes
+         mcat = *mask(cat, "B, C");
+
+         assert(mcat.Name() == cat.Name());
+         assert(mcat.Nodes().size() == 2);
+         assert(mcat.FindNode("B"));
+         assert(mcat.FindNode("C"));
+         assert(mcat.Arrows().size() == 3);
+
+         // Matching sub nodes
+         mcat = *mask(cat, "A : a0, a1");
+
+         assert(mcat.Name() == cat.Name());
+         assert(mcat.Nodes().size() == 1);
+         assert(mcat.FindNode("A"));
+         assert(mcat.FindNode("A")->Nodes().size() == 2);
+         assert(mcat.FindNode("A")->Arrows().size() == 3);
+
+         // Matching by relation
+         mcat = *mask(cat, "B -> C");
+
+         assert(mcat.Nodes().size() == 2);
+         assert(mcat.Arrows().size() == 3);
+         assert(mcat.FindNode("B"));
+         assert(mcat.FindNode("C"));
+
+         // Matching by relation and subnodes
+         mcat = *mask(cat, "B -> A : d0, d1");
+
+         assert(mcat.FindNode("A"));
+         assert(mcat.FindNode("B"));
+         assert(mcat.FindNode("A")->FindNode("d0"));
+         assert(mcat.FindNode("A")->FindNode("d1"));
+
+         mcat = *mask(cat, "A : b, c -> D");
+
+         assert(mcat.FindNode("A"));
+         assert(mcat.FindNode("A")->FindNode("b"));
+         assert(mcat.FindNode("A")->FindNode("c"));
+         assert(mcat.FindNode("D"));
+         assert(mcat.FindArrow("A", "D"));
+         assert(mcat.FindArrow("A", "D")->arrows.size() == 2);
+      }
+
+      //============================================================
       // Coproduct test
       //============================================================
       {
