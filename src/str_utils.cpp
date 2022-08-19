@@ -76,6 +76,9 @@ StringVec cat::split(const std::string& string_, const std::string& splitter_, b
    std::string remain = string_;
 
    auto ind = remain.find(splitter_);
+   if (ind == -1)
+      return { string_ };
+
    while (ind != -1)
    {
       std::string chunk(std::string(remain.begin(), remain.begin() + ind));
