@@ -91,6 +91,36 @@ std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
 }
 
 //-----------------------------------------------------------------------------------------
+const std::string& Arrow::Source() const
+{
+   return source;
+}
+
+//-----------------------------------------------------------------------------------------
+const std::string& Arrow::Target() const
+{
+   return target;
+}
+
+//-----------------------------------------------------------------------------------------
+const Arrow::AName& Arrow::Name() const
+{
+   return name;
+}
+
+//-----------------------------------------------------------------------------------------
+const Arrow::List& Arrow::Arrows() const
+{
+   return arrows;
+}
+
+//-----------------------------------------------------------------------------------------
+void Arrow::AddArrow(const Arrow& arrow_)
+{
+   arrows.push_back(arrow_);
+}
+
+//-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
 static bool validate_node_data(const Node& node_)
 {
@@ -112,15 +142,15 @@ bool Node::AddArrow(const Arrow& arrow_)
 {
    if (Proof(arrow_))
    {
-      print_error("Arrow redefinition: " + arrow_.name);
+      print_error("Arrow redefinition: " + arrow_.Name());
       return false;
    }
 
    for (const Arrow& arrow : m_arrows)
    {
-      if (arrow_.name == arrow.name && arrow_.target != arrow.target)
+      if (arrow_.Name() == arrow.Name() && arrow_.Target() != arrow.Target())
       {
-         print_error("Arrow redefinition: " + arrow_.name);
+         print_error("Arrow redefinition: " + arrow_.Name());
          return false;
       }
    }
@@ -128,11 +158,11 @@ bool Node::AddArrow(const Arrow& arrow_)
    if (!Verify(arrow_))
       return false;
 
-   auto it = m_nodes.find(Node(arrow_.target));
+   auto it = m_nodes.find(Node(arrow_.Target()));
 
    const auto& [target, _] = *it;
 
-   m_nodes.at(Node(arrow_.source)).insert(target);
+   m_nodes.at(Node(arrow_.Source())).insert(target);
 
    m_arrows.push_back(arrow_);
 
@@ -156,24 +186,24 @@ bool Node::EraseArrow(const Arrow::AName& arrow_)
 {
    for (Arrow& arrow : m_arrows)
    {
-      if (arrow.name == arrow_)
+      if (arrow.Name() == arrow_)
       {
-         auto it_node = m_nodes.find(Node(arrow.source));
+         auto it_node = m_nodes.find(Node(arrow.Source()));
          if (it_node != m_nodes.end())
          {
-            if (arrow.source == arrow.target)
+            if (arrow.Source() == arrow.Target())
                return false;
 
             auto& [_, node_set] = *it_node;
 
-            node_set.erase(Node(arrow.target));
+            node_set.erase(Node(arrow.Target()));
          }
       }
    }
 
    auto it_delete = std::find_if(m_arrows.begin(), m_arrows.end(), [&](const Arrow::Vec::value_type& element_)
    {
-      return element_.name == arrow_;
+      return element_.Name() == arrow_;
    });
 
    if (it_delete == m_arrows.end())
@@ -206,7 +236,7 @@ bool Node::AddNode(const Node& node_)
       Arrow func(node_.Name(), node_.Name(), id_arrow_name(node_.Name()));
 
       for (const auto& [id, _] : node_.Nodes())
-         func.arrows.emplace_back(id.Name(), id.Name());
+         func.AddArrow(Arrow(id.Name(), id.Name()));
 
       if (!AddArrow(func))
          return false;
@@ -247,7 +277,7 @@ bool Node::EraseNode(const NName& node_)
 
       auto it_end = std::remove_if(m_arrows.begin(), m_arrows.end(), [&](const Arrow::Vec::value_type& element_)
       {
-         return element_.source == name_copy || element_.target == name_copy;
+         return element_.Source() == name_copy || element_.Target() == name_copy;
       });
 
       m_arrows.erase(it_end, m_arrows.end());
@@ -272,8 +302,8 @@ std::list<Node::NName> Node::FindSources(const NName& target_) const
 
    for (const Arrow& func : m_arrows)
    {
-      if (func.target == target_)
-         ret.push_back(func.source);
+      if (func.Target() == target_)
+         ret.push_back(func.Source());
    }
 
    return ret;
@@ -286,8 +316,8 @@ std::list<Node::NName> Node::FindTargets(const NName& source_) const
 
    for (const Arrow& func : m_arrows)
    {
-      if (func.source == source_)
-         ret.push_back(func.target);
+      if (func.Source() == source_)
+         ret.push_back(func.Target());
    }
 
    return ret;
@@ -340,7 +370,7 @@ std::optional<Arrow> Node::FindArrow(const NName& source_, const NName& target_)
 {
    for (const Arrow& arrow : m_arrows)
    {
-      if (arrow.source == source_ && arrow.target == target_)
+      if (arrow.Source() == source_ && arrow.Target() == target_)
          return arrow;
    }
 
@@ -354,7 +384,7 @@ Arrow::List Node::FindArrows(const NName& source_, const NName& target_) const
 
    for (const Arrow& arrow : m_arrows)
    {
-      if (arrow.source == source_ && arrow.target == target_)
+      if (arrow.Source() == source_ && arrow.Target() == target_)
          ret.push_back(arrow);
    }
 
@@ -366,7 +396,7 @@ std::optional<Arrow> Node::FindArrow(const Arrow::AName& name_) const
 {
    for (const Arrow& arrow : m_arrows)
    {
-      if (arrow.name == name_)
+      if (arrow.Name() == name_)
          return std::optional<Arrow>(arrow);
    }
 
@@ -390,7 +420,7 @@ bool Node::Proof(const Arrow& arrow_) const
 {
    auto it = std::find_if(m_arrows.begin(), m_arrows.end(), [&](const Arrow::Vec::value_type& element_)
       {
-         return element_.source == arrow_.source && element_.target == arrow_.target && element_.name == arrow_.name;
+         return element_.Source() == arrow_.Source() && element_.Target() == arrow_.Target() && element_.Name() == arrow_.Name();
       });
 
    return it != m_arrows.end();
@@ -419,29 +449,29 @@ bool Node::Proof(const Node& source_, const Node& target_) const
 //-----------------------------------------------------------------------------------------
 bool Node::Verify(const Arrow& arrow_) const
 {
-   auto itSourceCat = m_nodes.find(Node(arrow_.source));
-   auto itTargetCat = m_nodes.find(Node(arrow_.target));
+   auto itSourceCat = m_nodes.find(Node(arrow_.Source()));
+   auto itTargetCat = m_nodes.find(Node(arrow_.Target()));
 
    if (itSourceCat == m_nodes.end())
    {
-      print_error("No such source node: " + arrow_.source);
+      print_error("No such source node: " + arrow_.Source());
       return false;
    }
 
    if (itTargetCat == m_nodes.end())
    {
-      print_error("No such target node: " + arrow_.target);
+      print_error("No such target node: " + arrow_.Target());
       return false;
    }
 
    const auto& [source_cat, _s] = *itSourceCat;
    const auto& [target_cat, _t] = *itTargetCat;
 
-   for (const Arrow& arrow : arrow_.arrows)
+   for (const Arrow& arrow : arrow_.Arrows())
    {
-      if (!source_cat.FindNode(arrow.source))
+      if (!source_cat.FindNode(arrow.Source()))
       {
-         print_error("Missing node for " + arrow.source + "->" + arrow.target);
+         print_error("Missing node for " + arrow.Source() + "->" + arrow.Target());
          return false;
       }
    }
@@ -458,18 +488,18 @@ bool Node::Verify(const Arrow& arrow_) const
 
    for (const Arrow& arrow : source_cat.Arrows())
    {
-      auto objs = SingleMap(arrow_, Node(arrow.source));
-      auto objt = SingleMap(arrow_, Node(arrow.target));
+      auto objs = SingleMap(arrow_, Node(arrow.Source()));
+      auto objt = SingleMap(arrow_, Node(arrow.Target()));
 
       if (!objs)
       {
-         print_error("Failure to map node: " + arrow.source);
+         print_error("Failure to map node: " + arrow.Source());
          return false;
       }
 
-      if (!source_cat.Node::Proof(Node(arrow.source)))
+      if (!source_cat.Node::Proof(Node(arrow.Source())))
       {
-         print_error("No such node " + arrow.source + " in node " + source_cat.Name());
+         print_error("No such node " + arrow.Source() + " in node " + source_cat.Name());
          return false;
       }
 
@@ -481,13 +511,13 @@ bool Node::Verify(const Arrow& arrow_) const
 
       if (!objt)
       {
-         print_error("Failure to map node: " + arrow.target);
+         print_error("Failure to map node: " + arrow.Target());
          return false;
       }
 
-      if (!source_cat.Node::Proof(Node(arrow.target)))
+      if (!source_cat.Node::Proof(Node(arrow.Target())))
       {
-         print_error("No such node " + arrow.target + " in node " + source_cat.Name());
+         print_error("No such node " + arrow.Target() + " in node " + source_cat.Name());
          return false;
       }
 
@@ -517,13 +547,13 @@ const Node::NName& Node::Name() const
 //-----------------------------------------------------------------------------------------
 bool Node::Statement(const Arrow& arrow_)
 {
-   Node target(arrow_.target);
+   Node target(arrow_.Target());
 
-   auto it = m_nodes.find(Node(arrow_.target));
+   auto it = m_nodes.find(Node(arrow_.Target()));
    if (it != m_nodes.end())
       target = it->first;
 
-   auto source = FindNode(arrow_.source);
+   auto source = FindNode(arrow_.Source());
    if (!source)
       return false;
 
@@ -533,7 +563,7 @@ bool Node::Statement(const Arrow& arrow_)
       std::optional<Node> mnode = SingleMap(arrow_, node);
       if (!mnode)
       {
-         print_error("Missing arrow for node " + node.Name() + " in functor " + arrow_.name);
+         print_error("Missing arrow for node " + node.Name() + " in functor " + arrow_.Name());
          return false;
       }
 
@@ -544,8 +574,8 @@ bool Node::Statement(const Arrow& arrow_)
    // Mapping arrows
    for (const Arrow& arrow : source->Arrows())
    {
-      auto nodes = SingleMap(arrow_, Node(arrow.source));
-      auto nodet = SingleMap(arrow_, Node(arrow.target));
+      auto nodes = SingleMap(arrow_, Node(arrow.Source()));
+      auto nodet = SingleMap(arrow_, Node(arrow.Target()));
 
       if (!target.Proof(nodes.value(), nodet.value()))
          target.AddArrow(Arrow(nodes->Name(), nodet->Name()));
@@ -573,11 +603,11 @@ bool Node::Statement(const Arrow& arrow_)
 
    if (Proof(arrow_))
    {
-      print_error("Arrow already defined: " + arrow_.name);
+      print_error("Arrow already defined: " + arrow_.Name());
       return false;
    }
 
-   m_nodes[Node(arrow_.source)].insert(Node(arrow_.target));
+   m_nodes[Node(arrow_.Source())].insert(Node(arrow_.Target()));
 
    m_arrows.push_back(arrow_);
 
@@ -609,11 +639,11 @@ std::optional<Node> cat::SingleMap(const std::optional<Arrow>& arrow_, const std
    if (!arrow_ || !node_)
       return std::optional<Node>();
 
-   for (const Arrow& arrow : arrow_->arrows)
+   for (const Arrow& arrow : arrow_->Arrows())
    {
-      if (arrow.source == node_->Name())
+      if (arrow.Source() == node_->Name())
       {
-         return std::optional<Node>(arrow.target);
+         return std::optional<Node>(arrow.Target());
       }
    }
 

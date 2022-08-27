@@ -103,34 +103,34 @@ static void export_cytoscape_t(const std::string& name_, const Node& node_, cons
    {
       for (const auto& arrow : node_.Arrows())
       {
-         if (skip_identity_ && arrow.source == arrow.target)
+         if (skip_identity_ && arrow.Source() == arrow.Target())
             continue;
 
          // nodes
          char buffern[1024];
 
-         auto it_source_crd = coords_.find(Node(arrow.source));
-         auto it_target_crd = coords_.find(Node(arrow.target));
+         auto it_source_crd = coords_.find(Node(arrow.Source()));
+         auto it_target_crd = coords_.find(Node(arrow.Target()));
 
-         if (exclude_.find(Node(arrow.source)) != exclude_.end())
+         if (exclude_.find(Node(arrow.Source())) != exclude_.end())
             continue;
 
-         if (exclude_.find(Node(arrow.target)) != exclude_.end())
+         if (exclude_.find(Node(arrow.Target())) != exclude_.end())
             continue;
 
          if (it_source_crd != coords_.end() && it_target_crd != coords_.end())
          {
-            const TVec2& source_crd = coords_.at(Node(arrow.source));
-            const TVec2& target_crd = coords_.at(Node(arrow.target));
+            const TVec2& source_crd = coords_.at(Node(arrow.Source()));
+            const TVec2& target_crd = coords_.at(Node(arrow.Target()));
 
             int x = (source_crd.first + target_crd.first) * 0.5;
             int y = (source_crd.second + target_crd.second) * 0.5;
 
-            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", arrow.name.c_str(), arrow.name.c_str(), "Link", x, y);
+            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' }, position: { x: %d, y: %d } }", arrow.Name().c_str(), arrow.Name().c_str(), "Link", x, y);
          }
          else
          {
-            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", arrow.name.c_str(), arrow.name.c_str(), "Link");
+            sprintf(buffern, "{ data: { id: '%s', name: '%s', type: '%s' } }", arrow.Name().c_str(), arrow.Name().c_str(), "Link");
          }
 
          nodes += (nodes.empty() ? "" : ",") +  std::string(buffern) + "\n";
@@ -143,18 +143,18 @@ static void export_cytoscape_t(const std::string& name_, const Node& node_, cons
    {
       for (const auto& arrow : node_.Arrows())
       {
-         if (skip_identity_ && arrow.source == arrow.target)
+         if (skip_identity_ && arrow.Source() == arrow.Target())
             continue;
 
-         if (exclude_.find(Node(arrow.source)) != exclude_.end())
+         if (exclude_.find(Node(arrow.Source())) != exclude_.end())
             continue;
 
-         if (exclude_.find(Node(arrow.target)) != exclude_.end())
+         if (exclude_.find(Node(arrow.Target())) != exclude_.end())
             continue;
 
          // edges
          char buffere[1024];
-         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", arrow.source.c_str(), arrow.target.c_str());
+         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", arrow.Source().c_str(), arrow.Target().c_str());
 
          edges += (edges.empty() ? "" : ",") +  std::string(buffere) + "\n";
       }
@@ -163,23 +163,23 @@ static void export_cytoscape_t(const std::string& name_, const Node& node_, cons
    {
       for (const auto& arrow : node_.Arrows())
       {
-         if (skip_identity_ && arrow.source == arrow.target)
+         if (skip_identity_ && arrow.Source() == arrow.Target())
             continue;
 
-         if (exclude_.find(Node(arrow.source)) != exclude_.end())
+         if (exclude_.find(Node(arrow.Source())) != exclude_.end())
             continue;
 
-         if (exclude_.find(Node(arrow.target)) != exclude_.end())
+         if (exclude_.find(Node(arrow.Target())) != exclude_.end())
             continue;
 
          // edges
          char buffere[1024];
 
-         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", arrow.source.c_str(), arrow.name.c_str());
+         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", arrow.Source().c_str(), arrow.Name().c_str());
 
          edges += (edges.empty() ? "" : ",") +  std::string(buffere) + "\n";
 
-         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", arrow.name.c_str(), arrow.target.c_str());
+         sprintf(buffere, "{ data: { source: '%s', target: '%s' } }", arrow.Name().c_str(), arrow.Target().c_str());
 
          edges += (edges.empty() ? "" : ",") +  std::string(buffere) + "\n";
       }

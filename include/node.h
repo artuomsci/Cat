@@ -32,10 +32,12 @@ namespace cat
    class Node;
 
    /**
-    * @brief The Arrow struct represents morphisms and functors
+    * @brief The Arrow class represents morphisms and functors
     */
-   struct CAT_EXPORT Arrow
+   class CAT_EXPORT Arrow
    {
+   public:
+
       Arrow(const std::string& source_, const std::string& target_, const std::string& arrow_name_);
       Arrow(const std::string& source_, const std::string& target_);
 
@@ -54,6 +56,38 @@ namespace cat
       using Vec   = std::vector<Arrow>;
       using List  = std::list<Arrow>;
       using AName = std::string;
+
+      /**
+       * @brief Returns arrow source name
+       * @return Name
+       */
+      const std::string& Source() const;
+
+      /**
+       * @brief Returns arrow target name
+       * @return Name
+       */
+      const std::string& Target() const;
+
+      /**
+       * @brief Returns arrow name
+       * @return Name
+       */
+      const AName& Name() const;
+
+      /**
+       * @brief Returns arrows
+       * @return Arrows
+       */
+      const List& Arrows() const;
+
+      /**
+       * @brief Add arrow
+       * @param arrow_ - arrow
+       */
+      void AddArrow(const Arrow& arrow_);
+
+   private:
 
       std::string source;
       std::string target;

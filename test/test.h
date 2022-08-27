@@ -69,7 +69,7 @@ namespace cat
       {
          auto it = std::find_if(morphs_.begin(), morphs_.end(), [&](const Arrow::List::value_type& element_)
          {
-            return element_.name == morph_.name && element_.source == morph_.source && element_.target == morph_.target;
+            return element_.Name() == morph_.Name() && element_.Source() == morph_.Source() && element_.Target() == morph_.Target();
          });
 
          return it != morphs_.end();

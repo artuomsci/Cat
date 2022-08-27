@@ -277,7 +277,7 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
          Arrow::Vec backup;
          for (const auto& arrow : ccat_.Arrows())
          {
-            if (arrow.source == crt_cat_->Name() || arrow.target == crt_cat_->Name())
+            if (arrow.Source() == crt_cat_->Name() || arrow.Target() == crt_cat_->Name())
                backup.push_back(arrow);
          }
 
@@ -340,11 +340,11 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
       {
          if (expr_type_ == EExpType::eStatement)
          {
-            if (!crt_cat_->Node::Proof(Node(morph.source)))
-               crt_cat_->AddNode(Node(morph.source));
+            if (!crt_cat_->Node::Proof(Node(morph.Source())))
+               crt_cat_->AddNode(Node(morph.Source()));
 
-            if (!crt_cat_->Node::Proof(Node(morph.target)))
-               crt_cat_->AddNode(Node(morph.target));
+            if (!crt_cat_->Node::Proof(Node(morph.Target())))
+               crt_cat_->AddNode(Node(morph.Target()));
          }
 
          if (!crt_cat_->AddArrow(morph))
@@ -365,11 +365,11 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
 
       if (expr_type_ == EExpType::eStatement)
       {
-         if (!ccat_.Node::Proof(Node(funcs.front().source)))
-            ccat_.AddNode(Node(funcs.front().source));
+         if (!ccat_.Node::Proof(Node(funcs.front().Source())))
+            ccat_.AddNode(Node(funcs.front().Source()));
 
-         if (!ccat_.Node::Proof(Node(funcs.front().target)))
-            ccat_.AddNode(Node(funcs.front().target));
+         if (!ccat_.Node::Proof(Node(funcs.front().Target())))
+            ccat_.AddNode(Node(funcs.front().Target()));
       }
 
       crt_func_.emplace(funcs.front());
@@ -383,16 +383,16 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
       {
          if (expr_type_ == EExpType::eStatement)
          {
-            if (crt_func->arrows.empty())
+            if (crt_func->Arrows().empty())
             {
-               auto it = node_.Nodes().find(Node(crt_func->source));
+               auto it = node_.Nodes().find(Node(crt_func->Source()));
                if (it == node_.Nodes().end())
                   return false;
 
                const auto& [cat, _] = *it;
 
                for (const auto& [domain, _] : cat.Nodes())
-                  crt_func->arrows.emplace_back(domain.Name(), domain.Name());
+                  crt_func->AddArrow(Arrow(domain.Name(), domain.Name()));
             }
 
             if (!node_.Statement(crt_func.value()))
@@ -414,19 +414,19 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
    {
       const auto& cats = ccat_.Nodes();
 
-      auto itSourceCat = cats.find(Node(crt_func_.value().source));
-      auto itTargetCat = cats.find(Node(crt_func_.value().target));
+      auto itSourceCat = cats.find(Node(crt_func_.value().Source()));
+      auto itTargetCat = cats.find(Node(crt_func_.value().Target()));
 
       std::vector<Arrow> morphs = get_chain<ArrowType::eMorphism, Node>(line_, (*itSourceCat).first.Nodes(), (*itTargetCat).first.Nodes(), expr_type_);
       if (morphs.empty())
       {
 
-         print_error("Incorrect morphism definition " + line_ + " in functor " + crt_func_->name);
+         print_error("Incorrect morphism definition " + line_ + " in functor " + crt_func_->Name());
          return false;
       }
 
       for (const Arrow& morph : morphs)
-         crt_func_.value().arrows.push_back(morph);
+         crt_func_.value().AddArrow(morph);
 
      return true;
    };
@@ -762,7 +762,7 @@ Arrow::List map_nodes2arrows(const Node::List& nodes_, const Node& node_)
    {
       auto it = std::find_if(arrows.begin(), arrows.end(), [&](const Arrow::List::value_type& elem_)
       {
-         return itn->Name() == elem_.source && std::next(itn)->Name() == elem_.target;
+         return itn->Name() == elem_.Source() && std::next(itn)->Name() == elem_.Target();
       });
 
       ret.push_back(it != arrows.end() ? *it : Arrow("", ""));
@@ -820,8 +820,8 @@ void inverse(Node& node_)
 
    for (const Arrow& arrow : arrows)
    {
-      std::string name = default_arrow_name(arrow.source, arrow.target) == arrow.name ? default_arrow_name(arrow.target, arrow.source) : arrow.name;
-      node_.AddArrow(Arrow(arrow.target, arrow.source, name));
+      std::string name = default_arrow_name(arrow.Source(), arrow.Target()) == arrow.Name() ? default_arrow_name(arrow.Target(), arrow.Source()) : arrow.Name();
+      node_.AddArrow(Arrow(arrow.Target(), arrow.Source(), name));
    }
 }
 
