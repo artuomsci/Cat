@@ -315,6 +315,17 @@ std::optional<Node> Arrow::SingleMap(const std::optional<Node>& node_) const
 }
 
 //-----------------------------------------------------------------------------------------
+void Arrow::inverse()
+{
+   m_name = default_arrow_name(m_source, m_target) == m_name ? default_arrow_name(m_target, m_source) : m_name;
+
+   std::swap(m_source, m_target);
+
+   for (auto& arrow : m_arrows)
+      arrow.inverse();
+}
+
+//-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
 static bool validate_node_data(const Node& node_)
 {

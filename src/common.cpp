@@ -818,10 +818,10 @@ void inverse(Node& node_)
 
    node_.EraseArrows();
 
-   for (const Arrow& arrow : arrows)
+   for (Arrow& arrow : arrows)
    {
-      std::string name = default_arrow_name(arrow.Source(), arrow.Target()) == arrow.Name() ? default_arrow_name(arrow.Target(), arrow.Source()) : arrow.Name();
-      node_.AddArrow(Arrow(arrow.Target(), arrow.Source(), name));
+      arrow.inverse();
+      node_.AddArrow(arrow);
    }
 }
 

@@ -120,6 +120,11 @@ namespace cat
       */
       std::optional<Node> SingleMap(const std::optional<Node>& node_) const;
 
+      /**
+       * @brief Inverse arrow
+       */
+      void inverse();
+
    private:
 
       std::string m_source;

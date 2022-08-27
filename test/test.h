@@ -348,6 +348,9 @@ namespace cat
          assert(*initial_obj.begin() == *terminal_obj.begin());
       }
 
+      //============================================================
+      // Testing of arrow query
+      //============================================================
       {
          Arrow arrow("A", "B");
 
@@ -379,6 +382,23 @@ namespace cat
 
          ret = arrow.QueryArrows("* -[ ef_arrow ]-> f");
          assert(ret.front() == Arrow("e", "f", "ef_arrow"));
+      }
+
+      //============================================================
+      // Testing of arrow inversion
+      //============================================================
+      {
+         Arrow arrow("A", "B");
+
+         arrow.AddArrow(Arrow("a", "b"));
+         arrow.AddArrow(Arrow("c", "d"));
+         arrow.AddArrow(Arrow("e", "f", "ef_arrow"));
+
+         arrow.inverse();
+
+         assert(arrow.QueryArrows("b -> a").size() == 1);
+         assert(arrow.QueryArrows("d -> c").size() == 1);
+         assert(arrow.QueryArrows("f -[ ef_arrow ]-> e").size() == 1);
       }
 
       //============================================================
