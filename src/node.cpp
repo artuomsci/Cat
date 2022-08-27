@@ -90,7 +90,7 @@ std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
    }
 
    // Mapping of arrows
-   for (const Arrow& arrow : node_->Arrows())
+   for (const Arrow& arrow : node_->QueryArrows("* -> *"))
    {
       auto source = SingleMap(Node(arrow.m_source));
       auto target = SingleMap(Node(arrow.m_target));
@@ -197,7 +197,7 @@ static std::optional<Arrow> extract_arrow_from_query(const std::string& query_)
 }
 
 //-----------------------------------------------------------------------------------------
-Arrow::List Arrow::QueryArrows(const std::string& query_) const
+Arrow::List query_arrows(const std::string& query_, const Arrow::List& arrows_)
 {
    auto qarrow = extract_arrow_from_query(query_);
    if (!qarrow)
@@ -209,11 +209,11 @@ Arrow::List Arrow::QueryArrows(const std::string& query_) const
    {
       if (qarrow->Name() == sAny)
       {
-         return m_arrows;
+         return arrows_;
       }
       else
       {
-         for (const auto& arrow : m_arrows)
+         for (const auto& arrow : arrows_)
          {
             if (arrow.Name() == qarrow->Name())
                ret.push_back(arrow);
@@ -224,7 +224,7 @@ Arrow::List Arrow::QueryArrows(const std::string& query_) const
    {
       if (qarrow->Name() == sAny)
       {
-         for (const auto& arrow : m_arrows)
+         for (const auto& arrow : arrows_)
          {
             if (arrow.Source() == qarrow->Source())
                ret.push_back(arrow);
@@ -232,7 +232,7 @@ Arrow::List Arrow::QueryArrows(const std::string& query_) const
       }
       else
       {
-         for (const auto& arrow : m_arrows)
+         for (const auto& arrow : arrows_)
          {
             if (arrow.Source() == qarrow->Source() && arrow.Name() == qarrow->Name())
                ret.push_back(arrow);
@@ -243,7 +243,7 @@ Arrow::List Arrow::QueryArrows(const std::string& query_) const
    {
       if (qarrow->Name() == sAny)
       {
-         for (const auto& arrow : m_arrows)
+         for (const auto& arrow : arrows_)
          {
             if (arrow.Target() == qarrow->Target())
                ret.push_back(arrow);
@@ -251,7 +251,7 @@ Arrow::List Arrow::QueryArrows(const std::string& query_) const
       }
       else
       {
-         for (const auto& arrow : m_arrows)
+         for (const auto& arrow : arrows_)
          {
             if (arrow.Target() == qarrow->Target() && arrow.Name() == qarrow->Name())
                ret.push_back(arrow);
@@ -262,7 +262,7 @@ Arrow::List Arrow::QueryArrows(const std::string& query_) const
    {
       if (qarrow->Name() == sAny)
       {
-         for (const auto& arrow : m_arrows)
+         for (const auto& arrow : arrows_)
          {
             if (arrow.Source() == qarrow->Source() && arrow.Target() == qarrow->Target())
             {
@@ -272,7 +272,7 @@ Arrow::List Arrow::QueryArrows(const std::string& query_) const
       }
       else
       {
-         for (const auto& arrow : m_arrows)
+         for (const auto& arrow : arrows_)
          {
             if (arrow.Source() == qarrow->Source() && arrow.Target() == qarrow->Target() && arrow.Name() == qarrow->Name())
             {
@@ -283,6 +283,12 @@ Arrow::List Arrow::QueryArrows(const std::string& query_) const
    }
 
    return ret;
+}
+
+//-----------------------------------------------------------------------------------------
+Arrow::List Arrow::QueryArrows(const std::string& query_) const
+{
+   return query_arrows(query_, m_arrows);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -317,7 +323,7 @@ static bool validate_node_data(const Node& node_)
    {
       sz += codomain.size();
    }
-   return sz == (int)node_.Arrows().size();
+   return sz == (int)node_.QueryArrows("* -> *").size();
 }
 
 //-----------------------------------------------------------------------------------------
@@ -592,9 +598,9 @@ std::optional<Arrow> Node::FindArrow(const Arrow::AName& name_) const
 }
 
 //-----------------------------------------------------------------------------------------
-const Arrow::List& Node::Arrows() const
+Arrow::List Node::QueryArrows(const std::string& query_) const
 {
-   return m_arrows;
+   return query_arrows(query_, m_arrows);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -674,7 +680,7 @@ bool Node::Verify(const Arrow& arrow_) const
       }
    }
 
-   for (const Arrow& arrow : source_cat.Arrows())
+   for (const Arrow& arrow : source_cat.QueryArrows("* -> *"))
    {
       auto objs = arrow_.SingleMap(Node(arrow.Source()));
       auto objt = arrow_.SingleMap(Node(arrow.Target()));
@@ -760,7 +766,7 @@ bool Node::Statement(const Arrow& arrow_)
    }
 
    // Mapping arrows
-   for (const Arrow& arrow : source->Arrows())
+   for (const Arrow& arrow : source->QueryArrows("* -> *"))
    {
       auto nodes = arrow_.SingleMap(Node(arrow.Source()));
       auto nodet = arrow_.SingleMap(Node(arrow.Target()));

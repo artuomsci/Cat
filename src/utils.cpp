@@ -101,7 +101,7 @@ static void export_cytoscape_t(const std::string& name_, const Node& node_, cons
 
    if (show_arrows_)
    {
-      for (const auto& arrow : node_.Arrows())
+      for (const auto& arrow : node_.QueryArrows("* -> *"))
       {
          if (skip_identity_ && arrow.Source() == arrow.Target())
             continue;
@@ -141,7 +141,7 @@ static void export_cytoscape_t(const std::string& name_, const Node& node_, cons
 
    if (!show_arrows_)
    {
-      for (const auto& arrow : node_.Arrows())
+      for (const auto& arrow : node_.QueryArrows("* -> *"))
       {
          if (skip_identity_ && arrow.Source() == arrow.Target())
             continue;
@@ -161,7 +161,7 @@ static void export_cytoscape_t(const std::string& name_, const Node& node_, cons
    }
    else
    {
-      for (const auto& arrow : node_.Arrows())
+      for (const auto& arrow : node_.QueryArrows("* -> *"))
       {
          if (skip_identity_ && arrow.Source() == arrow.Target())
             continue;

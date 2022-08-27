@@ -275,7 +275,7 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
       if (crt_cat_)
       {
          Arrow::Vec backup;
-         for (const auto& arrow : ccat_.Arrows())
+         for (const auto& arrow : ccat_.QueryArrows("* -> *"))
          {
             if (arrow.Source() == crt_cat_->Name() || arrow.Target() == crt_cat_->Name())
                backup.push_back(arrow);
@@ -754,7 +754,7 @@ Arrow::List map_nodes2arrows(const Node::List& nodes_, const Node& node_)
 {
    Arrow::List ret;
 
-   const Arrow::List& arrows = node_.Arrows();
+   const Arrow::List& arrows = node_.QueryArrows("* -> *");
 
    auto it_last = std::prev(nodes_.end());
 
@@ -814,7 +814,7 @@ void solve_compositions(Node& node_)
 //-----------------------------------------------------------------------------------------
 void inverse(Node& node_)
 {
-   Arrow::List arrows = node_.Arrows();
+   Arrow::List arrows = node_.QueryArrows("* -> *");
 
    node_.EraseArrows();
 

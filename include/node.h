@@ -265,10 +265,16 @@ namespace cat
       std::optional<Arrow> FindArrow(const Arrow::AName& name_) const;
 
       /**
-       * @brief Return arrows
+       * @brief Query for arrows
+       * Syntax: source name -> target name
+       * Syntax for named arrows: source name -[ arrow name ]-> target name
+       * Use "*" as a replacement for any name
+       * Query examples: x -> y, * -> y, x -> *, * -> *
+       * Query examples: x -[ * ]-> y, * -[ operation ]-> * ... etc
+       * @param query_ - query
        * @return Arrows
        */
-      const Arrow::List& Arrows() const;
+      Arrow::List QueryArrows(const std::string& query_) const;
 
       /**
        * @brief Proof node

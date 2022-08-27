@@ -47,11 +47,11 @@ namespace cat
 
          assert(cat.EraseNode(a.Name()) == true);
 
-         assert(cat.Arrows().size() == 1);
+         assert(cat.QueryArrows("* -> *").size() == 1);
 
          assert(cat.EraseNode(b.Name()) == true);
 
-         assert(cat.Arrows().size() == 0);
+         assert(cat.QueryArrows("* -> *").size() == 0);
 
          assert(cat.EraseNode(c.Name()) == false);
 
@@ -62,7 +62,7 @@ namespace cat
          cat.EraseNodes();
 
          assert(cat.Nodes().size() == 0);
-         assert(cat.Arrows().size() == 0);
+         assert(cat.QueryArrows("* -> *").size() == 0);
       }
 
       auto fnCheckArrow = [](const Arrow::List& morphs_, const Arrow& morph_)
@@ -89,19 +89,19 @@ namespace cat
          assert(cat.Proof(b, b));
          assert(cat.Proof(c, c));
 
-         assert(cat.Arrows().size() == 3);
+         assert(cat.QueryArrows("* -> *").size() == 3);
 
          assert(cat.AddArrow(Arrow(a.Name(), b.Name(), "f0")));
-         assert(fnCheckArrow(cat.Arrows(), Arrow(a.Name(), b.Name(), "f0")));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), b.Name(), "f0")));
 
          assert(cat.AddArrow(Arrow(a.Name(), c.Name(), "f1")));
-         assert(fnCheckArrow(cat.Arrows(), Arrow(a.Name(), c.Name(), "f1")));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), c.Name(), "f1")));
 
-         assert(cat.Arrows().size() == 5);
+         assert(cat.QueryArrows("* -> *").size() == 5);
 
          assert(cat.AddArrow(Arrow(a.Name(), d.Name(), "f2")) == false);
-         assert(!fnCheckArrow(cat.Arrows(), Arrow(a.Name(), d.Name(), "f2")));
-         assert(cat.Arrows().size() == 5);
+         assert(!fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), d.Name(), "f2")));
+         assert(cat.QueryArrows("* -> *").size() == 5);
 
          assert(cat.AddArrow(Arrow(b.Name(), c.Name(), "f0")) == false);
          assert(cat.AddArrow(Arrow(a.Name(), b.Name(), "f0")) == false);
@@ -122,31 +122,31 @@ namespace cat
 
          // Deleting morphisms one at a time
          {
-            auto prev_count = cat.Arrows().size();
+            auto prev_count = cat.QueryArrows("* -> *").size();
             assert(cat.EraseArrow("f0") == true);
-            assert(!fnCheckArrow(cat.Arrows(), Arrow(a.Name(), b.Name(), "f0")));
-            assert(prev_count = cat.Arrows().size() - 1);
+            assert(!fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), b.Name(), "f0")));
+            assert(prev_count = cat.QueryArrows("* -> *").size() - 1);
 
             assert(cat.EraseArrow("f1") == true);
-            assert(!fnCheckArrow(cat.Arrows(), Arrow(a.Name(), c.Name(), "f1")));
-            assert(prev_count = cat.Arrows().size() - 2);
+            assert(!fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), c.Name(), "f1")));
+            assert(prev_count = cat.QueryArrows("* -> *").size() - 2);
          }
 
          // It is not allowed to delete identity morphism,
          // before the object has been removed
          {
-            auto prev_count = cat.Arrows().size();
+            auto prev_count = cat.QueryArrows("* -> *").size();
             assert(cat.EraseArrow(id_arrow_name(a.Name())) == false);
-            auto new_count = cat.Arrows().size();
+            auto new_count = cat.QueryArrows("* -> *").size();
             assert(prev_count == new_count);
-            assert(fnCheckArrow(cat.Arrows(), Arrow(a.Name(), a.Name(), id_arrow_name(a.Name()))));
+            assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), a.Name(), id_arrow_name(a.Name()))));
          }
 
          // Non existent morphism can't be deleted
          {
-            auto prev_count = cat.Arrows().size();
+            auto prev_count = cat.QueryArrows("* -> *").size();
             assert(cat.EraseArrow("Fake") == false);
-            auto new_count = cat.Arrows().size();
+            auto new_count = cat.QueryArrows("* -> *").size();
             assert(prev_count == new_count);
          }
       }
@@ -170,17 +170,17 @@ namespace cat
 
          solve_compositions(cat);
 
-         assert(fnCheckArrow(cat.Arrows(), Arrow(a.Name(), c.Name())));
-         assert(fnCheckArrow(cat.Arrows(), Arrow(a.Name(), d.Name())));
-         assert(fnCheckArrow(cat.Arrows(), Arrow(b.Name(), d.Name())));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), c.Name())));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), d.Name())));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(b.Name(), d.Name())));
 
-         assert(fnCheckArrow(cat.Arrows(), Arrow(d.Name(), b.Name())));
-         assert(fnCheckArrow(cat.Arrows(), Arrow(d.Name(), a.Name())));
-         assert(fnCheckArrow(cat.Arrows(), Arrow(c.Name(), a.Name())));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(d.Name(), b.Name())));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(d.Name(), a.Name())));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(c.Name(), a.Name())));
 
-         auto prev_count = cat.Arrows().size();
+         auto prev_count = cat.QueryArrows("* -> *").size();
          solve_compositions(cat);
-         auto new_count = cat.Arrows().size();
+         auto new_count = cat.QueryArrows("* -> *").size();
 
          assert(new_count == prev_count);
       }
@@ -290,11 +290,11 @@ namespace cat
 
          inverse(cat);
 
-         assert(fnCheckArrow(cat.Arrows(), Arrow(b.Name(), a.Name(), "f0")));
-         assert(fnCheckArrow(cat.Arrows(), Arrow(c.Name(), a.Name(), "f1")));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(b.Name(), a.Name(), "f0")));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(c.Name(), a.Name(), "f1")));
 
-         assert(fnCheckArrow(cat.Arrows(), Arrow(d.Name(), b.Name(), "f2")));
-         assert(fnCheckArrow(cat.Arrows(), Arrow(d.Name(), c.Name(), "f3")));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(d.Name(), b.Name(), "f2")));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(d.Name(), c.Name(), "f3")));
       }
 
       //============================================================
