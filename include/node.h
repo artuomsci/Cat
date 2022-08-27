@@ -84,15 +84,28 @@ namespace cat
       /**
        * @brief Add arrow
        * @param arrow_ - arrow
+       * @return True if successful
        */
-      void AddArrow(const Arrow& arrow_);
+      bool AddArrow(const Arrow& arrow_);
+
+      /**
+       * @brief Erase arrow
+       * @param arrow_ - arrow name
+       * @return True if successfull
+       */
+      bool EraseArrow(const Arrow::AName& arrow_);
+
+      /**
+       * @brief Erase all arrows
+       */
+      void EraseArrows();
 
    private:
 
-      std::string source;
-      std::string target;
-      AName       name;
-      List        arrows;
+      std::string m_source;
+      std::string m_target;
+      AName       m_name;
+      List        m_arrows;
    };
 
    /**

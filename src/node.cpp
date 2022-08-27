@@ -22,51 +22,51 @@ std::string cat::id_arrow_name(const std::string& name_)
 //-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
 Arrow::Arrow(const std::string& source_, const std::string& target_, const std::string& arrow_name_) :
-      source   (source_)
-   ,  target   (target_)
-   ,  name     (arrow_name_)
+      m_source   (source_)
+   ,  m_target   (target_)
+   ,  m_name     (arrow_name_)
 {};
 
 //-----------------------------------------------------------------------------------------
 Arrow::Arrow(const std::string& source_, const std::string& target_) :
-      source   (source_)
-   ,  target   (target_)
-   ,  name     (default_arrow_name(source_, target_))
+      m_source   (source_)
+   ,  m_target   (target_)
+   ,  m_name     (default_arrow_name(source_, target_))
 {};
 
 //-----------------------------------------------------------------------------------------
 bool Arrow::operator<(const Arrow& arrow_) const
 {
-   return std::tie(source, target, name) < std::tie(arrow_.source, arrow_.target, arrow_.name);
+   return std::tie(m_source, m_target, m_name) < std::tie(arrow_.m_source, arrow_.m_target, arrow_.m_name);
 }
 
 //-----------------------------------------------------------------------------------------
 bool Arrow::operator==(const Arrow& arrow_) const
 {
    return
-         source      == arrow_.source
-      && target      == arrow_.target
-      && name        == arrow_.name
-      && arrows      == arrow_.arrows;
+         m_source      == arrow_.m_source
+      && m_target      == arrow_.m_target
+      && m_name        == arrow_.m_name
+      && m_arrows      == arrow_.m_arrows;
 }
 
 //-----------------------------------------------------------------------------------------
 bool Arrow::operator!=(const Arrow& arrow_) const
 {
    return
-         source      != arrow_.source
-      || target      != arrow_.target
-      || name        != arrow_.name
-      || arrows      != arrow_.arrows;
+         m_source      != arrow_.m_source
+      || m_target      != arrow_.m_target
+      || m_name        != arrow_.m_name
+      || m_arrows      != arrow_.m_arrows;
 }
 
 //-----------------------------------------------------------------------------------------
 std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
 {
-   if (node_->Name() != source)
+   if (node_->Name() != m_source)
       return std::optional<Node>();
 
-   Node ret(target);
+   Node ret(m_target);
 
    // Mapping of nodes
    for (const auto& [node, _] : node_->Nodes())
@@ -79,8 +79,8 @@ std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
    // Mapping of arrows
    for (const Arrow& arrow : node_->Arrows())
    {
-      auto source = SingleMap(*this, Node(arrow.source));
-      auto target = SingleMap(*this, Node(arrow.target));
+      auto source = SingleMap(*this, Node(arrow.m_source));
+      auto target = SingleMap(*this, Node(arrow.m_target));
 
       Arrow mapped_arrow(source->Name(), target->Name());
       if (!ret.Proof(mapped_arrow))
@@ -93,31 +93,55 @@ std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
 //-----------------------------------------------------------------------------------------
 const std::string& Arrow::Source() const
 {
-   return source;
+   return m_source;
 }
 
 //-----------------------------------------------------------------------------------------
 const std::string& Arrow::Target() const
 {
-   return target;
+   return m_target;
 }
 
 //-----------------------------------------------------------------------------------------
 const Arrow::AName& Arrow::Name() const
 {
-   return name;
+   return m_name;
 }
 
 //-----------------------------------------------------------------------------------------
 const Arrow::List& Arrow::Arrows() const
 {
-   return arrows;
+   return m_arrows;
 }
 
 //-----------------------------------------------------------------------------------------
-void Arrow::AddArrow(const Arrow& arrow_)
+bool Arrow::AddArrow(const Arrow& arrow_)
 {
-   arrows.push_back(arrow_);
+   m_arrows.push_back(arrow_);
+
+   return true;
+}
+
+//-----------------------------------------------------------------------------------------
+bool Arrow::EraseArrow(const Arrow::AName& arrow_)
+{
+   auto it = std::find_if(m_arrows.begin(), m_arrows.end(), [&](const List::value_type& element_)
+   {
+      return element_.Name() == arrow_;
+   });
+
+   if (it != m_arrows.end())
+      m_arrows.erase(it);
+   else
+      return false;
+
+   return true;
+}
+
+//-----------------------------------------------------------------------------------------
+void Arrow::EraseArrows()
+{
+   m_arrows.clear();
 }
 
 //-----------------------------------------------------------------------------------------
