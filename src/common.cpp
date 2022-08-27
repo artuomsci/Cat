@@ -383,7 +383,7 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
       {
          if (expr_type_ == EExpType::eStatement)
          {
-            if (crt_func->Arrows().empty())
+            if (crt_func->IsEmpty())
             {
                auto it = node_.Nodes().find(Node(crt_func->Source()));
                if (it == node_.Nodes().end())

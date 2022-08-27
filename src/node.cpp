@@ -7,6 +7,15 @@
 
 using namespace cat;
 
+// Any entity
+static const char* const sAny = "*";
+
+//-----------------------------------------------------------------------------------------
+static std::string trim_sp(const std::string& string_)
+{
+   return trim_right(trim_left(string_, ' '), ' ');
+}
+
 //-----------------------------------------------------------------------------------------
 std::string cat::default_arrow_name(const std::string& source_, const std::string& target_)
 {
@@ -71,7 +80,7 @@ std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
    // Mapping of nodes
    for (const auto& [node, _] : node_->Nodes())
    {
-      Node mapped_node = SingleMap(*this, node).value();
+      Node mapped_node = SingleMap(node).value();
       if (!ret.Proof(mapped_node))
          ret.AddNode(mapped_node);
    }
@@ -79,8 +88,8 @@ std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
    // Mapping of arrows
    for (const Arrow& arrow : node_->Arrows())
    {
-      auto source = SingleMap(*this, Node(arrow.m_source));
-      auto target = SingleMap(*this, Node(arrow.m_target));
+      auto source = SingleMap(Node(arrow.m_source));
+      auto target = SingleMap(Node(arrow.m_target));
 
       Arrow mapped_arrow(source->Name(), target->Name());
       if (!ret.Proof(mapped_arrow))
@@ -106,12 +115,6 @@ const std::string& Arrow::Target() const
 const Arrow::AName& Arrow::Name() const
 {
    return m_name;
-}
-
-//-----------------------------------------------------------------------------------------
-const Arrow::List& Arrow::Arrows() const
-{
-   return m_arrows;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -142,6 +145,80 @@ bool Arrow::EraseArrow(const Arrow::AName& arrow_)
 void Arrow::EraseArrows()
 {
    m_arrows.clear();
+}
+
+//-----------------------------------------------------------------------------------------
+Arrow::List Arrow::QueryArrows(std::string query_) const
+{
+   auto query = trim_sp(query_);
+
+   auto query_parts = split(query, "->", false);
+   if (query_parts.size() != 2)
+      return Arrow::List();
+
+   for (auto& it : query_parts)
+      it = trim_sp(it);
+
+   const auto& source = query_parts[0];
+   const auto& target = query_parts[1];
+
+   Arrow::List ret;
+
+   if       (source == sAny && target == sAny)
+   {
+      return m_arrows;
+   }
+   else if  (source != sAny && target == sAny)
+   {
+      for (const auto& arrow : m_arrows)
+      {
+         if (arrow.Source() == source)
+            ret.push_back(arrow);
+      }
+   }
+   else if  (source == sAny && target != sAny)
+   {
+      for (const auto& arrow : m_arrows)
+      {
+         if (arrow.Target() == target)
+            ret.push_back(arrow);
+      }
+   }
+   else if  (source != sAny && target != sAny)
+   {
+      for (const auto& arrow : m_arrows)
+      {
+         if (arrow.Source() == source && arrow.Target() == target)
+         {
+            ret.push_back(arrow);
+         }
+      }
+   }
+
+   return ret;
+}
+
+//-----------------------------------------------------------------------------------------
+bool Arrow::IsEmpty() const
+{
+   return m_arrows.empty();
+}
+
+//-----------------------------------------------------------------------------------------
+std::optional<Node> Arrow::SingleMap(const std::optional<Node>& node_) const
+{
+   if (!node_)
+      return std::optional<Node>();
+
+   for (const Arrow& arrow : m_arrows)
+   {
+      if (arrow.Source() == node_->Name())
+      {
+         return std::optional<Node>(arrow.Target());
+      }
+   }
+
+   return std::optional<Node>();
 }
 
 //-----------------------------------------------------------------------------------------
@@ -491,7 +568,7 @@ bool Node::Verify(const Arrow& arrow_) const
    const auto& [source_cat, _s] = *itSourceCat;
    const auto& [target_cat, _t] = *itTargetCat;
 
-   for (const Arrow& arrow : arrow_.Arrows())
+   for (const Arrow& arrow : arrow_.QueryArrows("*->*"))
    {
       if (!source_cat.FindNode(arrow.Source()))
       {
@@ -503,7 +580,7 @@ bool Node::Verify(const Arrow& arrow_) const
    // Checking mapping of objects
    for (const auto& [obj, _] : source_cat.Nodes())
    {
-      if (!SingleMap(arrow_, obj))
+      if (!arrow_.SingleMap(obj))
       {
          print_error("Failure to map node: " + obj.Name());
          return false;
@@ -512,8 +589,8 @@ bool Node::Verify(const Arrow& arrow_) const
 
    for (const Arrow& arrow : source_cat.Arrows())
    {
-      auto objs = SingleMap(arrow_, Node(arrow.Source()));
-      auto objt = SingleMap(arrow_, Node(arrow.Target()));
+      auto objs = arrow_.SingleMap(Node(arrow.Source()));
+      auto objt = arrow_.SingleMap(Node(arrow.Target()));
 
       if (!objs)
       {
@@ -584,7 +661,7 @@ bool Node::Statement(const Arrow& arrow_)
    // Mapping nodes
    for (const auto& [node, _] : source->Nodes())
    {
-      std::optional<Node> mnode = SingleMap(arrow_, node);
+      std::optional<Node> mnode = arrow_.SingleMap(node);
       if (!mnode)
       {
          print_error("Missing arrow for node " + node.Name() + " in functor " + arrow_.Name());
@@ -598,8 +675,8 @@ bool Node::Statement(const Arrow& arrow_)
    // Mapping arrows
    for (const Arrow& arrow : source->Arrows())
    {
-      auto nodes = SingleMap(arrow_, Node(arrow.Source()));
-      auto nodet = SingleMap(arrow_, Node(arrow.Target()));
+      auto nodes = arrow_.SingleMap(Node(arrow.Source()));
+      auto nodet = arrow_.SingleMap(Node(arrow.Target()));
 
       if (!target.Proof(nodes.value(), nodet.value()))
          target.AddArrow(Arrow(nodes->Name(), nodet->Name()));
@@ -654,24 +731,6 @@ bool Node::operator==(const Node& cat_) const
 bool Node::operator!=(const Node& cat_) const
 {
    return m_name != cat_.Name();
-}
-
-//-----------------------------------------------------------------------------------------
-//-----------------------------------------------------------------------------------------
-std::optional<Node> cat::SingleMap(const std::optional<Arrow>& arrow_, const std::optional<Node>& node_)
-{
-   if (!arrow_ || !node_)
-      return std::optional<Node>();
-
-   for (const Arrow& arrow : arrow_->Arrows())
-   {
-      if (arrow.Source() == node_->Name())
-      {
-         return std::optional<Node>(arrow.Target());
-      }
-   }
-
-   return std::optional<Node>();
 }
 
 //-----------------------------------------------------------------------------------------

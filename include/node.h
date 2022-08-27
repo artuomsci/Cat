@@ -76,12 +76,6 @@ namespace cat
       const AName& Name() const;
 
       /**
-       * @brief Returns arrows
-       * @return Arrows
-       */
-      const List& Arrows() const;
-
-      /**
        * @brief Add arrow
        * @param arrow_ - arrow
        * @return True if successful
@@ -99,6 +93,30 @@ namespace cat
        * @brief Erase all arrows
        */
       void EraseArrows();
+
+      /**
+       * @brief Query for arrows
+       * Syntax: source name -> target name
+       * Use "*" as a replacement for any name
+       * Query examples: x -> y, * -> y, x -> *, * -> *
+       * @param query_ - query
+       * @return Arrows
+       */
+      List QueryArrows(std::string query_) const;
+
+      /**
+       * @brief Checks whether the arrow contain any arrows
+       * @return True if there are no arrows
+       */
+      bool IsEmpty() const;
+
+      /**
+      * @brief Map node with arrow
+      * @param arrow_ - arrow to map with
+      * @param node_ - node for mapping
+      * @return Mapped node
+      */
+      std::optional<Node> SingleMap(const std::optional<Node>& node_) const;
 
    private:
 
@@ -302,12 +320,4 @@ namespace cat
    {
       std::size_t operator()(const Node& n_) const;
    };
-
-   /**
-   * @brief Map node with arrow
-   * @param arrow_ - arrow to map with
-   * @param node_ - node for mapping
-   * @return Mapped node
-   */
-   CAT_EXPORT std::optional<Node> SingleMap(const std::optional<cat::Arrow>& arrow_, const std::optional<Node>& node_);
 }
