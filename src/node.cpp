@@ -437,10 +437,13 @@ bool Node::Verify(const Arrow& arrow_) const
    const auto& [source_cat, _s] = *itSourceCat;
    const auto& [target_cat, _t] = *itTargetCat;
 
-   if (arrow_.arrows.size() > source_cat.Nodes().size())
+   for (const Arrow& arrow : arrow_.arrows)
    {
-      print_error("Number of arrows exceeds the number of nodes in the: " + source_cat.Name());
-      return false;
+      if (!source_cat.FindNode(arrow.source))
+      {
+         print_error("Missing node for " + arrow.source + "->" + arrow.target);
+         return false;
+      }
    }
 
    // Checking mapping of objects
@@ -466,13 +469,13 @@ bool Node::Verify(const Arrow& arrow_) const
 
       if (!source_cat.Node::Proof(Node(arrow.source)))
       {
-         print_error("No such node '" + arrow.source + "' in node '" + source_cat.Name() + "'");
+         print_error("No such node " + arrow.source + " in node " + source_cat.Name());
          return false;
       }
 
       if (!target_cat.Node::Proof(objs.value()))
       {
-         print_error("No such node '" + objs.value().Name() + "' in node '" + target_cat.Name() + "'");
+         print_error("No such node " + objs.value().Name() + " in node " + target_cat.Name());
          return false;
       }
 
@@ -484,13 +487,13 @@ bool Node::Verify(const Arrow& arrow_) const
 
       if (!source_cat.Node::Proof(Node(arrow.target)))
       {
-         print_error("No such node '" + arrow.target + "' in node '" + source_cat.Name() + "'");
+         print_error("No such node " + arrow.target + " in node " + source_cat.Name());
          return false;
       }
 
       if (!target_cat.Node::Proof(objt.value()))
       {
-         print_error("No such node '" + objt.value().Name() + "' in node '" + target_cat.Name() + "'");
+         print_error("No such node " + objt.value().Name() + " in node " + target_cat.Name());
          return false;
       }
 
