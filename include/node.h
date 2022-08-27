@@ -97,12 +97,14 @@ namespace cat
       /**
        * @brief Query for arrows
        * Syntax: source name -> target name
+       * Syntax for named arrows: source name -[ arrow name ]-> target name
        * Use "*" as a replacement for any name
        * Query examples: x -> y, * -> y, x -> *, * -> *
+       * Query examples: x -[ * ]-> y, * -[ operation ]-> * ... etc
        * @param query_ - query
        * @return Arrows
        */
-      List QueryArrows(std::string query_) const;
+      List QueryArrows(const std::string& query_) const;
 
       /**
        * @brief Checks whether the arrow contain any arrows

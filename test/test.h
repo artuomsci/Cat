@@ -348,6 +348,39 @@ namespace cat
          assert(*initial_obj.begin() == *terminal_obj.begin());
       }
 
+      {
+         Arrow arrow("A", "B");
+
+         arrow.AddArrow(Arrow("a", "b"));
+         arrow.AddArrow(Arrow("c", "d"));
+         arrow.AddArrow(Arrow("e", "f", "ef_arrow"));
+         arrow.AddArrow(Arrow("g", "f"));
+
+         auto ret = arrow.QueryArrows("a -> b");
+         assert(ret.size() == 1);
+         assert(ret.front() == Arrow("a", "b"));
+
+         ret = arrow.QueryArrows("* -> b");
+         assert(ret.size() == 1);
+         assert(ret.front() == Arrow("a", "b"));
+
+         ret = arrow.QueryArrows("a -> *");
+         assert(ret.size() == 1);
+         assert(ret.front() == Arrow("a", "b"));
+
+         ret = arrow.QueryArrows("* -> *");
+         assert(ret.size() == 4);
+
+         ret = arrow.QueryArrows("* -> f");
+         assert(ret.size() == 2);
+
+         ret = arrow.QueryArrows("* -[ ef_arrow ]-> *");
+         assert(ret.front() == Arrow("e", "f", "ef_arrow"));
+
+         ret = arrow.QueryArrows("* -[ ef_arrow ]-> f");
+         assert(ret.front() == Arrow("e", "f", "ef_arrow"));
+      }
+
       //============================================================
       // Coproduct test
       //============================================================

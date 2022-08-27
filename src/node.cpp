@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <assert.h>
+#include <cstring>
 
 #include "str_utils.h"
 
@@ -9,6 +10,9 @@ using namespace cat;
 
 // Any entity
 static const char* const sAny = "*";
+// Arrow name guards
+static const char* const sArrowNameBegin = "-[";
+static const char* const sArrowNameEnd   = "]->";
 
 //-----------------------------------------------------------------------------------------
 static std::string trim_sp(const std::string& string_)
@@ -156,49 +160,124 @@ void Arrow::EraseArrows()
 }
 
 //-----------------------------------------------------------------------------------------
-Arrow::List Arrow::QueryArrows(std::string query_) const
+static std::optional<Arrow> extract_arrow_from_query(const std::string& query_)
 {
    auto query = trim_sp(query_);
 
-   auto query_parts = split(query, "->", false);
-   if (query_parts.size() != 2)
+   // Arrow name is optional, checking for it
+   if (query.find(sArrowNameBegin) != -1 && query.find(sArrowNameEnd) != -1)
+   {
+      auto head = split(query, sArrowNameBegin, false);
+      for (auto& it : head)
+         it = trim_sp(it);
+
+      if (head.size() != 2)
+         return std::optional<Arrow>();
+
+      auto tail = split(head[1], sArrowNameEnd, false);
+      for (auto& it : tail)
+         it = trim_sp(it);
+
+      if (tail.size() != 2)
+         return std::optional<Arrow>();
+
+      return Arrow(head[0], tail[1], tail[0]);
+   }
+   else
+   {
+      auto parts = split(query, "->", false);
+      for (auto& it : parts)
+         it = trim_sp(it);
+
+      if (parts.size() != 2)
+         return std::optional<Arrow>();
+
+      return Arrow(parts[0], parts[1], sAny);
+   }
+}
+
+//-----------------------------------------------------------------------------------------
+Arrow::List Arrow::QueryArrows(const std::string& query_) const
+{
+   auto qarrow = extract_arrow_from_query(query_);
+   if (!qarrow)
       return Arrow::List();
-
-   for (auto& it : query_parts)
-      it = trim_sp(it);
-
-   const auto& source = query_parts[0];
-   const auto& target = query_parts[1];
 
    Arrow::List ret;
 
-   if       (source == sAny && target == sAny)
+   if       (qarrow->Source() == sAny && qarrow->Target() == sAny)
    {
-      return m_arrows;
-   }
-   else if  (source != sAny && target == sAny)
-   {
-      for (const auto& arrow : m_arrows)
+      if (qarrow->Name() == sAny)
       {
-         if (arrow.Source() == source)
-            ret.push_back(arrow);
+         return m_arrows;
       }
-   }
-   else if  (source == sAny && target != sAny)
-   {
-      for (const auto& arrow : m_arrows)
+      else
       {
-         if (arrow.Target() == target)
-            ret.push_back(arrow);
-      }
-   }
-   else if  (source != sAny && target != sAny)
-   {
-      for (const auto& arrow : m_arrows)
-      {
-         if (arrow.Source() == source && arrow.Target() == target)
+         for (const auto& arrow : m_arrows)
          {
-            ret.push_back(arrow);
+            if (arrow.Name() == qarrow->Name())
+               ret.push_back(arrow);
+         }
+      }
+   }
+   else if  (qarrow->Source() != sAny && qarrow->Target() == sAny)
+   {
+      if (qarrow->Name() == sAny)
+      {
+         for (const auto& arrow : m_arrows)
+         {
+            if (arrow.Source() == qarrow->Source())
+               ret.push_back(arrow);
+         }
+      }
+      else
+      {
+         for (const auto& arrow : m_arrows)
+         {
+            if (arrow.Source() == qarrow->Source() && arrow.Name() == qarrow->Name())
+               ret.push_back(arrow);
+         }
+      }
+   }
+   else if  (qarrow->Source() == sAny && qarrow->Target() != sAny)
+   {
+      if (qarrow->Name() == sAny)
+      {
+         for (const auto& arrow : m_arrows)
+         {
+            if (arrow.Target() == qarrow->Target())
+               ret.push_back(arrow);
+         }
+      }
+      else
+      {
+         for (const auto& arrow : m_arrows)
+         {
+            if (arrow.Target() == qarrow->Target() && arrow.Name() == qarrow->Name())
+               ret.push_back(arrow);
+         }
+      }
+   }
+   else if  (qarrow->Source() != sAny && qarrow->Target() != sAny)
+   {
+      if (qarrow->Name() == sAny)
+      {
+         for (const auto& arrow : m_arrows)
+         {
+            if (arrow.Source() == qarrow->Source() && arrow.Target() == qarrow->Target())
+            {
+               ret.push_back(arrow);
+            }
+         }
+      }
+      else
+      {
+         for (const auto& arrow : m_arrows)
+         {
+            if (arrow.Source() == qarrow->Source() && arrow.Target() == qarrow->Target() && arrow.Name() == qarrow->Name())
+            {
+               ret.push_back(arrow);
+            }
          }
       }
    }
