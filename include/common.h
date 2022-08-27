@@ -87,14 +87,6 @@ CAT_EXPORT void solve_compositions(cat::Node& node_);
 CAT_EXPORT void inverse(cat::Node& node_);
 
 /**
- * @brief Returns structure matching the mask
- * @param node_ - node for matching
- * @param mask_ - mask
- * @return Matching structure
- */
-CAT_EXPORT std::optional<cat::Node> mask(cat::Node& node_, std::string mask_);
-
-/**
  * @brief Find initial nodes. All arrow compositions
  * must be resolved before calling this method i.e. call "solve_compositions" first
  * @param node_ - node to find initial nodes in
