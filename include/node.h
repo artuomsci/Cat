@@ -123,7 +123,7 @@ namespace cat
       /**
        * @brief Inverse arrow
        */
-      void inverse();
+      void Inverse();
 
    private:
 

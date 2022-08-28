@@ -400,7 +400,7 @@ namespace cat
          arrow.AddArrow(Arrow("c", "d"));
          arrow.AddArrow(Arrow("e", "f", "ef_arrow"));
 
-         arrow.inverse();
+         arrow.Inverse();
 
          assert(arrow.QueryArrows("b -> a").size() == 1);
          assert(arrow.QueryArrows("d -> c").size() == 1);
