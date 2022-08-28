@@ -85,9 +85,9 @@ namespace cat
 
          cat.AddNodes({a, b, c});
 
-         assert(cat.Proof(a, a));
-         assert(cat.Proof(b, b));
-         assert(cat.Proof(c, c));
+         assert(!cat.QueryArrows("a -> a").empty());
+         assert(!cat.QueryArrows("b -> b").empty());
+         assert(!cat.QueryArrows("c -> c").empty());
 
          assert(cat.QueryArrows("* -> *").size() == 3);
 

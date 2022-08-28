@@ -96,7 +96,7 @@ std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
       auto target = SingleMap(Node(arrow.m_target));
 
       Arrow mapped_arrow(source->Name(), target->Name());
-      if (!ret.Proof(mapped_arrow))
+      if (ret.QueryArrows(mapped_arrow.Source() + "-[" + mapped_arrow.Name() + "]->" + mapped_arrow.Target()).empty())
          ret.AddArrow(mapped_arrow);
    }
 
@@ -345,7 +345,7 @@ Node::Node(const NName& name_) : m_name(name_)
 //-----------------------------------------------------------------------------------------
 bool Node::AddArrow(const Arrow& arrow_)
 {
-   if (Proof(arrow_))
+   if (!QueryArrows(arrow_.Source() + "-[" + arrow_.Name() + "]->" + arrow_.Target()).empty())
    {
       print_error("Arrow redefinition: " + arrow_.Name());
       return false;
@@ -555,35 +555,24 @@ bool Node::Proof(const Node& node_) const
 }
 
 //-----------------------------------------------------------------------------------------
-bool Node::Proof(const Arrow& arrow_) const
-{
-   auto it = std::find_if(m_arrows.begin(), m_arrows.end(), [&](const Arrow::Vec::value_type& element_)
-      {
-         return element_.Source() == arrow_.Source() && element_.Target() == arrow_.Target() && element_.Name() == arrow_.Name();
-      });
+//bool Node::Proof(const Node& source_, const Node& target_) const
+//{
+//   bool result{};
 
-   return it != m_arrows.end();
-}
+//   auto its = m_nodes.find(Node(source_));
+//   if (its != m_nodes.end())
+//   {
+//      const auto& [_, codomain] = *its;
 
-//-----------------------------------------------------------------------------------------
-bool Node::Proof(const Node& source_, const Node& target_) const
-{
-   bool result{};
+//      auto itt = codomain.find(Node(target_));
+//      if (itt != codomain.end())
+//      {
+//         result = true;
+//      }
+//   }
 
-   auto its = m_nodes.find(Node(source_));
-   if (its != m_nodes.end())
-   {
-      const auto& [_, codomain] = *its;
-
-      auto itt = codomain.find(Node(target_));
-      if (itt != codomain.end())
-      {
-         result = true;
-      }
-   }
-
-   return result;
-}
+//   return result;
+//}
 
 //-----------------------------------------------------------------------------------------
 bool Node::Verify(const Arrow& arrow_) const
@@ -667,9 +656,9 @@ bool Node::Verify(const Arrow& arrow_) const
       }
 
       // Checking mapping of arrows
-      if (!target_cat.Proof(objs.value(), objt.value()))
+      if (target_cat.QueryArrows(objs->Name() + "->" + objt->Name()).empty())
       {
-         print_error("Failure to match arrow: " + objs.value().Name() + "->" + objt.value().Name());
+         print_error("Failure to match arrow: " + objs->Name() + "->" + objt->Name());
          return false;
       }
    }
@@ -716,7 +705,7 @@ bool Node::Statement(const Arrow& arrow_)
       auto nodes = arrow_.SingleMap(Node(arrow.Source()));
       auto nodet = arrow_.SingleMap(Node(arrow.Target()));
 
-      if (!target.Proof(nodes.value(), nodet.value()))
+      if (target.QueryArrows(nodes->Name() + "->" + nodet->Name()).empty())
          target.AddArrow(Arrow(nodes->Name(), nodet->Name()));
    }
 
@@ -740,7 +729,7 @@ bool Node::Statement(const Arrow& arrow_)
       m_nodes[target] = back_up;
    }
 
-   if (Proof(arrow_))
+   if (!QueryArrows(arrow_.Source() + "-[" + arrow_.Name() + "]->" + arrow_.Target()).empty())
    {
       print_error("Arrow already defined: " + arrow_.Name());
       return false;

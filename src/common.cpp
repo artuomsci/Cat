@@ -287,7 +287,7 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
 
          for (const auto& arrow : backup)
          {
-            if (!ccat_.Proof(arrow))
+            if (ccat_.QueryArrows(arrow.Source() + "-[" + arrow.Name() + "]->" + arrow.Target()).empty())
                ccat_.AddArrow(arrow);
          }
       }

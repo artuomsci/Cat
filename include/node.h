@@ -253,18 +253,11 @@ namespace cat
 
       /**
        * @brief Proof arrow
-       * @param arrow_ - arrow
-       * @return True if successful
-       */
-      bool Proof(const Arrow& arrow_) const;
-
-      /**
-       * @brief Proof arrow
        * @param source_ - source
        * @param target_ - target
        * @return True if successful
        */
-      bool Proof(const Node& source_, const Node& target_) const;
+      //bool Proof(const Node& source_, const Node& target_) const;
 
       /**
        * @brief Verifying arrow
