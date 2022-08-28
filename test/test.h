@@ -239,28 +239,34 @@ namespace cat
                   ,  Arrow(d.Name(), e.Name())
                   ,  Arrow(f.Name(), e.Name())});
 
-         std::vector<Node::List> seqs = cat.SolveSequences(a, e);
+         std::list<Node::List> seqs = cat.SolveSequences(a, e);
 
          assert(seqs.size() == 3);
 
+         auto it = seqs.begin();
+
          {
-            Arrow::List morphs = cat.MapNodes2Arrows(seqs[0]);
+            Arrow::List morphs = cat.MapNodes2Arrows(*it);
             auto it = morphs.begin();
             assert(*it == Arrow(a.Name(), b.Name()));
             assert(*(++it) == Arrow(b.Name(), d.Name()));
             assert(*(++it) == Arrow(d.Name(), e.Name()));
          }
 
+         it = std::next(it);
+
          {
-            Arrow::List morphs = cat.MapNodes2Arrows(seqs[1]);
+            Arrow::List morphs = cat.MapNodes2Arrows(*it);
             auto it = morphs.begin();
             assert(*(it) == Arrow(a.Name(), c.Name()));
             assert(*(++it) == Arrow(c.Name(), d.Name()));
             assert(*(++it) == Arrow(d.Name(), e.Name()));
          }
 
+         it = std::next(it);
+
          {
-            Arrow::List morphs = cat.MapNodes2Arrows(seqs[2]);
+            Arrow::List morphs = cat.MapNodes2Arrows(*it);
             auto it = morphs.begin();
             assert(*(it) == Arrow(a.Name(), c.Name()));
             assert(*(++it) == Arrow(c.Name(), f.Name()));

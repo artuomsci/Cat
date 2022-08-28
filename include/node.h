@@ -279,14 +279,14 @@ namespace cat
        * must be resolved before calling this method i.e. call "SolveCompositions" first
        * @return Initial nodes
        */
-      cat::Node::List Initial() const;
+      Node::List Initial() const;
 
       /**
        * @brief Find terminal nodes. All arrow compositions
        * must be resolved before calling this method i.e. call "SolveCompositions" first
        * @return Terminal nodes
        */
-      cat::Node::List Terminal() const;
+      Node::List Terminal() const;
 
       /**
        * @brief Find any sequence of nodes between two given nodes
@@ -294,7 +294,7 @@ namespace cat
        * @param to_ - target node of the sequence
        * @return Sequence of nodes
        */
-      cat::Node::List SolveSequence(const cat::Node& from_, const cat::Node& to_) const;
+      Node::List SolveSequence(const Node& from_, const Node& to_) const;
 
       /**
        * @brief Find all sequences of nodes between two given nodes
@@ -302,14 +302,14 @@ namespace cat
        * @param to_ - target node of the sequences
        * @return Sequences of nodes
        */
-      std::vector<cat::Node::List> SolveSequences(const cat::Node& from_, const cat::Node& to_) const;
+      std::list<Node::List> SolveSequences(const Node& from_, const Node& to_) const;
 
       /**
        * @brief Map sequence of nodes onto sequence of arrows
        * @param nodes_ - sequence of nodes
        * @return Sequence of arrows
        */
-      cat::Arrow::List MapNodes2Arrows(const cat::Node::List& nodes_) const;
+      Arrow::List MapNodes2Arrows(const Node::List& nodes_) const;
 
       /**
        * @brief Inverse arrows

@@ -827,7 +827,7 @@ Node::List Node::SolveSequence(const Node& from_, const Node& to_) const
 {
    Node::List ret;
 
-   std::vector<Node::PairSet> stack;
+   std::list<Node::PairSet> stack;
 
    std::optional<Node> current_node(from_);
 
@@ -886,11 +886,11 @@ Node::List Node::SolveSequence(const Node& from_, const Node& to_) const
 }
 
 //-----------------------------------------------------------------------------------------
-std::vector<Node::List> Node::SolveSequences(const Node& from_, const Node& to_) const
+std::list<Node::List> Node::SolveSequences(const Node& from_, const Node& to_) const
 {
-   std::vector<Node::List> ret;
+   std::list<Node::List> ret;
 
-   std::vector<Node::PairSet> stack;
+   std::list<Node::PairSet> stack;
 
    std::optional<Node> current_node(from_);
 
