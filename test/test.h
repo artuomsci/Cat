@@ -22,15 +22,15 @@ namespace cat
 
          Node a("a"), b("b");
 
-         assert(cat.Nodes().size() == 0);
+         assert(cat.QueryNodes("*").size() == 0);
 
          assert(cat.AddNodes({a, b}));
 
-         assert(cat.Nodes().size() == 2);
+         assert(cat.QueryNodes("*").size() == 2);
 
          assert(cat.AddNode(a) == false);
 
-         assert(cat.Nodes().size() == 2);
+         assert(cat.QueryNodes("*").size() == 2);
       }
 
       //============================================================
@@ -55,13 +55,13 @@ namespace cat
 
          assert(cat.EraseNode(c.Name()) == false);
 
-         assert(cat.Nodes().size() == 0);
+         assert(cat.QueryNodes("*").size() == 0);
 
          cat.AddNodes({a, b});
 
          cat.EraseNodes();
 
-         assert(cat.Nodes().size() == 0);
+         assert(cat.QueryNodes("*").size() == 0);
          assert(cat.QueryArrows("* -> *").size() == 0);
       }
 
@@ -157,18 +157,18 @@ namespace cat
       {
          Node cat("cat");
 
-         solve_compositions(cat);
+         cat.SolveCompositions();
 
          Node a("a"), b("b"), c("c"), d("d");
 
          cat.AddNodes({a, b, c, d});
 
-         solve_compositions(cat);
+         cat.SolveCompositions();
 
          cat.AddArrows({Arrow(a.Name(), b.Name(), "f0"), Arrow(b.Name(), c.Name(), "f1"), Arrow(c.Name(), d.Name(), "f2")});
          cat.AddArrows({Arrow(d.Name(), c.Name(), "f3"), Arrow(c.Name(), b.Name(), "f4"), Arrow(b.Name(), a.Name(), "f5")});
 
-         solve_compositions(cat);
+         cat.SolveCompositions();
 
          assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), c.Name())));
          assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), d.Name())));
@@ -179,7 +179,7 @@ namespace cat
          assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(c.Name(), a.Name())));
 
          auto prev_count = cat.QueryArrows("* -> *").size();
-         solve_compositions(cat);
+         cat.SolveCompositions();
          auto new_count = cat.QueryArrows("* -> *").size();
 
          assert(new_count == prev_count);
@@ -204,17 +204,17 @@ namespace cat
                   ,  Arrow(c.Name(), f.Name())
                   ,  Arrow(d.Name(), e.Name())});
 
-         Node::List seq = solve_sequence(cat, a, e);
+         Node::List seq = cat.SolveSequence(a, e);
 
          assert(seq.size() == 4);
 
-         Arrow::List morphs = map_nodes2arrows(seq, cat);
+         Arrow::List morphs = cat.MapNodes2Arrows(seq);
          auto it = morphs.begin();
          assert(*(it) == Arrow(a.Name(), b.Name()));
          assert(*(++it) == Arrow(b.Name(), d.Name()));
          assert(*(++it) == Arrow(d.Name(), e.Name()));
 
-         seq = solve_sequence(cat, e, a);
+         seq = cat.SolveSequence(e, a);
 
          assert(seq.size() == 0);
       }
@@ -239,12 +239,12 @@ namespace cat
                   ,  Arrow(d.Name(), e.Name())
                   ,  Arrow(f.Name(), e.Name())});
 
-         std::vector<Node::List> seqs = solve_sequences(cat, a, e);
+         std::vector<Node::List> seqs = cat.SolveSequences(a, e);
 
          assert(seqs.size() == 3);
 
          {
-            Arrow::List morphs = map_nodes2arrows(seqs[0], cat);
+            Arrow::List morphs = cat.MapNodes2Arrows(seqs[0]);
             auto it = morphs.begin();
             assert(*it == Arrow(a.Name(), b.Name()));
             assert(*(++it) == Arrow(b.Name(), d.Name()));
@@ -252,7 +252,7 @@ namespace cat
          }
 
          {
-            Arrow::List morphs = map_nodes2arrows(seqs[1], cat);
+            Arrow::List morphs = cat.MapNodes2Arrows(seqs[1]);
             auto it = morphs.begin();
             assert(*(it) == Arrow(a.Name(), c.Name()));
             assert(*(++it) == Arrow(c.Name(), d.Name()));
@@ -260,14 +260,14 @@ namespace cat
          }
 
          {
-            Arrow::List morphs = map_nodes2arrows(seqs[2], cat);
+            Arrow::List morphs = cat.MapNodes2Arrows(seqs[2]);
             auto it = morphs.begin();
             assert(*(it) == Arrow(a.Name(), c.Name()));
             assert(*(++it) == Arrow(c.Name(), f.Name()));
             assert(*(++it) == Arrow(f.Name(), e.Name()));
          }
 
-         seqs = solve_sequences(cat, e, a);
+         seqs = cat.SolveSequences(e, a);
 
          assert(seqs.size() == 0);
       }
@@ -288,7 +288,7 @@ namespace cat
          cat.AddArrow(Arrow(b.Name(), d.Name(), "f2"));
          cat.AddArrow(Arrow(c.Name(), d.Name(), "f3"));
 
-         inverse(cat);
+         cat.Inverse();
 
          assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(b.Name(), a.Name(), "f0")));
          assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(c.Name(), a.Name(), "f1")));
@@ -323,16 +323,16 @@ namespace cat
 
          cat.AddArrows({Arrow(d0.Name(), d1.Name()), Arrow(d1.Name(), d0.Name())});
 
-         solve_compositions(cat);
+         cat.SolveCompositions();
 
-         Node::List initial_obj = initial(cat);
+         Node::List initial_obj = cat.Initial();
          assert(initial_obj.size() == 2);
          initial_obj.sort();
          auto it_initial = initial_obj.begin();
          assert(*it_initial == a0);
          assert(*(++it_initial) == a1);
 
-         Node::List terminal_obj = terminal(cat);
+         Node::List terminal_obj = cat.Terminal();
          assert(terminal_obj.size() == 2);
          terminal_obj.sort();
          auto it_terminal = terminal_obj.begin();
@@ -342,8 +342,8 @@ namespace cat
          cat.EraseNodes();
 
          cat.AddNode(a0);
-         initial_obj = initial(cat);
-         terminal_obj = terminal(cat);
+         initial_obj = cat.Initial();
+         terminal_obj = cat.Terminal();
          assert(initial_obj.size() == terminal_obj.size() == 1);
          assert(*initial_obj.begin() == *terminal_obj.begin());
       }

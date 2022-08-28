@@ -77,7 +77,7 @@ static void export_cytoscape_t(const std::string& name_, const Node& node_, cons
 {
    std::string nodes;
 
-   for (const auto& [node, _] : node_.Nodes())
+   for (const auto& node : node_.QueryNodes("*"))
    {
       if (exclude_.find(node) != exclude_.end())
          continue;
@@ -215,9 +215,9 @@ void cat::export_cytoscape(const Node& node_, const std::string& path_, const st
    if (it_cacat != coords_.end())
       export_cytoscape_t(node_.Name(), node_, path_, prefix_, it_cacat->second, exclude_, skip_identity_, show_arrows_);
 
-   for (const auto& [node, _] : node_.Nodes())
+   for (const auto& node : node_.QueryNodes("*"))
    {
-      if (!node.Nodes().empty())
+      if (!node.IsNodesEmpty())
       {
          auto it_cat = coords_.find(node);
          if (it_cat != coords_.end())

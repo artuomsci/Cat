@@ -82,10 +82,10 @@ std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
    Node ret(m_target);
 
    // Mapping of nodes
-   for (const auto& [node, _] : node_->Nodes())
+   for (const auto& node : node_->QueryNodes("*"))
    {
       Node mapped_node = SingleMap(node).value();
-      if (!ret.Proof(mapped_node))
+      if (ret.QueryNodes(mapped_node.Name()).empty())
          ret.AddNode(mapped_node);
    }
 
@@ -327,17 +327,6 @@ void Arrow::inverse()
 
 //-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
-static bool validate_node_data(const Node& node_)
-{
-   int sz {};
-   for (const auto& [_, codomain] : node_.Nodes())
-   {
-      sz += codomain.size();
-   }
-   return sz == (int)node_.QueryArrows("* -> *").size();
-}
-
-//-----------------------------------------------------------------------------------------
 Node::Node(const NName& name_) : m_name(name_)
 {
 }
@@ -429,6 +418,12 @@ void Node::EraseArrows()
 }
 
 //-----------------------------------------------------------------------------------------
+bool Node::IsArrowsEmpty() const
+{
+   return m_arrows.empty();
+}
+
+//-----------------------------------------------------------------------------------------
 bool Node::AddNode(const Node& node_)
 {
    if (node_.Name().empty())
@@ -440,7 +435,7 @@ bool Node::AddNode(const Node& node_)
 
       Arrow func(node_.Name(), node_.Name(), id_arrow_name(node_.Name()));
 
-      for (const auto& [id, _] : node_.Nodes())
+      for (const auto& id : node_.QueryNodes("*"))
          func.AddArrow(Arrow(id.Name(), id.Name()));
 
       if (!AddArrow(func))
@@ -527,19 +522,9 @@ Node::List Node::FindByTargets(const std::list<Node::NName>& targets_) const
 }
 
 //-----------------------------------------------------------------------------------------
-std::optional<Node> Node::FindNode(const NName& name_) const
+bool Node::IsNodesEmpty() const
 {
-   auto it = m_nodes.find(Node(name_));
-   if (it != m_nodes.end())
-      return it->first;
-
-   return std::optional<Node>();
-}
-
-//-----------------------------------------------------------------------------------------
-const Node::Map& Node::Nodes() const
-{
-   return m_nodes;
+   return m_nodes.empty();
 }
 
 //-----------------------------------------------------------------------------------------
@@ -549,30 +534,28 @@ Arrow::List Node::QueryArrows(const std::string& query_) const
 }
 
 //-----------------------------------------------------------------------------------------
-bool Node::Proof(const Node& node_) const
+Node::List Node::QueryNodes(const std::string& query_) const
 {
-   return m_nodes.find(node_) != m_nodes.end();
+   auto query = trim_sp(query_);
+
+   Node::List ret;
+
+   if (query == sAny)
+   {
+      for (const auto& [node, _] : m_nodes)
+      {
+         ret.push_back(node);
+      }
+   }
+   else
+   {
+      auto it = m_nodes.find(Node(query));
+      if (it != m_nodes.end())
+         ret.push_back(it->first);
+   }
+
+   return ret;
 }
-
-//-----------------------------------------------------------------------------------------
-//bool Node::Proof(const Node& source_, const Node& target_) const
-//{
-//   bool result{};
-
-//   auto its = m_nodes.find(Node(source_));
-//   if (its != m_nodes.end())
-//   {
-//      const auto& [_, codomain] = *its;
-
-//      auto itt = codomain.find(Node(target_));
-//      if (itt != codomain.end())
-//      {
-//         result = true;
-//      }
-//   }
-
-//   return result;
-//}
 
 //-----------------------------------------------------------------------------------------
 bool Node::Verify(const Arrow& arrow_) const
@@ -597,7 +580,7 @@ bool Node::Verify(const Arrow& arrow_) const
 
    for (const Arrow& arrow : arrow_.QueryArrows("*->*"))
    {
-      if (!source_cat.FindNode(arrow.Source()))
+      if (source_cat.QueryNodes(arrow.Source()).empty())
       {
          print_error("Missing node for " + arrow.Source() + "->" + arrow.Target());
          return false;
@@ -605,7 +588,7 @@ bool Node::Verify(const Arrow& arrow_) const
    }
 
    // Checking mapping of objects
-   for (const auto& [obj, _] : source_cat.Nodes())
+   for (const auto& obj : source_cat.QueryNodes("*"))
    {
       if (!arrow_.SingleMap(obj))
       {
@@ -625,15 +608,15 @@ bool Node::Verify(const Arrow& arrow_) const
          return false;
       }
 
-      if (!source_cat.Node::Proof(Node(arrow.Source())))
+      if (source_cat.QueryNodes(arrow.Source()).empty())
       {
          print_error("No such node " + arrow.Source() + " in node " + source_cat.Name());
          return false;
       }
 
-      if (!target_cat.Node::Proof(objs.value()))
+      if (target_cat.QueryNodes(objs->Name()).empty())
       {
-         print_error("No such node " + objs.value().Name() + " in node " + target_cat.Name());
+         print_error("No such node " + objs->Name() + " in node " + target_cat.Name());
          return false;
       }
 
@@ -643,15 +626,15 @@ bool Node::Verify(const Arrow& arrow_) const
          return false;
       }
 
-      if (!source_cat.Node::Proof(Node(arrow.Target())))
+      if (source_cat.QueryNodes(arrow.Target()).empty())
       {
          print_error("No such node " + arrow.Target() + " in node " + source_cat.Name());
          return false;
       }
 
-      if (!target_cat.Node::Proof(objt.value()))
+      if (target_cat.QueryNodes(objt->Name()).empty())
       {
-         print_error("No such node " + objt.value().Name() + " in node " + target_cat.Name());
+         print_error("No such node " + objt->Name() + " in node " + target_cat.Name());
          return false;
       }
 
@@ -681,12 +664,12 @@ bool Node::Statement(const Arrow& arrow_)
    if (it != m_nodes.end())
       target = it->first;
 
-   auto source = FindNode(arrow_.Source());
-   if (!source)
+   auto source = QueryNodes(arrow_.Source());
+   if (source.empty())
       return false;
 
    // Mapping nodes
-   for (const auto& [node, _] : source->Nodes())
+   for (const auto& node : source.front().QueryNodes("*"))
    {
       std::optional<Node> mnode = arrow_.SingleMap(node);
       if (!mnode)
@@ -695,12 +678,12 @@ bool Node::Statement(const Arrow& arrow_)
          return false;
       }
 
-      if (!target.Proof(mnode.value()))
+      if (target.QueryNodes(mnode->Name()).empty())
          target.AddNode(mnode.value());
    }
 
    // Mapping arrows
-   for (const Arrow& arrow : source->QueryArrows("* -> *"))
+   for (const Arrow& arrow : source.front().QueryArrows("* -> *"))
    {
       auto nodes = arrow_.SingleMap(Node(arrow.Source()));
       auto nodet = arrow_.SingleMap(Node(arrow.Target()));
@@ -758,6 +741,260 @@ bool Node::operator==(const Node& cat_) const
 bool Node::operator!=(const Node& cat_) const
 {
    return m_name != cat_.Name();
+}
+
+//-----------------------------------------------------------------------------------------
+void Node::SolveCompositions()
+{
+   for (const auto & [domain, codomain] : m_nodes)
+   {
+      Node::Set traverse = codomain;
+
+      Node::Set new_codomain;
+      while (!traverse.empty())
+      {
+         new_codomain.insert(traverse.begin(), traverse.end());
+
+         Node::Set new_traverse;
+         for (const Node& node : traverse)
+         {
+            if (node == domain)
+               continue;
+
+            const auto& sub_codomain = m_nodes.at(node);
+
+            for (const Node& sub_node : sub_codomain)
+            {
+               if (new_codomain.find(sub_node) != new_codomain.end())
+                  continue;
+
+               new_traverse.insert(sub_node);
+            }
+         }
+
+         traverse = new_traverse;
+      }
+
+      Node::Set domain_diff;
+      std::set_difference(new_codomain.begin(), new_codomain.end(), codomain.begin(), codomain.end(), std::inserter(domain_diff, domain_diff.begin()));
+
+      for (const auto& codomain_node : domain_diff)
+         AddArrow(Arrow(domain.Name(), codomain_node.Name()));
+   }
+}
+
+//-----------------------------------------------------------------------------------------
+Node::List Node::Initial() const
+{
+   Node::List ret;
+
+   for (const auto& [domain, codomain] : m_nodes)
+   {
+      if (m_nodes.size() == codomain.size())
+         ret.push_back(domain);
+   }
+
+   return ret;
+}
+
+//-----------------------------------------------------------------------------------------
+Node::List Node::Terminal() const
+{
+   Node::List ret;
+
+   for (const auto& [domain, _] : m_nodes)
+   {
+      bool is_terminal { true };
+
+      for (const auto& [domain_int, codomain_int] : m_nodes)
+      {
+         if (std::find_if(codomain_int.begin(), codomain_int.end(), [&](const Node& node_){ return domain == node_; }) == codomain_int.end())
+         {
+            is_terminal = false;
+            break;
+         }
+      }
+
+      if (is_terminal)
+         ret.push_back(domain);
+   }
+
+   return ret;
+}
+
+//-----------------------------------------------------------------------------------------
+Node::List Node::SolveSequence(const Node& from_, const Node& to_) const
+{
+   Node::List ret;
+
+   std::vector<Node::PairSet> stack;
+
+   std::optional<Node> current_node(from_);
+
+   while (true)
+   {
+      // Checking for destination
+      if (current_node.value() == to_)
+      {
+         for (auto & [nodei, _] : stack)
+            ret.push_back(nodei);
+
+         ret.push_back(current_node.value());
+
+         return ret;
+      }
+
+      stack.emplace_back(current_node.value(), m_nodes.at(current_node.value()));
+
+      // Remove identity morphism
+      stack.back().second.erase(current_node.value());
+
+      current_node.reset();
+
+      while (!current_node.has_value())
+      {
+         // Trying new set of nodes
+         Node::Set& forward_codomain = stack.back().second;
+
+         if (forward_codomain.empty())
+         {
+            stack.pop_back();
+
+            if (stack.empty())
+               return ret;
+
+            continue;
+         }
+
+         // Moving one node forward
+         current_node.emplace(forward_codomain.extract(forward_codomain.begin()).value());
+
+         // Checking for loops
+         for (const auto& [node, _] : stack)
+         {
+            // Is already visited
+            if (node == current_node.value())
+            {
+               current_node.reset();
+               break;
+            }
+         }
+      }
+   }
+
+   return ret;
+}
+
+//-----------------------------------------------------------------------------------------
+std::vector<Node::List> Node::SolveSequences(const Node& from_, const Node& to_) const
+{
+   std::vector<Node::List> ret;
+
+   std::vector<Node::PairSet> stack;
+
+   std::optional<Node> current_node(from_);
+
+   while (true)
+   {
+      // Checking for destination
+      if (current_node.value() == to_)
+      {
+         Node::List seq;
+
+         for (auto & [nodei, _] : stack)
+            seq.push_back(nodei);
+
+         seq.push_back(current_node.value());
+
+         ret.push_back(seq);
+      }
+      else
+      {
+         // Stacking forward movements
+         stack.emplace_back(current_node.value(), m_nodes.at(current_node.value()));
+
+         // Removing identity morphism
+         stack.back().second.erase(current_node.value());
+      }
+
+      current_node.reset();
+
+      while (!current_node.has_value())
+      {
+         // Trying new sets of nodes
+         Node::Set& forward_codomain = stack.back().second;
+
+         if (forward_codomain.empty())
+         {
+            stack.pop_back();
+
+            if (stack.empty())
+               return ret;
+
+            continue;
+         }
+
+         // Moving one node forward
+         current_node.emplace(forward_codomain.extract(forward_codomain.begin()).value());
+
+         // Checking for loops
+         for (const auto& [node, _] : stack)
+         {
+            // Is already visited
+            if (node == current_node.value())
+            {
+               current_node.reset();
+               break;
+            }
+         }
+      }
+   }
+
+   return ret;
+}
+
+//-----------------------------------------------------------------------------------------
+Arrow::List Node::MapNodes2Arrows(const Node::List& nodes_) const
+{
+   Arrow::List ret;
+
+   auto it_last = std::prev(nodes_.end());
+
+   for (auto itn = nodes_.begin(); itn != it_last; ++itn)
+   {
+      auto it = std::find_if(m_arrows.begin(), m_arrows.end(), [&](const Arrow::List::value_type& elem_)
+      {
+         return itn->Name() == elem_.Source() && std::next(itn)->Name() == elem_.Target();
+      });
+
+      ret.push_back(it != m_arrows.end() ? *it : Arrow("", ""));
+   }
+
+   return ret;
+}
+
+//-----------------------------------------------------------------------------------------
+void Node::Inverse()
+{
+   Arrow::List tmp = m_arrows;
+
+   EraseArrows();
+
+   for (Arrow& arrow : tmp)
+   {
+      arrow.inverse();
+      AddArrow(arrow);
+   }
+}
+
+//-----------------------------------------------------------------------------------------
+bool Node::validate_node_data() const
+{
+   size_t sz {};
+   for (const auto& [_, codomain] : m_nodes)
+      sz += codomain.size();
+
+   return sz == m_arrows.size();
 }
 
 //-----------------------------------------------------------------------------------------

@@ -107,7 +107,7 @@ namespace cat
       List QueryArrows(const std::string& query_) const;
 
       /**
-       * @brief Checks whether the arrow contain any arrows
+       * @brief Checks whether the arrow contains any arrows
        * @return True if there are no arrows
        */
       bool IsEmpty() const;
@@ -187,6 +187,12 @@ namespace cat
       void EraseArrows();
 
       /**
+       * @brief Checks whether the node contains any arrows
+       * @return True if there are no arrows
+       */
+      bool IsArrowsEmpty() const;
+
+      /**
       * @brief Add node
       * @param node_ - node
       * @return True if successful
@@ -220,17 +226,10 @@ namespace cat
       List FindByTargets(const std::list<NName>& targets_) const;
 
       /**
-       * @brief Find node
-       * @param name_ - node name
-       * @return Node
+       * @brief Checks whether the node contains any nodes
+       * @return True if there are no nodes
        */
-      std::optional<Node> FindNode(const NName& name_) const;
-
-      /**
-       * @brief Return nodes
-       * @return Nodes
-       */
-      const Map& Nodes() const;
+      bool IsNodesEmpty() const;
 
       /**
        * @brief Query for arrows
@@ -245,19 +244,11 @@ namespace cat
       Arrow::List QueryArrows(const std::string& query_) const;
 
       /**
-       * @brief Proof node
-       * @param node_ - node
-       * @return True if successful
+       * @brief Query for nodes
+       * @param query_ - query
+       * @return Nodes
        */
-      bool Proof(const Node& node_) const;
-
-      /**
-       * @brief Proof arrow
-       * @param source_ - source
-       * @param target_ - target
-       * @return True if successful
-       */
-      //bool Proof(const Node& source_, const Node& target_) const;
+      Node::List QueryNodes(const std::string& query_) const;
 
       /**
        * @brief Verifying arrow
@@ -278,7 +269,56 @@ namespace cat
       bool operator ==(const Node& cat_) const;
       bool operator !=(const Node& cat_) const;
 
+      /**
+       * @brief Find all compositions
+       */
+      void SolveCompositions();
+
+      /**
+       * @brief Find initial nodes. All arrow compositions
+       * must be resolved before calling this method i.e. call "SolveCompositions" first
+       * @return Initial nodes
+       */
+      cat::Node::List Initial() const;
+
+      /**
+       * @brief Find terminal nodes. All arrow compositions
+       * must be resolved before calling this method i.e. call "SolveCompositions" first
+       * @return Terminal nodes
+       */
+      cat::Node::List Terminal() const;
+
+      /**
+       * @brief Find any sequence of nodes between two given nodes
+       * @param from_ - source node of the sequence
+       * @param to_ - target node of the sequence
+       * @return Sequence of nodes
+       */
+      cat::Node::List SolveSequence(const cat::Node& from_, const cat::Node& to_) const;
+
+      /**
+       * @brief Find all sequences of nodes between two given nodes
+       * @param from_ - source node of the sequences
+       * @param to_ - target node of the sequences
+       * @return Sequences of nodes
+       */
+      std::vector<cat::Node::List> SolveSequences(const cat::Node& from_, const cat::Node& to_) const;
+
+      /**
+       * @brief Map sequence of nodes onto sequence of arrows
+       * @param nodes_ - sequence of nodes
+       * @return Sequence of arrows
+       */
+      cat::Arrow::List MapNodes2Arrows(const cat::Node::List& nodes_) const;
+
+      /**
+       * @brief Inverse arrows
+       */
+      void Inverse();
+
       private:
+
+      bool validate_node_data() const;
 
       Map            m_nodes;
       Arrow::List    m_arrows;

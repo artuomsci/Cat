@@ -72,8 +72,8 @@ static bool is_functor(const std::string& string_)
 }
 
 //-----------------------------------------------------------------------------------------
-template <typename TNode, ArrowType ArrowType, typename TContainer>
-static std::vector<Arrow> get_chains(const std::string& name_, const TNode& source_, const TNode& target_, const TContainer& domain_, const TContainer& codomain_, EExpType expr_type_)
+template <ArrowType ArrowType>
+static std::vector<Arrow> get_chains(const std::string& name_, const Node& source_, const Node& target_, const Node::List& domain_, const Node::List& codomain_, EExpType expr_type_)
 {
    std::vector<Arrow> ret;
 
@@ -82,7 +82,12 @@ static std::vector<Arrow> get_chains(const std::string& name_, const TNode& sour
       if (expr_type_ == EExpType::eStatement)
          return true;
 
-      if (domain_.find(source_) == domain_.end())
+      auto it_d = std::find_if(domain_.begin(), domain_.end(), [&](const Node& element_)
+      {
+         return element_ == source_;
+      });
+
+      if (it_d == domain_.end())
       {
          print_error("No such source: " + source_.Name());
          return false;
@@ -95,7 +100,12 @@ static std::vector<Arrow> get_chains(const std::string& name_, const TNode& sour
       if (expr_type_ == EExpType::eStatement)
          return true;
 
-      if (codomain_.find(target_) == codomain_.end())
+      auto it_c = std::find_if(codomain_.begin(), codomain_.end(), [&](const Node& element_)
+      {
+         return element_ == target_;
+      });
+
+      if (it_c == codomain_.end())
       {
          print_error("No such target: " + target_.Name());
          return false;
@@ -127,9 +137,9 @@ static std::vector<Arrow> get_chains(const std::string& name_, const TNode& sour
    // * :: * -> *
    else if (name_ == sAny && source_.Name() == sAny && target_.Name() == sAny)
    {
-      for (const auto& [dnode, _d] : domain_)
+      for (const Node& dnode : domain_)
       {
-         for (const auto& [cnode, _c] : codomain_)
+         for (const auto& cnode : codomain_)
          {
             ret.push_back(Arrow(dnode.Name(), cnode.Name()));
          }
@@ -141,7 +151,7 @@ static std::vector<Arrow> get_chains(const std::string& name_, const TNode& sour
       if (!fnCheckTarget())
          return ret;
 
-      for (const auto& [dnode, _] : domain_)
+      for (const auto& dnode : domain_)
          ret.push_back(Arrow(dnode.Name(), target_.Name()));
    }
    // * :: a -> *
@@ -150,7 +160,7 @@ static std::vector<Arrow> get_chains(const std::string& name_, const TNode& sour
       if (!fnCheckSource())
          return ret;
 
-      for (const auto& [cnode, _] : codomain_)
+      for (const auto& cnode : codomain_)
          ret.push_back(Arrow(source_.Name(), cnode.Name()));
    }
    // f :: a -> *
@@ -164,7 +174,7 @@ static std::vector<Arrow> get_chains(const std::string& name_, const TNode& sour
       if (!fnCheckTarget())
          return ret;
 
-      for (const auto& [dnode, _] : domain_)
+      for (const auto& dnode : domain_)
          ret.push_back(Arrow(dnode.Name(), target_.Name(), name_));
    }
    // f :: * -> *
@@ -184,8 +194,8 @@ template <> std::string chain_symbol<ArrowType::eMorphism>() { return "->"; }
 template <> std::string chain_symbol<ArrowType::eFunctor >() { return "=>"; }
 
 //-----------------------------------------------------------------------------------------
-template <ArrowType ArrowType, typename TNode, typename TContainer>
-static std::vector<Arrow> get_chain(const std::string& line_, const TContainer& domain_, const TContainer& codomain_, EExpType expr_type_)
+template <ArrowType ArrowType>
+static std::vector<Arrow> get_chain(const std::string& line_, const Node::List& domain_, const Node::List& codomain_, EExpType expr_type_)
 {
    StringVec subsections = split(line_, "::");
    if (subsections.size() != 2)
@@ -207,10 +217,10 @@ static std::vector<Arrow> get_chain(const std::string& line_, const TContainer& 
    std::vector<Arrow> ret; ret.reserve(args.size() - 1);
    for (int i = 0; i < (int)args.size() - 1; ++i)
    {
-      TNode source(args[i + 0]);
-      TNode target(args[i + 1]);
+      Node source(args[i + 0]);
+      Node target(args[i + 1]);
 
-      for (const auto& it : get_chains<TNode, ArrowType, TContainer>(head, source, target, domain_, codomain_, expr_type_))
+      for (const auto& it : get_chains<ArrowType>(head, source, target, domain_, codomain_, expr_type_))
          ret.push_back(it);
    }
 
@@ -256,18 +266,11 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
 
    auto fnBeginCategory = [](const std::string& line_, std::optional<Node>& crt_cat_, Node& ccat_)
    {
-      auto it = ccat_.Nodes().find(Node(line_));
-
-      if (it == ccat_.Nodes().end())
-      {
+      auto nodes = ccat_.QueryNodes(line_);
+      if (nodes.empty())
          crt_cat_.emplace(line_);
-      }
       else
-      {
-         const auto& [cat, _] = *it;
-
-         crt_cat_.emplace(cat);
-      }
+         crt_cat_.emplace(nodes.front());
    };
 
    auto fnEndCategory = [](std::optional<Node>& crt_cat_, Node& ccat_)
@@ -327,9 +330,9 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
          return false;
       }
 
-      const Node::Node::Map& nodes = crt_cat_->Nodes();
+      const auto& nodes = crt_cat_->QueryNodes("*");
 
-      std::vector<Arrow> morphs = get_chain<ArrowType::eMorphism, Node>(line_, nodes, nodes, expr_type_);
+      std::vector<Arrow> morphs = get_chain<ArrowType::eMorphism>(line_, nodes, nodes, expr_type_);
       if (morphs.empty())
       {
          print_error("Incorrect morphism definition " + line_ + " in category " + crt_cat_->Name());
@@ -340,10 +343,10 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
       {
          if (expr_type_ == EExpType::eStatement)
          {
-            if (!crt_cat_->Node::Proof(Node(morph.Source())))
+            if (crt_cat_->QueryNodes(morph.Source()).empty())
                crt_cat_->AddNode(Node(morph.Source()));
 
-            if (!crt_cat_->Node::Proof(Node(morph.Target())))
+            if (crt_cat_->QueryNodes(morph.Target()).empty())
                crt_cat_->AddNode(Node(morph.Target()));
          }
 
@@ -356,7 +359,9 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
 
    auto fnBeginFunctor = [](const std::string& line_, std::optional<Arrow>& crt_func_, Node& ccat_, EExpType expr_type_)
    {
-      std::vector<Arrow> funcs = get_chain<ArrowType::eFunctor, Node>(line_, ccat_.Nodes(), ccat_.Nodes(), expr_type_);
+      auto nodes = ccat_.QueryNodes("*");
+
+      std::vector<Arrow> funcs = get_chain<ArrowType::eFunctor>(line_, nodes, nodes, expr_type_);
       if (funcs.size() != 1)
       {
          print_error("Incorrect functor definition: " + line_);
@@ -365,10 +370,10 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
 
       if (expr_type_ == EExpType::eStatement)
       {
-         if (!ccat_.Node::Proof(Node(funcs.front().Source())))
+         if (ccat_.QueryNodes(funcs.front().Source()).empty())
             ccat_.AddNode(Node(funcs.front().Source()));
 
-         if (!ccat_.Node::Proof(Node(funcs.front().Target())))
+         if (ccat_.QueryNodes(funcs.front().Target()).empty())
             ccat_.AddNode(Node(funcs.front().Target()));
       }
 
@@ -385,13 +390,11 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
          {
             if (crt_func->IsEmpty())
             {
-               auto it = node_.Nodes().find(Node(crt_func->Source()));
-               if (it == node_.Nodes().end())
+               auto nodes = node_.QueryNodes(crt_func->Source());
+               if (nodes.empty())
                   return false;
 
-               const auto& [cat, _] = *it;
-
-               for (const auto& [domain, _] : cat.Nodes())
+               for (const auto& domain : nodes.front().QueryNodes("*"))
                   crt_func->AddArrow(Arrow(domain.Name(), domain.Name()));
             }
 
@@ -412,15 +415,12 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
 
    auto fnAddFMorphisms = [](const std::string& line_, std::optional<Arrow>& crt_func_, Node& ccat_, EExpType expr_type_)
    {
-      const auto& cats = ccat_.Nodes();
+      auto itSourceCat = ccat_.QueryNodes(crt_func_->Source()).front();
+      auto itTargetCat = ccat_.QueryNodes(crt_func_->Target()).front();
 
-      auto itSourceCat = cats.find(Node(crt_func_.value().Source()));
-      auto itTargetCat = cats.find(Node(crt_func_.value().Target()));
-
-      std::vector<Arrow> morphs = get_chain<ArrowType::eMorphism, Node>(line_, (*itSourceCat).first.Nodes(), (*itTargetCat).first.Nodes(), expr_type_);
+      std::vector<Arrow> morphs = get_chain<ArrowType::eMorphism>(line_, itSourceCat.QueryNodes("*"), itTargetCat.QueryNodes("*"), expr_type_);
       if (morphs.empty())
       {
-
          print_error("Incorrect morphism definition " + line_ + " in functor " + crt_func_->Name());
          return false;
       }
@@ -616,254 +616,6 @@ std::optional<std::string> get_description(const std::string& filename_)
    }
 
    return std::optional<std::string>();
-}
-
-//-----------------------------------------------------------------------------------------
-Node::List solve_sequence(const Node& node_, const Node& from_, const Node& to_)
-{
-   Node::List ret;
-
-   std::vector<Node::PairSet> stack;
-
-   std::optional<Node> current_node(from_);
-
-   while (true)
-   {
-      // Checking for destination
-      if (current_node.value() == to_)
-      {
-         for (auto & [nodei, _] : stack)
-            ret.push_back(nodei);
-
-         ret.push_back(current_node.value());
-
-         return ret;
-      }
-
-      stack.emplace_back(current_node.value(), node_.Nodes().at(current_node.value()));
-
-      // Remove identity morphism
-      stack.back().second.erase(current_node.value());
-
-      current_node.reset();
-
-      while (!current_node.has_value())
-      {
-         // Trying new set of nodes
-         Node::Set& forward_codomain = stack.back().second;
-
-         if (forward_codomain.empty())
-         {
-            stack.pop_back();
-
-            if (stack.empty())
-               return ret;
-
-            continue;
-         }
-
-         // Moving one node forward
-         current_node.emplace(forward_codomain.extract(forward_codomain.begin()).value());
-
-         // Checking for loops
-         for (const auto& [node, _] : stack)
-         {
-            // Is already visited
-            if (node == current_node.value())
-            {
-               current_node.reset();
-               break;
-            }
-         }
-      }
-   }
-
-   return ret;
-}
-
-//-----------------------------------------------------------------------------------------
-std::vector<Node::List> solve_sequences(const Node& node_, const Node& from_, const Node& to_)
-{
-   std::vector<Node::List> ret;
-
-   std::vector<Node::PairSet> stack;
-
-   std::optional<Node> current_node(from_);
-
-   while (true)
-   {
-      // Checking for destination
-      if (current_node.value() == to_)
-      {
-         Node::List seq;
-
-         for (auto & [nodei, _] : stack)
-            seq.push_back(nodei);
-
-         seq.push_back(current_node.value());
-
-         ret.push_back(seq);
-      }
-      else
-      {
-         // Stacking forward movements
-         stack.emplace_back(current_node.value(), node_.Nodes().at(current_node.value()));
-
-         // Removing identity morphism
-         stack.back().second.erase(current_node.value());
-      }
-
-      current_node.reset();
-
-      while (!current_node.has_value())
-      {
-         // Trying new sets of nodes
-         Node::Set& forward_codomain = stack.back().second;
-
-         if (forward_codomain.empty())
-         {
-            stack.pop_back();
-
-            if (stack.empty())
-               return ret;
-
-            continue;
-         }
-
-         // Moving one node forward
-         current_node.emplace(forward_codomain.extract(forward_codomain.begin()).value());
-
-         // Checking for loops
-         for (const auto& [node, _] : stack)
-         {
-            // Is already visited
-            if (node == current_node.value())
-            {
-               current_node.reset();
-               break;
-            }
-         }
-      }
-   }
-
-   return ret;
-}
-
-//-----------------------------------------------------------------------------------------
-Arrow::List map_nodes2arrows(const Node::List& nodes_, const Node& node_)
-{
-   Arrow::List ret;
-
-   const Arrow::List& arrows = node_.QueryArrows("* -> *");
-
-   auto it_last = std::prev(nodes_.end());
-
-   for (auto itn = nodes_.begin(); itn != it_last; ++itn)
-   {
-      auto it = std::find_if(arrows.begin(), arrows.end(), [&](const Arrow::List::value_type& elem_)
-      {
-         return itn->Name() == elem_.Source() && std::next(itn)->Name() == elem_.Target();
-      });
-
-      ret.push_back(it != arrows.end() ? *it : Arrow("", ""));
-   }
-
-   return ret;
-}
-
-//-----------------------------------------------------------------------------------------
-void solve_compositions(Node& node_)
-{
-   for (const auto & [domain, codomain] : node_.Nodes())
-   {
-      Node::Set traverse = codomain;
-
-      Node::Set new_codomain;
-      while (!traverse.empty())
-      {
-         new_codomain.insert(traverse.begin(), traverse.end());
-
-         Node::Set new_traverse;
-         for (const Node& node : traverse)
-         {
-            if (node == domain)
-               continue;
-
-            const Node::Set& sub_codomain = node_.Nodes().at(node);
-
-            for (const Node& sub_node : sub_codomain)
-            {
-               if (new_codomain.find(sub_node) != new_codomain.end())
-                  continue;
-
-               new_traverse.insert(sub_node);
-            }
-         }
-
-         traverse = new_traverse;
-      }
-
-      Node::Set domain_diff;
-      std::set_difference(new_codomain.begin(), new_codomain.end(), codomain.begin(), codomain.end(), std::inserter(domain_diff, domain_diff.begin()));
-
-      for (const auto& codomain_node : domain_diff)
-         node_.AddArrow(Arrow(domain.Name(), codomain_node.Name()));
-   }
-}
-
-//-----------------------------------------------------------------------------------------
-void inverse(Node& node_)
-{
-   Arrow::List arrows = node_.QueryArrows("* -> *");
-
-   node_.EraseArrows();
-
-   for (Arrow& arrow : arrows)
-   {
-      arrow.inverse();
-      node_.AddArrow(arrow);
-   }
-}
-
-//-----------------------------------------------------------------------------------------
-Node::List initial(Node& node_)
-{
-   Node::List ret;
-
-   const Node::Node::Map& nodes = node_.Nodes();
-
-   for (const auto& [domain, codomain] : nodes)
-   {
-      if (nodes.size() == codomain.size())
-         ret.push_back(domain);
-   }
-
-   return ret;
-}
-
-//-----------------------------------------------------------------------------------------
-Node::List terminal(Node& node_)
-{
-   Node::List ret;
-
-   for (const auto& [domain, _] : node_.Nodes())
-   {
-      bool is_terminal { true };
-
-      for (const auto& [domain_int, codomain_int] : node_.Nodes())
-      {
-         if (std::find_if(codomain_int.begin(), codomain_int.end(), [&](const Node& node_){ return domain == node_; }) == codomain_int.end())
-         {
-            is_terminal = false;
-            break;
-         }
-      }
-
-      if (is_terminal)
-         ret.push_back(domain);
-   }
-
-   return ret;
 }
 
 ////-----------------------------------------------------------------------------------------

@@ -48,60 +48,6 @@ private:
  */
 CAT_EXPORT std::optional<std::string> get_description(const std::string& filename_);
 
-/**
- * @brief Find any sequence of nodes between two given nodes
- * @param node_ - node to find sequence of nodes in
- * @param from_ - source node of the sequence
- * @param to_ - target node of the sequence
- * @return Sequence of nodes
- */
-CAT_EXPORT cat::Node::List solve_sequence(const cat::Node& node_, const cat::Node& from_, const cat::Node& to_);
-
-/**
- * @brief Find all sequences of nodes between two given nodes
- * @param node_ - node to find sequences of nodes in
- * @param from_ - source node of the sequences
- * @param to_ - target node of the sequences
- * @return Sequences of nodes
- */
-CAT_EXPORT std::vector<cat::Node::List> solve_sequences(const cat::Node& node_, const cat::Node& from_, const cat::Node& to_);
-
-/**
- * @brief Map sequence of nodes onto sequence of arrows
- * @param nodes_ - sequence of nodes
- * @param node_ - node to find arrows in
- * @return Sequence of arrows
- */
-CAT_EXPORT cat::Arrow::List map_nodes2arrows(const cat::Node::List& nodes_, const cat::Node& node_);
-
-/**
- * @brief Find all compositions
- * @param nodes_ - node to find compositions in
- */
-CAT_EXPORT void solve_compositions(cat::Node& node_);
-
-/**
- * @brief Inverse arrows
- * @param node_ - node to inverse arrows
- */
-CAT_EXPORT void inverse(cat::Node& node_);
-
-/**
- * @brief Find initial nodes. All arrow compositions
- * must be resolved before calling this method i.e. call "solve_compositions" first
- * @param node_ - node to find initial nodes in
- * @return Initial nodes
- */
-CAT_EXPORT cat::Node::List initial(cat::Node& node_);
-
-/**
- * @brief Find terminal nodes. All arrow compositions
- * must be resolved before calling this method i.e. call "solve_compositions" first
- * @param node_ - node to find terminal nodes in
- * @return Terminal nodes
- */
-CAT_EXPORT cat::Node::List terminal(cat::Node& node_);
-
 ///**
 // * @brief Coproduct
 // * @param fst_ - first object
