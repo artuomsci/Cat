@@ -213,20 +213,6 @@ namespace cat
       void EraseNodes();
 
       /**
-       * @brief Find source nodes for the target node
-       * @param target_ - target name
-       * @return Source nodes
-       */
-      std::list<NName> FindSources(const NName& target_) const;
-
-      /**
-       * @brief Find target nodes for the source node
-       * @param source_ - source name
-       * @return Target nodes
-       */
-      std::list<NName> FindTargets(const NName& source_) const;
-
-      /**
       * @brief Find nodes as sources to the identified targets
       * @param targets_ - target node names
       * @return Nodes
@@ -245,29 +231,6 @@ namespace cat
        * @return Nodes
        */
       const Map& Nodes() const;
-
-      /**
-       * @brief Find arrow by source and target
-       * @param source_ - source name
-       * @param target_ - target name
-       * @return Arrow
-       */
-      std::optional<Arrow> FindArrow(const NName& source_, const NName& target_) const;
-
-      /**
-       * @brief Find arrows by source and target
-       * @param source_ - source name
-       * @param target_ - target name
-       * @return Arrows
-       */
-      Arrow::List FindArrows(const NName& source_, const NName& target_) const;
-
-      /**
-       * @brief Find arrow
-       * @param name_ - arrow name
-       * @return Arrow
-       */
-      std::optional<Arrow> FindArrow(const Arrow::AName& name_) const;
 
       /**
        * @brief Query for arrows

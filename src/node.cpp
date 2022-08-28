@@ -501,34 +501,6 @@ void Node::EraseNodes()
 }
 
 //-----------------------------------------------------------------------------------------
-std::list<Node::NName> Node::FindSources(const NName& target_) const
-{
-   std::list<NName> ret;
-
-   for (const Arrow& func : m_arrows)
-   {
-      if (func.Target() == target_)
-         ret.push_back(func.Source());
-   }
-
-   return ret;
-}
-
-//-----------------------------------------------------------------------------------------
-std::list<Node::NName> Node::FindTargets(const NName& source_) const
-{
-   std::list<NName> ret;
-
-   for (const Arrow& func : m_arrows)
-   {
-      if (func.Source() == source_)
-         ret.push_back(func.Target());
-   }
-
-   return ret;
-}
-
-//-----------------------------------------------------------------------------------------
 Node::List Node::FindByTargets(const std::list<Node::NName>& targets_) const
 {
    Node::List ret;
@@ -568,44 +540,6 @@ std::optional<Node> Node::FindNode(const NName& name_) const
 const Node::Map& Node::Nodes() const
 {
    return m_nodes;
-}
-
-//-----------------------------------------------------------------------------------------
-std::optional<Arrow> Node::FindArrow(const NName& source_, const NName& target_) const
-{
-   for (const Arrow& arrow : m_arrows)
-   {
-      if (arrow.Source() == source_ && arrow.Target() == target_)
-         return arrow;
-   }
-
-   return std::optional<Arrow>();
-}
-
-//-----------------------------------------------------------------------------------------
-Arrow::List Node::FindArrows(const NName& source_, const NName& target_) const
-{
-   Arrow::List ret;
-
-   for (const Arrow& arrow : m_arrows)
-   {
-      if (arrow.Source() == source_ && arrow.Target() == target_)
-         ret.push_back(arrow);
-   }
-
-   return ret;
-}
-
-//-----------------------------------------------------------------------------------------
-std::optional<Arrow> Node::FindArrow(const Arrow::AName& name_) const
-{
-   for (const Arrow& arrow : m_arrows)
-   {
-      if (arrow.Name() == name_)
-         return std::optional<Arrow>(arrow);
-   }
-
-   return std::optional<Arrow>();
 }
 
 //-----------------------------------------------------------------------------------------
