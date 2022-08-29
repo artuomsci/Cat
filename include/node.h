@@ -114,11 +114,17 @@ namespace cat
 
       /**
       * @brief Map node with arrow
-      * @param arrow_ - arrow to map with
       * @param node_ - node for mapping
       * @return Mapped node
       */
       std::optional<Node> SingleMap(const std::optional<Node>& node_) const;
+
+      /**
+      * @brief Map node with arrow
+      * @param name_ - node name for mapping
+      * @return Mapped node
+      */
+      std::optional<Node> SingleMap(const std::string& name_) const;
 
       /**
        * @brief Inverse arrow

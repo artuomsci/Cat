@@ -316,6 +316,20 @@ std::optional<Node> Arrow::SingleMap(const std::optional<Node>& node_) const
 }
 
 //-----------------------------------------------------------------------------------------
+std::optional<Node> Arrow::SingleMap(const std::string& name_) const
+{
+   for (const Arrow& arrow : m_arrows)
+   {
+      if (arrow.Source() == name_)
+      {
+         return std::optional<Node>(arrow.Target());
+      }
+   }
+
+   return std::optional<Node>();
+}
+
+//-----------------------------------------------------------------------------------------
 void Arrow::Inverse()
 {
    m_name = default_arrow_name(m_source, m_target) == m_name ? default_arrow_name(m_target, m_source) : m_name;
