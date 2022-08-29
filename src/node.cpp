@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <cstring>
+#include <iterator>
 
 #include "str_utils.h"
 
