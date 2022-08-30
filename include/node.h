@@ -104,7 +104,7 @@ namespace cat
        * @param query_ - query
        * @return Arrows
        */
-      List QueryArrows(const std::string& query_) const;
+      List QueryArrows(const std::string& query_, std::optional<size_t> matchCount_ = std::optional<size_t>()) const;
 
       /**
        * @brief Checks whether the arrow contains any arrows
@@ -247,7 +247,7 @@ namespace cat
        * @param query_ - query
        * @return Arrows
        */
-      Arrow::List QueryArrows(const std::string& query_) const;
+      Arrow::List QueryArrows(const std::string& query_, std::optional<size_t> matchCount_ = std::optional<size_t>()) const;
 
       /**
        * @brief Query for nodes

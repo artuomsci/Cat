@@ -388,6 +388,9 @@ namespace cat
 
          ret = arrow.QueryArrows("* -[ ef_arrow ]-> f");
          assert(ret.front() == Arrow("e", "f", "ef_arrow"));
+
+         ret = arrow.QueryArrows("* -> f", 1);
+         assert(ret.size() == 1);
       }
 
       //============================================================

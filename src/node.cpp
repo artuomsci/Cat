@@ -198,7 +198,7 @@ static std::optional<Arrow> extract_arrow_from_query(const std::string& query_)
 }
 
 //-----------------------------------------------------------------------------------------
-Arrow::List query_arrows(const std::string& query_, const Arrow::List& arrows_)
+Arrow::List query_arrows(const std::string& query_, const Arrow::List& arrows_, std::optional<size_t> matchCount_)
 {
    auto qarrow = extract_arrow_from_query(query_);
    if (!qarrow)
@@ -214,10 +214,26 @@ Arrow::List query_arrows(const std::string& query_, const Arrow::List& arrows_)
       }
       else
       {
-         for (const auto& arrow : arrows_)
+         if (matchCount_)
          {
-            if (arrow.Name() == qarrow->Name())
-               ret.push_back(arrow);
+            for (const auto& arrow : arrows_)
+            {
+               if (arrow.Name() == qarrow->Name())
+               {
+                  ret.push_back(arrow);
+
+                  if (ret.size() == matchCount_)
+                     break;
+               }
+            }
+         }
+         else
+         {
+            for (const auto& arrow : arrows_)
+            {
+               if (arrow.Name() == qarrow->Name())
+                  ret.push_back(arrow);
+            }
          }
       }
    }
@@ -225,18 +241,50 @@ Arrow::List query_arrows(const std::string& query_, const Arrow::List& arrows_)
    {
       if (qarrow->Name() == sAny)
       {
-         for (const auto& arrow : arrows_)
+         if (matchCount_)
          {
-            if (arrow.Source() == qarrow->Source())
-               ret.push_back(arrow);
+            for (const auto& arrow : arrows_)
+            {
+               if (arrow.Source() == qarrow->Source())
+               {
+                  ret.push_back(arrow);
+
+                  if (ret.size() == matchCount_)
+                     break;
+               }
+            }
+         }
+         else
+         {
+            for (const auto& arrow : arrows_)
+            {
+               if (arrow.Source() == qarrow->Source())
+                  ret.push_back(arrow);
+            }
          }
       }
       else
       {
-         for (const auto& arrow : arrows_)
+         if (matchCount_)
          {
-            if (arrow.Source() == qarrow->Source() && arrow.Name() == qarrow->Name())
-               ret.push_back(arrow);
+            for (const auto& arrow : arrows_)
+            {
+               if (arrow.Source() == qarrow->Source() && arrow.Name() == qarrow->Name())
+               {
+                  ret.push_back(arrow);
+
+                  if (ret.size() == matchCount_)
+                     break;
+               }
+            }
+         }
+         else
+         {
+            for (const auto& arrow : arrows_)
+            {
+               if (arrow.Source() == qarrow->Source() && arrow.Name() == qarrow->Name())
+                  ret.push_back(arrow);
+            }
          }
       }
    }
@@ -244,18 +292,50 @@ Arrow::List query_arrows(const std::string& query_, const Arrow::List& arrows_)
    {
       if (qarrow->Name() == sAny)
       {
-         for (const auto& arrow : arrows_)
+         if (matchCount_)
          {
-            if (arrow.Target() == qarrow->Target())
-               ret.push_back(arrow);
+            for (const auto& arrow : arrows_)
+            {
+               if (arrow.Target() == qarrow->Target())
+               {
+                  ret.push_back(arrow);
+
+                  if (ret.size() == matchCount_)
+                     break;
+               }
+            }
+         }
+         else
+         {
+            for (const auto& arrow : arrows_)
+            {
+               if (arrow.Target() == qarrow->Target())
+                  ret.push_back(arrow);
+            }
          }
       }
       else
       {
-         for (const auto& arrow : arrows_)
+         if (matchCount_)
          {
-            if (arrow.Target() == qarrow->Target() && arrow.Name() == qarrow->Name())
-               ret.push_back(arrow);
+            for (const auto& arrow : arrows_)
+            {
+               if (arrow.Target() == qarrow->Target() && arrow.Name() == qarrow->Name())
+               {
+                  ret.push_back(arrow);
+
+                  if (ret.size() == matchCount_)
+                     break;
+               }
+            }
+         }
+         else
+         {
+            for (const auto& arrow : arrows_)
+            {
+               if (arrow.Target() == qarrow->Target() && arrow.Name() == qarrow->Name())
+                  ret.push_back(arrow);
+            }
          }
       }
    }
@@ -263,21 +343,49 @@ Arrow::List query_arrows(const std::string& query_, const Arrow::List& arrows_)
    {
       if (qarrow->Name() == sAny)
       {
-         for (const auto& arrow : arrows_)
+         if (matchCount_)
          {
-            if (arrow.Source() == qarrow->Source() && arrow.Target() == qarrow->Target())
+            for (const auto& arrow : arrows_)
             {
-               ret.push_back(arrow);
+               if (arrow.Source() == qarrow->Source() && arrow.Target() == qarrow->Target())
+               {
+                  ret.push_back(arrow);
+
+                  if (ret.size() == matchCount_)
+                     break;
+               }
+            }
+         }
+         else
+         {
+            for (const auto& arrow : arrows_)
+            {
+               if (arrow.Source() == qarrow->Source() && arrow.Target() == qarrow->Target())
+                  ret.push_back(arrow);
             }
          }
       }
       else
       {
-         for (const auto& arrow : arrows_)
+         if (matchCount_)
          {
-            if (arrow.Source() == qarrow->Source() && arrow.Target() == qarrow->Target() && arrow.Name() == qarrow->Name())
+            for (const auto& arrow : arrows_)
             {
-               ret.push_back(arrow);
+               if (arrow.Source() == qarrow->Source() && arrow.Target() == qarrow->Target() && arrow.Name() == qarrow->Name())
+               {
+                  ret.push_back(arrow);
+
+                  if (ret.size() == matchCount_)
+                     break;
+               }
+            }
+         }
+         else
+         {
+            for (const auto& arrow : arrows_)
+            {
+               if (arrow.Source() == qarrow->Source() && arrow.Target() == qarrow->Target() && arrow.Name() == qarrow->Name())
+                  ret.push_back(arrow);
             }
          }
       }
@@ -287,9 +395,9 @@ Arrow::List query_arrows(const std::string& query_, const Arrow::List& arrows_)
 }
 
 //-----------------------------------------------------------------------------------------
-Arrow::List Arrow::QueryArrows(const std::string& query_) const
+Arrow::List Arrow::QueryArrows(const std::string& query_, std::optional<size_t> matchCount_) const
 {
-   return query_arrows(query_, m_arrows);
+   return query_arrows(query_, m_arrows, matchCount_);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -543,9 +651,9 @@ bool Node::IsNodesEmpty() const
 }
 
 //-----------------------------------------------------------------------------------------
-Arrow::List Node::QueryArrows(const std::string& query_) const
+Arrow::List Node::QueryArrows(const std::string& query_, std::optional<size_t> matchCount_) const
 {
-   return query_arrows(query_, m_arrows);
+   return query_arrows(query_, m_arrows, matchCount_);
 }
 
 //-----------------------------------------------------------------------------------------
