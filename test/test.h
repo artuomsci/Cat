@@ -136,10 +136,10 @@ namespace cat
          // before the object has been removed
          {
             auto prev_count = cat.QueryArrows("* -> *").size();
-            assert(cat.EraseArrow(id_arrow_name(a.Name())) == false);
+            assert(cat.EraseArrow(Arrow::IdArrowName(a.Name())) == false);
             auto new_count = cat.QueryArrows("* -> *").size();
             assert(prev_count == new_count);
-            assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), a.Name(), id_arrow_name(a.Name()))));
+            assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), a.Name(), Arrow::IdArrowName(a.Name()))));
          }
 
          // Non existent morphism can't be deleted

@@ -22,18 +22,6 @@ static std::string trim_sp(const std::string& string_)
 }
 
 //-----------------------------------------------------------------------------------------
-std::string cat::default_arrow_name(const std::string& source_, const std::string& target_)
-{
-   return source_ + "-" + target_;
-}
-
-//-----------------------------------------------------------------------------------------
-std::string cat::id_arrow_name(const std::string& name_)
-{
-   return default_arrow_name(name_, name_);
-}
-
-//-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
 Arrow::Arrow(const std::string& source_, const std::string& target_, const std::string& arrow_name_) :
       m_source   (source_)
@@ -45,7 +33,7 @@ Arrow::Arrow(const std::string& source_, const std::string& target_, const std::
 Arrow::Arrow(const std::string& source_, const std::string& target_) :
       m_source   (source_)
    ,  m_target   (target_)
-   ,  m_name     (default_arrow_name(source_, target_))
+   ,  m_name     (DefaultArrowName(source_, target_))
 {};
 
 //-----------------------------------------------------------------------------------------
@@ -102,6 +90,18 @@ std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
    }
 
    return ret;
+}
+
+//-----------------------------------------------------------------------------------------
+std::string Arrow::DefaultArrowName(const std::string& source_, const std::string& target_)
+{
+   return source_ + "-" + target_;
+}
+
+//-----------------------------------------------------------------------------------------
+std::string Arrow::IdArrowName(const std::string& name_)
+{
+   return DefaultArrowName(name_, name_);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -332,7 +332,7 @@ std::optional<Node> Arrow::SingleMap(const std::string& name_) const
 //-----------------------------------------------------------------------------------------
 void Arrow::Inverse()
 {
-   m_name = default_arrow_name(m_source, m_target) == m_name ? default_arrow_name(m_target, m_source) : m_name;
+   m_name = DefaultArrowName(m_source, m_target) == m_name ? DefaultArrowName(m_target, m_source) : m_name;
 
    std::swap(m_source, m_target);
 
@@ -448,7 +448,7 @@ bool Node::AddNode(const Node& node_)
    {
       m_nodes[node_];
 
-      Arrow func(node_.Name(), node_.Name(), id_arrow_name(node_.Name()));
+      Arrow func(node_.Name(), node_.Name(), Arrow::IdArrowName(node_.Name()));
 
       for (const auto& id : node_.QueryNodes("*"))
          func.AddArrow(Arrow(id.Name(), id.Name()));

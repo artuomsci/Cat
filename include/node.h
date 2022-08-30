@@ -14,21 +14,6 @@
 
 namespace cat
 {
-   /**
-    * @brief Return default arrow name
-    * @param source_ - source name
-    * @param target_ - target name
-    * @return Arrow name
-    */
-   CAT_EXPORT std::string default_arrow_name(const std::string& source_, const std::string& target_);
-
-   /**
-    * @brief Return identity arrow name
-    * @param name_ - source/target name
-    * @return Arrow name
-    */
-   CAT_EXPORT std::string id_arrow_name(const std::string& name_);
-
    class Node;
 
    /**
@@ -56,6 +41,21 @@ namespace cat
       using Vec   = std::vector<Arrow>;
       using List  = std::list<Arrow>;
       using AName = std::string;
+
+      /**
+       * @brief Return default arrow name
+       * @param source_ - source name
+       * @param target_ - target name
+       * @return Arrow name
+       */
+      static std::string DefaultArrowName(const std::string& source_, const std::string& target_);
+
+      /**
+       * @brief Return identity arrow name
+       * @param name_ - source/target name
+       * @return Arrow name
+       */
+      static std::string IdArrowName(const std::string& name_);
 
       /**
        * @brief Returns arrow source name
