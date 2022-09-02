@@ -239,11 +239,11 @@ namespace cat
 
       /**
        * @brief Query for arrows
-       * Syntax: source name -> target name
-       * Syntax for named arrows: source name -[ arrow name ]-> target name
-       * Use "*" as a replacement for any name
-       * Query examples: x -> y, * -> y, x -> *, * -> *
-       * Query examples: x -[ * ]-> y, * -[ operation ]-> * ... etc
+       * @brief Syntax: source name -> target name
+       * @brief Syntax for named arrows: source name -[ arrow name ]-> target name
+       * @brief Use "*" as a replacement for any name
+       * @brief Query examples: "x -> y", "* -> y", "x -> *", "* -> *"
+       * @brief Query examples: "x -[ * ]-> y", "* -[ operation ]-> *" ... etc
        * @param query_ - query
        * @return Arrows
        */
@@ -251,6 +251,9 @@ namespace cat
 
       /**
        * @brief Query for nodes
+       * @brief Use "*" as a replacement for any name
+       * @brief Use "|" as logical operator OR
+       * @brief Query example: "x | y", "x"
        * @param query_ - query
        * @return Nodes
        */

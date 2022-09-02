@@ -672,9 +672,17 @@ Node::List Node::QueryNodes(const std::string& query_) const
    }
    else
    {
-      auto it = m_nodes.find(Node(query));
-      if (it != m_nodes.end())
-         ret.push_back(it->first);
+      auto node_names = split(query, '|', false);
+
+      for (auto& it : node_names)
+         it = trim_sp(it);
+
+      for (auto& name : node_names)
+      {
+         auto it = m_nodes.find(Node(name));
+         if (it != m_nodes.end())
+            ret.push_back(it->first);
+      }
    }
 
    return ret;
