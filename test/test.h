@@ -458,26 +458,168 @@ namespace cat
 //         assert(std::abs(result - 5.5) < std::numeric_limits<double>::epsilon());
 //      }
 //
-//      //============================================================
-//      // Testing functor
-//      //============================================================
-//      {
-////         Cat C0("C0");
-////         Obj a0("a0"), b0("b0");
-//
-////         C0.AddNodes(a0, b0);
-//
-////         Cat C1("C1");
-////         Obj a1("a1"), b1("b1");
-//         
-////         C1.AddNodes(a1, b1);
-//
-////         CACat ccat;
-////         ccat.AddArrow(C0);
-////         ccat.AddArrow(C1);
-//
-////         Func fn(C0.GetName(), C1.GetName());
-//      }
+      //============================================================
+      // Testing functor
+      //============================================================
+      {
+         // Correct functor
+         {
+            // Source category
+            Node C0("C0");
+            Node a0("a0"), b0("b0");
+
+            C0.AddNodes({a0, b0});
+            C0.AddArrow(Arrow(a0.Name(), b0.Name()));
+
+            // Target category
+            Node C1("C1");
+            Node a1("a1"), b1("b1");
+
+            C1.AddNodes({a1, b1});
+            C1.AddArrow(Arrow(a1.Name(), b1.Name()));
+
+            // Category of categories
+            Node ccat("Cat");
+            ccat.AddNode(C0);
+            ccat.AddNode(C1);
+
+            Arrow functor(C0.Name(), C1.Name());
+            functor.AddArrow(Arrow(a0.Name(), a1.Name()));
+            functor.AddArrow(Arrow(b0.Name(), b1.Name()));
+
+            assert(ccat.AddArrow(functor));
+         }
+
+         // Missing arrow in target category
+         {
+            // Source category
+            Node C0("C0");
+            Node a0("a0"), b0("b0");
+
+            C0.AddNodes({a0, b0});
+            C0.AddArrow(Arrow(a0.Name(), b0.Name()));
+
+            // Target category
+            Node C1("C1");
+            Node a1("a1"), b1("b1");
+
+            C1.AddNodes({a1, b1});
+
+            // Category of categories
+            Node ccat("Cat");
+            ccat.AddNode(C0);
+            ccat.AddNode(C1);
+
+            Arrow functor(C0.Name(), C1.Name());
+            functor.AddArrow(Arrow(a0.Name(), a1.Name()));
+            functor.AddArrow(Arrow(b0.Name(), b1.Name()));
+
+            assert(!ccat.AddArrow(functor));
+         }
+
+         // Incorrect arrow direction in target category
+         {
+            // Source category
+            Node C0("C0");
+            Node a0("a0"), b0("b0");
+
+            C0.AddNodes({a0, b0});
+            C0.AddArrow(Arrow(a0.Name(), b0.Name()));
+
+            // Target category
+            Node C1("C1");
+            Node a1("a1"), b1("b1");
+
+            C1.AddNodes({a1, b1});
+            C1.AddArrow(Arrow(b1.Name(), a1.Name()));
+
+            // Category of categories
+            Node ccat("Cat");
+            ccat.AddNode(C0);
+            ccat.AddNode(C1);
+
+            Arrow functor(C0.Name(), C1.Name());
+            functor.AddArrow(Arrow(a0.Name(), a1.Name()));
+            functor.AddArrow(Arrow(b0.Name(), b1.Name()));
+
+            assert(!ccat.AddArrow(functor));
+         }
+
+         // Checking identity arrow
+         {
+            Node C0("C0");
+            Node a0("a0"), b0("b0");
+
+            C0.AddNodes({a0, b0});
+            C0.AddArrow(Arrow(a0.Name(), b0.Name()));
+
+            // Category of categories
+            Node ccat("Cat");
+            ccat.AddNode(C0);
+
+            auto arrows = ccat.QueryArrows("* -> *");
+            assert(arrows.size() == 1);
+            auto arrows_btw_objects = arrows.front().QueryArrows("* -> *");
+            assert(arrows_btw_objects.size() == 2);
+         }
+
+         // Missing arrow in functor
+         {
+            // Source category
+            Node C0("C0");
+            Node a0("a0"), b0("b0"), c0("c0");
+
+            C0.AddNodes({a0, b0, c0});
+            C0.AddArrow(Arrow(a0.Name(), b0.Name()));
+
+            // Target category
+            Node C1("C1");
+            Node a1("a1"), b1("b1");
+
+            C1.AddNodes({a1, b1});
+            C1.AddArrow(Arrow(a1.Name(), b1.Name()));
+
+            // Category of categories
+            Node ccat("Cat");
+            ccat.AddNode(C0);
+            ccat.AddNode(C1);
+
+            Arrow functor(C0.Name(), C1.Name());
+            functor.AddArrow(Arrow(a0.Name(), a1.Name()));
+            functor.AddArrow(Arrow(b0.Name(), b1.Name()));
+
+            assert(!ccat.AddArrow(functor));
+         }
+
+         // Mapping the same node multiple times
+         {
+            // Source category
+            Node C0("C0");
+            Node a0("a0"), b0("b0");
+
+            C0.AddNodes({a0, b0});
+            C0.AddArrow(Arrow(a0.Name(), b0.Name()));
+
+            // Target category
+            Node C1("C1");
+            Node a1("a1"), b1("b1");
+
+            C1.AddNodes({a1, b1});
+            C1.AddArrow(Arrow(a1.Name(), b1.Name()));
+
+            // Category of categories
+            Node ccat("Cat");
+            ccat.AddNode(C0);
+            ccat.AddNode(C1);
+
+            Arrow functor(C0.Name(), C1.Name());
+            functor.AddArrow(Arrow(a0.Name(), a1.Name(), "f"));
+            functor.AddArrow(Arrow(a0.Name(), b1.Name(), "f"));
+            functor.AddArrow(Arrow(b0.Name(), b1.Name()));
+
+            assert(!ccat.AddArrow(functor));
+         }
+      }
 
       print_info("End test");
 
