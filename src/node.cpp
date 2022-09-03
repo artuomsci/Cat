@@ -123,24 +123,14 @@ const Arrow::AName& Arrow::Name() const
 }
 
 //-----------------------------------------------------------------------------------------
-bool Arrow::AddArrow(const Arrow& arrow_)
+void Arrow::AddArrow(const Arrow& arrow_)
 {
-   auto it = std::find_if(m_arrows.begin(), m_arrows.end(), [&](const List::value_type& element_)
-   {
-      return element_ == arrow_;
-   });
-
-   if (it != m_arrows.end())
-      return false;
-
    m_arrows.push_back(arrow_);
-
-   return true;
 }
 
 //-----------------------------------------------------------------------------------------
-bool Arrow::EraseArrow(const Arrow::AName& arrow_)
-{
+void Arrow::EraseArrow(const Arrow::AName& arrow_)
+{   
    auto it = std::find_if(m_arrows.begin(), m_arrows.end(), [&](const List::value_type& element_)
    {
       return element_.Name() == arrow_;
@@ -148,10 +138,6 @@ bool Arrow::EraseArrow(const Arrow::AName& arrow_)
 
    if (it != m_arrows.end())
       m_arrows.erase(it);
-   else
-      return false;
-
-   return true;
 }
 
 //-----------------------------------------------------------------------------------------

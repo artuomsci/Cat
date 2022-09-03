@@ -78,16 +78,14 @@ namespace cat
       /**
        * @brief Add arrow
        * @param arrow_ - arrow
-       * @return True if successful
        */
-      bool AddArrow(const Arrow& arrow_);
+      void AddArrow(const Arrow& arrow_);
 
       /**
        * @brief Erase arrow
        * @param arrow_ - arrow name
-       * @return True if successfull
        */
-      bool EraseArrow(const Arrow::AName& arrow_);
+      void EraseArrow(const Arrow::AName& arrow_);
 
       /**
        * @brief Erase all arrows
