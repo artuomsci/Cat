@@ -709,8 +709,22 @@ bool Node::Verify(const Arrow& arrow_) const
    const auto& [source_cat, _s] = *itSourceCat;
    const auto& [target_cat, _t] = *itTargetCat;
 
+   using TSource2Arrow = std::set<std::pair<Node::NName, Arrow::AName>>;
+   TSource2Arrow visited;
+
    for (const Arrow& arrow : arrow_.QueryArrows("*->*"))
    {
+      auto head = TSource2Arrow::value_type(arrow.Source(), arrow.Name());
+
+      auto itv = visited.find(head);
+      if (itv != visited.end())
+      {
+         print_error("Mapping the same node " + arrow.Source() + " multiple times with arrow " + arrow.Name());
+         return false;
+      }
+
+      visited.insert(head);
+
       if (source_cat.QueryNodes(arrow.Source()).empty())
       {
          print_error("Missing node for " + arrow.Source() + "->" + arrow.Target());
