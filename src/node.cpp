@@ -485,12 +485,18 @@ bool Node::AddArrows(const Arrow::Vec& arrows_)
 }
 
 //-----------------------------------------------------------------------------------------
-bool Node::EraseArrow(const Arrow::AName& arrow_)
+bool Node::EraseArrow(const Arrow::AName& name_)
 {
    for (Arrow& arrow : m_arrows)
    {
-      if (arrow.Name() == arrow_)
+      if (arrow.Name() == name_)
       {
+         if (arrow.Source() == arrow.Target())
+         {
+            print_error("Deleting identity arrow " + name_);
+            return false;
+         }
+
          auto it_node = m_nodes.find(Node(arrow.Source()));
          if (it_node != m_nodes.end())
          {
@@ -506,7 +512,7 @@ bool Node::EraseArrow(const Arrow::AName& arrow_)
 
    auto it_delete = std::find_if(m_arrows.begin(), m_arrows.end(), [&](const Arrow::Vec::value_type& element_)
    {
-      return element_.Name() == arrow_;
+      return element_.Name() == name_;
    });
 
    if (it_delete == m_arrows.end())
@@ -520,10 +526,19 @@ bool Node::EraseArrow(const Arrow::AName& arrow_)
 //-----------------------------------------------------------------------------------------
 void Node::EraseArrows()
 {
-   m_arrows.clear();
+   for (auto it = m_arrows.begin(); it != m_arrows.end();)
+   {
+      if (it->Source() != it->Target())
+         it = m_arrows.erase(it);
+      else
+         ++it;
+   }
 
-   for (auto& [_, nodeset] : m_nodes)
+   for (auto& [node, nodeset] : m_nodes)
+   {
       nodeset.clear();
+      nodeset.insert(node);
+   }
 }
 
 //-----------------------------------------------------------------------------------------
@@ -705,7 +720,9 @@ bool Node::Verify(const Arrow& arrow_) const
       auto itv = visited.find(head);
       if (itv != visited.end())
       {
-         print_error("Mapping the same node " + arrow.Source() + " multiple times with arrow " + arrow.Name());
+         auto msg = "Functor: " + arrow_.Name() + " : ";
+         msg += "Mapping the same node " + arrow.Source() + " multiple times with arrow " + arrow.Name();
+         print_error(msg);
          return false;
       }
 

@@ -183,7 +183,7 @@ namespace cat
        * @param arrow_ - arrow name
        * @return True if successfull
        */
-      bool EraseArrow(const Arrow::AName& arrow_);
+      bool EraseArrow(const Arrow::AName& name_);
 
       /**
        * @brief Erase all arrows

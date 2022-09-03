@@ -151,6 +151,28 @@ namespace cat
          }
       }
 
+
+      //============================================================
+      // Testing of morphism deletion methods
+      //============================================================
+      {
+         Node cat("cat");
+
+         Node a("a"), b("b"), c("c");
+
+         cat.AddNodes({a, b, c});
+
+         cat.AddArrow(Arrow(a.Name(), b.Name(), "f0"));
+         cat.AddArrow(Arrow(a.Name(), c.Name(), "f1"));
+
+         // Erasing all arrows
+         {
+            cat.EraseArrows();
+
+            assert(cat.QueryArrows("* -> *").size() == 3);
+         }
+      }
+
       //============================================================
       // Testing of morphism compositions
       //============================================================
