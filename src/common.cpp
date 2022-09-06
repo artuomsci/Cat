@@ -217,8 +217,8 @@ static std::vector<Arrow> get_chain(const std::string& line_, const Node::List& 
    std::vector<Arrow> ret; ret.reserve(args.size() - 1);
    for (int i = 0; i < (int)args.size() - 1; ++i)
    {
-      Node source(args[i + 0]);
-      Node target(args[i + 1]);
+      Node source(args[i + 0], ArrowType == ArrowType::eMorphism ? Node::EType::eObject : Node::EType::eSCategory);
+      Node target(args[i + 1], ArrowType == ArrowType::eMorphism ? Node::EType::eObject : Node::EType::eSCategory);
 
       for (const auto& it : get_chains<ArrowType>(head, source, target, domain_, codomain_, expr_type_))
          ret.push_back(it);
@@ -268,7 +268,7 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
    {
       auto nodes = ccat_.QueryNodes(line_);
       if (nodes.empty())
-         crt_cat_.emplace(line_);
+         crt_cat_.emplace(line_, Node::EType::eSCategory);
       else
          crt_cat_.emplace(nodes.front());
    };
@@ -312,7 +312,7 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
       {
          auto nodeName = trim_sp(itNodeName);
 
-         if (!crt_cat_->AddNode(Node(nodeName)))
+         if (!crt_cat_->AddNode(Node(nodeName, Node::EType::eObject)))
          {
             print_error("Failure to add node: " + nodeName);
             return false;
@@ -344,10 +344,10 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
          if (expr_type_ == EExpType::eStatement)
          {
             if (crt_cat_->QueryNodes(morph.Source()).empty())
-               crt_cat_->AddNode(Node(morph.Source()));
+               crt_cat_->AddNode(Node(morph.Source(), Node::EType::eObject));
 
             if (crt_cat_->QueryNodes(morph.Target()).empty())
-               crt_cat_->AddNode(Node(morph.Target()));
+               crt_cat_->AddNode(Node(morph.Target(), Node::EType::eObject));
          }
 
          if (!crt_cat_->AddArrow(morph))
@@ -371,10 +371,10 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
       if (expr_type_ == EExpType::eStatement)
       {
          if (ccat_.QueryNodes(funcs.front().Source()).empty())
-            ccat_.AddNode(Node(funcs.front().Source()));
+            ccat_.AddNode(Node(funcs.front().Source(), Node::EType::eSCategory));
 
          if (ccat_.QueryNodes(funcs.front().Target()).empty())
-            ccat_.AddNode(Node(funcs.front().Target()));
+            ccat_.AddNode(Node(funcs.front().Target(), Node::EType::eSCategory));
       }
 
       crt_func_.emplace(funcs.front());

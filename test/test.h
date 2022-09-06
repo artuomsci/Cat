@@ -18,9 +18,10 @@ namespace cat
       // Testing of object addition methods
       //============================================================
       {
-         Node cat("cat");
+         Node cat("cat", Node::EType::eSCategory);
 
-         Node a("a"), b("b");
+         Node     a("a", Node::EType::eObject)
+               ,  b("b", Node::EType::eObject);
 
          assert(cat.QueryNodes("*").size() == 0);
 
@@ -37,9 +38,11 @@ namespace cat
       // Testing of object deletion methods
       //============================================================
       {
-         Node cat("cat");
+         Node cat("cat", Node::EType::eSCategory);
 
-         Node a("a"), b("b"), c("c");
+         Node     a("a", Node::EType::eObject)
+               ,  b("b", Node::EType::eObject)
+               ,  c("c", Node::EType::eObject);
 
          cat.AddNodes({a, b});
 
@@ -79,9 +82,12 @@ namespace cat
       // Testing of morphism addition methods
       //============================================================
       {
-         Node cat("cat");
+         Node cat("cat", Node::EType::eSCategory);
 
-         Node a("a"), b("b"), c("c"), d("d");
+         Node     a("a", Node::EType::eObject)
+               ,  b("b", Node::EType::eObject)
+               ,  c("c", Node::EType::eObject)
+               ,  d("d", Node::EType::eObject);
 
          cat.AddNodes({a, b, c});
 
@@ -111,9 +117,11 @@ namespace cat
       // Testing of morphism deletion methods
       //============================================================
       {
-         Node cat("cat");
+         Node cat("cat", Node::EType::eSCategory);
 
-         Node a("a"), b("b"), c("c");
+         Node     a("a", Node::EType::eObject)
+               ,  b("b", Node::EType::eObject)
+               ,  c("c", Node::EType::eObject);
 
          cat.AddNodes({a, b, c});
 
@@ -156,9 +164,11 @@ namespace cat
       // Testing of morphism deletion methods
       //============================================================
       {
-         Node cat("cat");
+         Node cat("cat", Node::EType::eSCategory);
 
-         Node a("a"), b("b"), c("c");
+         Node     a("a", Node::EType::eObject)
+               ,  b("b", Node::EType::eObject)
+               ,  c("c", Node::EType::eObject);
 
          cat.AddNodes({a, b, c});
 
@@ -177,11 +187,14 @@ namespace cat
       // Testing of morphism compositions
       //============================================================
       {
-         Node cat("cat");
+         Node cat("cat", Node::EType::eSCategory);
 
          cat.SolveCompositions();
 
-         Node a("a"), b("b"), c("c"), d("d");
+         Node     a("a", Node::EType::eObject)
+               ,  b("b", Node::EType::eObject)
+               ,  c("c", Node::EType::eObject)
+               ,  d("d", Node::EType::eObject);
 
          cat.AddNodes({a, b, c, d});
 
@@ -211,9 +224,14 @@ namespace cat
       // Testing morphism sequence
       //============================================================
       {
-         Node cat("cat");
+         Node cat("cat", Node::EType::eSCategory);
 
-         Node a("a"), b("b"), c("c"), d("d"), e("e"), f("f");
+         Node     a("a", Node::EType::eObject)
+               ,  b("b", Node::EType::eObject)
+               ,  c("c", Node::EType::eObject)
+               ,  d("d", Node::EType::eObject)
+               ,  e("e", Node::EType::eObject)
+               ,  f("f", Node::EType::eObject);
 
          cat.AddNodes({a, b, c, d, e, f});
 
@@ -245,9 +263,14 @@ namespace cat
       // Testing morphism sequences
       //============================================================
       {
-         Node cat("cat");
+         Node cat("cat", Node::EType::eSCategory);
 
-         Node a("a"), b("b"), c("c"), d("d"), e("e"), f("f");
+         Node     a("a", Node::EType::eObject)
+               ,  b("b", Node::EType::eObject)
+               ,  c("c", Node::EType::eObject)
+               ,  d("d", Node::EType::eObject)
+               ,  e("e", Node::EType::eObject)
+               ,  f("f", Node::EType::eObject);
 
          cat.AddNodes({a, b, c, d, e, f});
 
@@ -304,9 +327,12 @@ namespace cat
       // Testing of inversion
       //============================================================
       {
-         Node cat("cat");
+         Node cat("cat", Node::EType::eSCategory);
 
-         Node a("a"), b("b"), c("c"), d("d");
+         Node     a("a", Node::EType::eObject)
+               ,  b("b", Node::EType::eObject)
+               ,  c("c", Node::EType::eObject)
+               ,  d("d", Node::EType::eObject);
 
          cat.AddNodes({a, b, c, d});
 
@@ -329,9 +355,14 @@ namespace cat
       // Testing of initial/terminal objects
       //============================================================
       {
-         Node cat("cat");
+         Node cat("cat", Node::EType::eSCategory);
 
-         Node a0("a0"), a1("a1"), b("b"), c("c"), d0("d0"), d1("d1");
+         Node     a0("a0", Node::EType::eObject)
+               ,  a1("a1", Node::EType::eObject)
+               ,  b("b", Node::EType::eObject)
+               ,  c("c", Node::EType::eObject)
+               ,  d0("d0", Node::EType::eObject)
+               ,  d1("d1", Node::EType::eObject);
 
          cat.AddNodes({a0, a1, b, c, d0, d1});
 
@@ -487,21 +518,21 @@ namespace cat
          // Correct functor
          {
             // Source category
-            Node C0("C0");
-            Node a0("a0"), b0("b0");
+            Node C0("C0", Node::EType::eSCategory);
+            Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject);
 
             C0.AddNodes({a0, b0});
             C0.AddArrow(Arrow(a0.Name(), b0.Name()));
 
             // Target category
-            Node C1("C1");
-            Node a1("a1"), b1("b1");
+            Node C1("C1", Node::EType::eSCategory);
+            Node a1("a1", Node::EType::eObject), b1("b1", Node::EType::eObject);
 
             C1.AddNodes({a1, b1});
             C1.AddArrow(Arrow(a1.Name(), b1.Name()));
 
             // Category of categories
-            Node ccat("Cat");
+            Node ccat("Cat", Node::EType::eLCategory);
             ccat.AddNode(C0);
             ccat.AddNode(C1);
 
@@ -515,20 +546,20 @@ namespace cat
          // Missing arrow in target category
          {
             // Source category
-            Node C0("C0");
-            Node a0("a0"), b0("b0");
+            Node C0("C0", Node::EType::eSCategory);
+            Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject);
 
             C0.AddNodes({a0, b0});
             C0.AddArrow(Arrow(a0.Name(), b0.Name()));
 
             // Target category
-            Node C1("C1");
-            Node a1("a1"), b1("b1");
+            Node C1("C1", Node::EType::eSCategory);
+            Node a1("a1", Node::EType::eObject), b1("b1", Node::EType::eObject);
 
             C1.AddNodes({a1, b1});
 
             // Category of categories
-            Node ccat("Cat");
+            Node ccat("Cat", Node::EType::eLCategory);
             ccat.AddNode(C0);
             ccat.AddNode(C1);
 
@@ -542,21 +573,21 @@ namespace cat
          // Incorrect arrow direction in target category
          {
             // Source category
-            Node C0("C0");
-            Node a0("a0"), b0("b0");
+            Node C0("C0", Node::EType::eSCategory);
+            Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject);
 
             C0.AddNodes({a0, b0});
             C0.AddArrow(Arrow(a0.Name(), b0.Name()));
 
             // Target category
-            Node C1("C1");
-            Node a1("a1"), b1("b1");
+            Node C1("C1", Node::EType::eSCategory);
+            Node a1("a1", Node::EType::eObject), b1("b1", Node::EType::eObject);
 
             C1.AddNodes({a1, b1});
             C1.AddArrow(Arrow(b1.Name(), a1.Name()));
 
             // Category of categories
-            Node ccat("Cat");
+            Node ccat("Cat", Node::EType::eLCategory);
             ccat.AddNode(C0);
             ccat.AddNode(C1);
 
@@ -569,14 +600,14 @@ namespace cat
 
          // Checking identity arrow
          {
-            Node C0("C0");
-            Node a0("a0"), b0("b0");
+            Node C0("C0", Node::EType::eSCategory);
+            Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject);
 
             C0.AddNodes({a0, b0});
             C0.AddArrow(Arrow(a0.Name(), b0.Name()));
 
             // Category of categories
-            Node ccat("Cat");
+            Node ccat("Cat", Node::EType::eLCategory);
             ccat.AddNode(C0);
 
             auto arrows = ccat.QueryArrows("* -> *");
@@ -588,21 +619,21 @@ namespace cat
          // Missing arrow in functor
          {
             // Source category
-            Node C0("C0");
-            Node a0("a0"), b0("b0"), c0("c0");
+            Node C0("C0", Node::EType::eSCategory);
+            Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject), c0("c0", Node::EType::eObject);
 
             C0.AddNodes({a0, b0, c0});
             C0.AddArrow(Arrow(a0.Name(), b0.Name()));
 
             // Target category
-            Node C1("C1");
-            Node a1("a1"), b1("b1");
+            Node C1("C1", Node::EType::eSCategory);
+            Node a1("a1", Node::EType::eObject), b1("b1", Node::EType::eObject);
 
             C1.AddNodes({a1, b1});
             C1.AddArrow(Arrow(a1.Name(), b1.Name()));
 
             // Category of categories
-            Node ccat("Cat");
+            Node ccat("Cat", Node::EType::eLCategory);
             ccat.AddNode(C0);
             ccat.AddNode(C1);
 
@@ -616,21 +647,21 @@ namespace cat
          // Mapping the same node multiple times
          {
             // Source category
-            Node C0("C0");
-            Node a0("a0"), b0("b0");
+            Node C0("C0", Node::EType::eSCategory);
+            Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject);
 
             C0.AddNodes({a0, b0});
             C0.AddArrow(Arrow(a0.Name(), b0.Name()));
 
             // Target category
-            Node C1("C1");
-            Node a1("a1"), b1("b1");
+            Node C1("C1", Node::EType::eSCategory);
+            Node a1("a1", Node::EType::eObject), b1("b1", Node::EType::eObject);
 
             C1.AddNodes({a1, b1});
             C1.AddArrow(Arrow(a1.Name(), b1.Name()));
 
             // Category of categories
-            Node ccat("Cat");
+            Node ccat("Cat", Node::EType::eLCategory);
             ccat.AddNode(C0);
             ccat.AddNode(C1);
 

@@ -68,7 +68,7 @@ std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
    if (node_->Name() != m_source)
       return std::optional<Node>();
 
-   Node ret(m_target);
+   Node ret(m_target, node_->Type());
 
    // Mapping of nodes
    for (const auto& node : node_->QueryNodes("*"))
@@ -81,8 +81,8 @@ std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
    // Mapping of arrows
    for (const Arrow& arrow : node_->QueryArrows("* -> *"))
    {
-      auto source = SingleMap(Node(arrow.m_source));
-      auto target = SingleMap(Node(arrow.m_target));
+      auto source = SingleMap(Node(arrow.m_source, Node::EType::eObject));
+      auto target = SingleMap(Node(arrow.m_target, Node::EType::eObject));
 
       Arrow mapped_arrow(source->Name(), target->Name());
       if (ret.QueryArrows(mapped_arrow.Source() + "-[" + mapped_arrow.Name() + "]->" + mapped_arrow.Target()).empty())
@@ -402,7 +402,7 @@ std::optional<Node> Arrow::SingleMap(const std::optional<Node>& node_) const
    {
       if (arrow.Source() == node_->Name())
       {
-         return std::optional<Node>(arrow.Target());
+         return Node(arrow.Target(), Node::EType::eObject);
       }
    }
 
@@ -416,7 +416,7 @@ std::optional<Node> Arrow::SingleMap(const std::string& name_) const
    {
       if (arrow.Source() == name_)
       {
-         return std::optional<Node>(arrow.Target());
+         return Node(arrow.Target(), Node::EType::eObject);
       }
    }
 
@@ -436,13 +436,37 @@ void Arrow::Inverse()
 
 //-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
-Node::Node(const NName& name_) : m_name(name_)
+bool Node::operator<(const Node& cat_) const
+{
+   return m_name < cat_.m_name;
+}
+
+//-----------------------------------------------------------------------------------------
+bool Node::operator==(const Node& cat_) const
+{
+   return m_name == cat_.Name();
+}
+
+//-----------------------------------------------------------------------------------------
+bool Node::operator!=(const Node& cat_) const
+{
+   return m_name != cat_.Name();
+}
+
+//-----------------------------------------------------------------------------------------
+Node::Node(const NName& name_, EType type_) : m_name(name_), m_type(type_)
 {
 }
 
 //-----------------------------------------------------------------------------------------
 bool Node::AddArrow(const Arrow& arrow_)
 {
+   if (m_type == EType::eObject)
+   {
+      print_error("Arrows aren't allowed");
+      return false;
+   }
+
    if (!QueryArrows(arrow_.Source() + "-[" + arrow_.Name() + "]->" + arrow_.Target()).empty())
    {
       print_error("Arrow redefinition: " + arrow_.Name());
@@ -461,11 +485,11 @@ bool Node::AddArrow(const Arrow& arrow_)
    if (!Verify(arrow_))
       return false;
 
-   auto it = m_nodes.find(Node(arrow_.Target()));
+   auto it = m_nodes.find(Node(arrow_.Target(), InternalNode()));
 
    const auto& [target, _] = *it;
 
-   m_nodes.at(Node(arrow_.Source())).insert(target);
+   m_nodes.at(Node(arrow_.Source(), InternalNode())).insert(target);
 
    m_arrows.push_back(arrow_);
 
@@ -497,7 +521,7 @@ bool Node::EraseArrow(const Arrow::AName& name_)
             return false;
          }
 
-         auto it_node = m_nodes.find(Node(arrow.Source()));
+         auto it_node = m_nodes.find(Node(arrow.Source(), InternalNode()));
          if (it_node != m_nodes.end())
          {
             if (arrow.Source() == arrow.Target())
@@ -505,7 +529,7 @@ bool Node::EraseArrow(const Arrow::AName& name_)
 
             auto& [_, node_set] = *it_node;
 
-            node_set.erase(Node(arrow.Target()));
+            node_set.erase(Node(arrow.Target(), InternalNode()));
          }
       }
    }
@@ -591,13 +615,13 @@ bool Node::EraseNode(const NName& node_)
 {
    NName name_copy = node_;
 
-   auto it = m_nodes.find(Node(name_copy));
+   auto it = m_nodes.find(Node(name_copy, InternalNode()));
    if (it != m_nodes.end())
    {
       m_nodes.erase(it);
 
       for (auto& [_, codomain] : m_nodes)
-         codomain.erase(Node(name_copy));
+         codomain.erase(Node(name_copy, InternalNode()));
 
       auto it_end = std::remove_if(m_arrows.begin(), m_arrows.end(), [&](const Arrow::Vec::value_type& element_)
       {
@@ -634,7 +658,7 @@ Node::List Node::FindByTargets(const std::list<Node::NName>& targets_) const
          if (domain.Name() == *it)
             continue;
 
-         if (codomain.find(Node(*it)) == codomain.end())
+         if (codomain.find(Node(*it, InternalNode())) == codomain.end())
             break;
 
          if (it == it_last)
@@ -680,7 +704,7 @@ Node::List Node::QueryNodes(const std::string& query_) const
 
       for (auto& name : node_names)
       {
-         auto it = m_nodes.find(Node(name));
+         auto it = m_nodes.find(Node(name, InternalNode()));
          if (it != m_nodes.end())
             ret.push_back(it->first);
       }
@@ -692,8 +716,8 @@ Node::List Node::QueryNodes(const std::string& query_) const
 //-----------------------------------------------------------------------------------------
 bool Node::Verify(const Arrow& arrow_) const
 {
-   auto itSourceCat = m_nodes.find(Node(arrow_.Source()));
-   auto itTargetCat = m_nodes.find(Node(arrow_.Target()));
+   auto itSourceCat = m_nodes.find(Node(arrow_.Source(), InternalNode()));
+   auto itTargetCat = m_nodes.find(Node(arrow_.Target(), InternalNode()));
 
    if (itSourceCat == m_nodes.end())
    {
@@ -747,8 +771,8 @@ bool Node::Verify(const Arrow& arrow_) const
 
    for (const Arrow& arrow : source_cat.QueryArrows("* -> *"))
    {
-      auto objs = arrow_.SingleMap(Node(arrow.Source()));
-      auto objt = arrow_.SingleMap(Node(arrow.Target()));
+      auto objs = arrow_.SingleMap(Node(arrow.Source(), source_cat.InternalNode()));
+      auto objt = arrow_.SingleMap(Node(arrow.Target(), source_cat.InternalNode()));
 
       if (!objs)
       {
@@ -806,9 +830,9 @@ const Node::NName& Node::Name() const
 //-----------------------------------------------------------------------------------------
 bool Node::Statement(const Arrow& arrow_)
 {
-   Node target(arrow_.Target());
+   Node target(arrow_.Target(), InternalNode());
 
-   auto it = m_nodes.find(Node(arrow_.Target()));
+   auto it = m_nodes.find(Node(arrow_.Target(), InternalNode()));
    if (it != m_nodes.end())
       target = it->first;
 
@@ -833,8 +857,8 @@ bool Node::Statement(const Arrow& arrow_)
    // Mapping arrows
    for (const Arrow& arrow : source.front().QueryArrows("* -> *"))
    {
-      auto nodes = arrow_.SingleMap(Node(arrow.Source()));
-      auto nodet = arrow_.SingleMap(Node(arrow.Target()));
+      auto nodes = arrow_.SingleMap(Node(arrow.Source(), source.front().InternalNode()));
+      auto nodet = arrow_.SingleMap(Node(arrow.Target(), source.front().InternalNode()));
 
       if (target.QueryArrows(nodes->Name() + "->" + nodet->Name()).empty())
          target.AddArrow(Arrow(nodes->Name(), nodet->Name()));
@@ -866,29 +890,11 @@ bool Node::Statement(const Arrow& arrow_)
       return false;
    }
 
-   m_nodes[Node(arrow_.Source())].insert(Node(arrow_.Target()));
+   m_nodes[Node(arrow_.Source(), InternalNode())].insert(Node(arrow_.Target(), InternalNode()));
 
    m_arrows.push_back(arrow_);
 
    return true;
-}
-
-//-----------------------------------------------------------------------------------------
-bool Node::operator<(const Node& cat_) const
-{
-   return m_name < cat_.m_name;
-}
-
-//-----------------------------------------------------------------------------------------
-bool Node::operator==(const Node& cat_) const
-{
-   return m_name == cat_.Name();
-}
-
-//-----------------------------------------------------------------------------------------
-bool Node::operator!=(const Node& cat_) const
-{
-   return m_name != cat_.Name();
 }
 
 //-----------------------------------------------------------------------------------------
@@ -1133,6 +1139,23 @@ void Node::Inverse()
       arrow.Inverse();
       AddArrow(arrow);
    }
+}
+
+//-----------------------------------------------------------------------------------------
+Node::EType Node::Type() const
+{
+   return m_type;
+}
+
+//-----------------------------------------------------------------------------------------
+Node::EType Node::InternalNode() const
+{
+   if       (m_type == EType::eLCategory)
+      return EType::eSCategory;
+   else if  (m_type == EType::eSCategory)
+      return EType::eObject;
+   else
+      return EType::eUndefined;
 }
 
 //-----------------------------------------------------------------------------------------

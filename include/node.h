@@ -158,11 +158,22 @@ namespace cat
       using PairSet  = std::pair<Node, Set>;
       using NName    = std::string;
 
+      enum class EType {
+            eObject     // Object
+         ,  eSCategory  // Small category
+         ,  eLCategory  // Large category
+         ,  eUndefined
+      };
+
+      bool operator < (const Node& cat_) const;
+      bool operator ==(const Node& cat_) const;
+      bool operator !=(const Node& cat_) const;
+
       /**
       * @brief Node constructor
       * @param name_ - node name
       */
-      explicit Node(const NName& name_);
+      explicit Node(const NName& name_, EType type_);
 
       /**
        * @brief Add arrow
@@ -272,10 +283,6 @@ namespace cat
 
       bool Statement(const Arrow& arrow_);
 
-      bool operator < (const Node& cat_) const;
-      bool operator ==(const Node& cat_) const;
-      bool operator !=(const Node& cat_) const;
-
       /**
        * @brief Find all compositions
        */
@@ -323,6 +330,18 @@ namespace cat
        */
       void Inverse();
 
+      /**
+       * @brief Returns node type
+       * @return Node type
+       */
+      EType Type() const;
+
+      /**
+       * @brief Returns type of internal nodes
+       * @return Node type
+       */
+      EType InternalNode() const;
+
       private:
 
       bool validate_node_data() const;
@@ -330,6 +349,7 @@ namespace cat
       Map            m_nodes;
       Arrow::List    m_arrows;
       NName          m_name;
+      EType          m_type;
    };
 
    struct CAT_EXPORT NodeKeyHasher

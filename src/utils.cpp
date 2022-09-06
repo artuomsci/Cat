@@ -99,6 +99,8 @@ static void export_cytoscape_t(const std::string& name_, const Node& node_, cons
       nodes += (nodes.empty() ? "" : ",") +  std::string(buffern) + "\n";
    }
 
+   auto coord_type = node_.InternalNode();
+
    if (show_arrows_)
    {
       for (const auto& arrow : node_.QueryArrows("* -> *"))
@@ -109,19 +111,19 @@ static void export_cytoscape_t(const std::string& name_, const Node& node_, cons
          // nodes
          char buffern[1024];
 
-         auto it_source_crd = coords_.find(Node(arrow.Source()));
-         auto it_target_crd = coords_.find(Node(arrow.Target()));
+         auto it_source_crd = coords_.find(Node(arrow.Source(), coord_type));
+         auto it_target_crd = coords_.find(Node(arrow.Target(), coord_type));
 
-         if (exclude_.find(Node(arrow.Source())) != exclude_.end())
+         if (exclude_.find(Node(arrow.Source(), coord_type)) != exclude_.end())
             continue;
 
-         if (exclude_.find(Node(arrow.Target())) != exclude_.end())
+         if (exclude_.find(Node(arrow.Target(), coord_type)) != exclude_.end())
             continue;
 
          if (it_source_crd != coords_.end() && it_target_crd != coords_.end())
          {
-            const TVec2& source_crd = coords_.at(Node(arrow.Source()));
-            const TVec2& target_crd = coords_.at(Node(arrow.Target()));
+            const TVec2& source_crd = coords_.at(Node(arrow.Source(), coord_type));
+            const TVec2& target_crd = coords_.at(Node(arrow.Target(), coord_type));
 
             int x = (source_crd.first + target_crd.first) * 0.5;
             int y = (source_crd.second + target_crd.second) * 0.5;
@@ -146,10 +148,10 @@ static void export_cytoscape_t(const std::string& name_, const Node& node_, cons
          if (skip_identity_ && arrow.Source() == arrow.Target())
             continue;
 
-         if (exclude_.find(Node(arrow.Source())) != exclude_.end())
+         if (exclude_.find(Node(arrow.Source(), coord_type)) != exclude_.end())
             continue;
 
-         if (exclude_.find(Node(arrow.Target())) != exclude_.end())
+         if (exclude_.find(Node(arrow.Target(), coord_type)) != exclude_.end())
             continue;
 
          // edges
@@ -166,10 +168,10 @@ static void export_cytoscape_t(const std::string& name_, const Node& node_, cons
          if (skip_identity_ && arrow.Source() == arrow.Target())
             continue;
 
-         if (exclude_.find(Node(arrow.Source())) != exclude_.end())
+         if (exclude_.find(Node(arrow.Source(), coord_type)) != exclude_.end())
             continue;
 
-         if (exclude_.find(Node(arrow.Target())) != exclude_.end())
+         if (exclude_.find(Node(arrow.Target(), coord_type)) != exclude_.end())
             continue;
 
          // edges
