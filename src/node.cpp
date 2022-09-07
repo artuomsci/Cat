@@ -444,13 +444,13 @@ bool Node::operator<(const Node& cat_) const
 //-----------------------------------------------------------------------------------------
 bool Node::operator==(const Node& cat_) const
 {
-   return m_name == cat_.Name();
+   return m_name == cat_.m_name && m_type == cat_.m_type;
 }
 
 //-----------------------------------------------------------------------------------------
 bool Node::operator!=(const Node& cat_) const
 {
-   return m_name != cat_.Name();
+   return m_name != cat_.m_name || m_type != cat_.m_type;
 }
 
 //-----------------------------------------------------------------------------------------
