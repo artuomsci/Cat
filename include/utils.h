@@ -14,7 +14,7 @@ namespace cat
     * @param node_ - export structure
     * @param path_ - export folder path
     * @param prefix_ - file name prefix
-    * @param coords_ - nodes coordinates (optional)
+    * @param coords_ - nodes coordinates
     * @param exclude_ - nodes to exclude
     * @param skip_identity_ - flag to skip identity arrows
     * @param show_arrows_ - flag to show arrows as nodes

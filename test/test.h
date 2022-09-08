@@ -46,7 +46,7 @@ namespace cat
 
          cat.AddNodes({a, b});
 
-         cat.AddArrow(Arrow(a.Name(), b.Name()));
+         cat.AddArrow(Arrow(Arrow::EType::eMorphism, a.Name(), b.Name()));
 
          assert(cat.EraseNode(a.Name()) == true);
 
@@ -97,20 +97,20 @@ namespace cat
 
          assert(cat.QueryArrows("* -> *").size() == 3);
 
-         assert(cat.AddArrow(Arrow(a.Name(), b.Name(), "f0")));
-         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), b.Name(), "f0")));
+         assert(cat.AddArrow(Arrow(Arrow::EType::eMorphism, a.Name(), b.Name(), "f0")));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(Arrow::EType::eMorphism, a.Name(), b.Name(), "f0")));
 
-         assert(cat.AddArrow(Arrow(a.Name(), c.Name(), "f1")));
-         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), c.Name(), "f1")));
+         assert(cat.AddArrow(Arrow(Arrow::EType::eMorphism, a.Name(), c.Name(), "f1")));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(Arrow::EType::eMorphism, a.Name(), c.Name(), "f1")));
 
          assert(cat.QueryArrows("* -> *").size() == 5);
 
-         assert(cat.AddArrow(Arrow(a.Name(), d.Name(), "f2")) == false);
-         assert(!fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), d.Name(), "f2")));
+         assert(cat.AddArrow(Arrow(Arrow::EType::eMorphism, a.Name(), d.Name(), "f2")) == false);
+         assert(!fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(Arrow::EType::eMorphism, a.Name(), d.Name(), "f2")));
          assert(cat.QueryArrows("* -> *").size() == 5);
 
-         assert(cat.AddArrow(Arrow(b.Name(), c.Name(), "f0")) == false);
-         assert(cat.AddArrow(Arrow(a.Name(), b.Name(), "f0")) == false);
+         assert(cat.AddArrow(Arrow(Arrow::EType::eMorphism, b.Name(), c.Name(), "f0")) == false);
+         assert(cat.AddArrow(Arrow(Arrow::EType::eMorphism, a.Name(), b.Name(), "f0")) == false);
       }
 
       //============================================================
@@ -125,18 +125,18 @@ namespace cat
 
          cat.AddNodes({a, b, c});
 
-         cat.AddArrow(Arrow(a.Name(), b.Name(), "f0"));
-         cat.AddArrow(Arrow(a.Name(), c.Name(), "f1"));
+         cat.AddArrow(Arrow(Arrow::EType::eMorphism, a.Name(), b.Name(), "f0"));
+         cat.AddArrow(Arrow(Arrow::EType::eMorphism, a.Name(), c.Name(), "f1"));
 
          // Deleting morphisms one at a time
          {
             auto prev_count = cat.QueryArrows("* -> *").size();
             assert(cat.EraseArrow("f0") == true);
-            assert(!fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), b.Name(), "f0")));
+            assert(!fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(Arrow::EType::eMorphism, a.Name(), b.Name(), "f0")));
             assert(prev_count = cat.QueryArrows("* -> *").size() - 1);
 
             assert(cat.EraseArrow("f1") == true);
-            assert(!fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), c.Name(), "f1")));
+            assert(!fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(Arrow::EType::eMorphism, a.Name(), c.Name(), "f1")));
             assert(prev_count = cat.QueryArrows("* -> *").size() - 2);
          }
 
@@ -147,7 +147,7 @@ namespace cat
             assert(cat.EraseArrow(Arrow::IdArrowName(a.Name())) == false);
             auto new_count = cat.QueryArrows("* -> *").size();
             assert(prev_count == new_count);
-            assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), a.Name(), Arrow::IdArrowName(a.Name()))));
+            assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(Arrow::EType::eMorphism, a.Name(), a.Name(), Arrow::IdArrowName(a.Name()))));
          }
 
          // Non existent morphism can't be deleted
@@ -172,8 +172,8 @@ namespace cat
 
          cat.AddNodes({a, b, c});
 
-         cat.AddArrow(Arrow(a.Name(), b.Name(), "f0"));
-         cat.AddArrow(Arrow(a.Name(), c.Name(), "f1"));
+         cat.AddArrow(Arrow(Arrow::EType::eMorphism, a.Name(), b.Name(), "f0"));
+         cat.AddArrow(Arrow(Arrow::EType::eMorphism, a.Name(), c.Name(), "f1"));
 
          // Erasing all arrows
          {
@@ -200,18 +200,24 @@ namespace cat
 
          cat.SolveCompositions();
 
-         cat.AddArrows({Arrow(a.Name(), b.Name(), "f0"), Arrow(b.Name(), c.Name(), "f1"), Arrow(c.Name(), d.Name(), "f2")});
-         cat.AddArrows({Arrow(d.Name(), c.Name(), "f3"), Arrow(c.Name(), b.Name(), "f4"), Arrow(b.Name(), a.Name(), "f5")});
+         cat.AddArrows({
+                              Arrow(Arrow::EType::eMorphism, a.Name(), b.Name(), "f0")
+                          ,   Arrow(Arrow::EType::eMorphism, b.Name(), c.Name(), "f1")
+                          ,   Arrow(Arrow::EType::eMorphism, c.Name(), d.Name(), "f2")});
+         cat.AddArrows({
+                              Arrow(Arrow::EType::eMorphism, d.Name(), c.Name(), "f3")
+                          ,   Arrow(Arrow::EType::eMorphism, c.Name(), b.Name(), "f4")
+                          ,   Arrow(Arrow::EType::eMorphism, b.Name(), a.Name(), "f5")});
 
          cat.SolveCompositions();
 
-         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), c.Name())));
-         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(a.Name(), d.Name())));
-         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(b.Name(), d.Name())));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(Arrow::EType::eMorphism, a.Name(), c.Name())));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(Arrow::EType::eMorphism, a.Name(), d.Name())));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(Arrow::EType::eMorphism, b.Name(), d.Name())));
 
-         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(d.Name(), b.Name())));
-         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(d.Name(), a.Name())));
-         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(c.Name(), a.Name())));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(Arrow::EType::eMorphism, d.Name(), b.Name())));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(Arrow::EType::eMorphism, d.Name(), a.Name())));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(Arrow::EType::eMorphism, c.Name(), a.Name())));
 
          auto prev_count = cat.QueryArrows("* -> *").size();
          cat.SolveCompositions();
@@ -236,13 +242,13 @@ namespace cat
          cat.AddNodes({a, b, c, d, e, f});
 
          cat.AddArrows({
-                     Arrow(a.Name(), b.Name())
-                  ,  Arrow(b.Name(), a.Name())
-                  ,  Arrow(a.Name(), c.Name())
-                  ,  Arrow(b.Name(), d.Name())
-                  ,  Arrow(c.Name(), d.Name())
-                  ,  Arrow(c.Name(), f.Name())
-                  ,  Arrow(d.Name(), e.Name())});
+                     Arrow(Arrow::EType::eMorphism, a.Name(), b.Name())
+                  ,  Arrow(Arrow::EType::eMorphism, b.Name(), a.Name())
+                  ,  Arrow(Arrow::EType::eMorphism, a.Name(), c.Name())
+                  ,  Arrow(Arrow::EType::eMorphism, b.Name(), d.Name())
+                  ,  Arrow(Arrow::EType::eMorphism, c.Name(), d.Name())
+                  ,  Arrow(Arrow::EType::eMorphism, c.Name(), f.Name())
+                  ,  Arrow(Arrow::EType::eMorphism, d.Name(), e.Name())});
 
          Node::List seq = cat.SolveSequence(a, e);
 
@@ -250,9 +256,9 @@ namespace cat
 
          Arrow::List morphs = cat.MapNodes2Arrows(seq);
          auto it = morphs.begin();
-         assert(*(it) == Arrow(a.Name(), b.Name()));
-         assert(*(++it) == Arrow(b.Name(), d.Name()));
-         assert(*(++it) == Arrow(d.Name(), e.Name()));
+         assert(*(it) == Arrow(Arrow::EType::eMorphism, a.Name(), b.Name()));
+         assert(*(++it) == Arrow(Arrow::EType::eMorphism, b.Name(), d.Name()));
+         assert(*(++it) == Arrow(Arrow::EType::eMorphism, d.Name(), e.Name()));
 
          seq = cat.SolveSequence(e, a);
 
@@ -275,14 +281,14 @@ namespace cat
          cat.AddNodes({a, b, c, d, e, f});
 
          cat.AddArrows({
-                     Arrow(a.Name(), b.Name())
-                  ,  Arrow(b.Name(), a.Name())
-                  ,  Arrow(a.Name(), c.Name())
-                  ,  Arrow(b.Name(), d.Name())
-                  ,  Arrow(c.Name(), d.Name())
-                  ,  Arrow(c.Name(), f.Name())
-                  ,  Arrow(d.Name(), e.Name())
-                  ,  Arrow(f.Name(), e.Name())});
+                     Arrow(Arrow::EType::eMorphism, a.Name(), b.Name())
+                  ,  Arrow(Arrow::EType::eMorphism, b.Name(), a.Name())
+                  ,  Arrow(Arrow::EType::eMorphism, a.Name(), c.Name())
+                  ,  Arrow(Arrow::EType::eMorphism, b.Name(), d.Name())
+                  ,  Arrow(Arrow::EType::eMorphism, c.Name(), d.Name())
+                  ,  Arrow(Arrow::EType::eMorphism, c.Name(), f.Name())
+                  ,  Arrow(Arrow::EType::eMorphism, d.Name(), e.Name())
+                  ,  Arrow(Arrow::EType::eMorphism, f.Name(), e.Name())});
 
          std::list<Node::List> seqs = cat.SolveSequences(a, e);
 
@@ -293,9 +299,9 @@ namespace cat
          {
             Arrow::List morphs = cat.MapNodes2Arrows(*it);
             auto it = morphs.begin();
-            assert(*it == Arrow(a.Name(), b.Name()));
-            assert(*(++it) == Arrow(b.Name(), d.Name()));
-            assert(*(++it) == Arrow(d.Name(), e.Name()));
+            assert(*it == Arrow(Arrow::EType::eMorphism, a.Name(), b.Name()));
+            assert(*(++it) == Arrow(Arrow::EType::eMorphism, b.Name(), d.Name()));
+            assert(*(++it) == Arrow(Arrow::EType::eMorphism, d.Name(), e.Name()));
          }
 
          it = std::next(it);
@@ -303,9 +309,9 @@ namespace cat
          {
             Arrow::List morphs = cat.MapNodes2Arrows(*it);
             auto it = morphs.begin();
-            assert(*(it) == Arrow(a.Name(), c.Name()));
-            assert(*(++it) == Arrow(c.Name(), d.Name()));
-            assert(*(++it) == Arrow(d.Name(), e.Name()));
+            assert(*(it) == Arrow(Arrow::EType::eMorphism, a.Name(), c.Name()));
+            assert(*(++it) == Arrow(Arrow::EType::eMorphism, c.Name(), d.Name()));
+            assert(*(++it) == Arrow(Arrow::EType::eMorphism, d.Name(), e.Name()));
          }
 
          it = std::next(it);
@@ -313,9 +319,9 @@ namespace cat
          {
             Arrow::List morphs = cat.MapNodes2Arrows(*it);
             auto it = morphs.begin();
-            assert(*(it) == Arrow(a.Name(), c.Name()));
-            assert(*(++it) == Arrow(c.Name(), f.Name()));
-            assert(*(++it) == Arrow(f.Name(), e.Name()));
+            assert(*(it) == Arrow(Arrow::EType::eMorphism, a.Name(), c.Name()));
+            assert(*(++it) == Arrow(Arrow::EType::eMorphism, c.Name(), f.Name()));
+            assert(*(++it) == Arrow(Arrow::EType::eMorphism, f.Name(), e.Name()));
          }
 
          seqs = cat.SolveSequences(e, a);
@@ -336,19 +342,19 @@ namespace cat
 
          cat.AddNodes({a, b, c, d});
 
-         cat.AddArrow(Arrow(a.Name(), b.Name(), "f0"));
-         cat.AddArrow(Arrow(a.Name(), c.Name(), "f1"));
+         cat.AddArrow(Arrow(Arrow::EType::eMorphism, a.Name(), b.Name(), "f0"));
+         cat.AddArrow(Arrow(Arrow::EType::eMorphism, a.Name(), c.Name(), "f1"));
 
-         cat.AddArrow(Arrow(b.Name(), d.Name(), "f2"));
-         cat.AddArrow(Arrow(c.Name(), d.Name(), "f3"));
+         cat.AddArrow(Arrow(Arrow::EType::eMorphism, b.Name(), d.Name(), "f2"));
+         cat.AddArrow(Arrow(Arrow::EType::eMorphism, c.Name(), d.Name(), "f3"));
 
          cat.Inverse();
 
-         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(b.Name(), a.Name(), "f0")));
-         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(c.Name(), a.Name(), "f1")));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(Arrow::EType::eMorphism, b.Name(), a.Name(), "f0")));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(Arrow::EType::eMorphism, c.Name(), a.Name(), "f1")));
 
-         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(d.Name(), b.Name(), "f2")));
-         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(d.Name(), c.Name(), "f3")));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(Arrow::EType::eMorphism, d.Name(), b.Name(), "f2")));
+         assert(fnCheckArrow(cat.QueryArrows("* -> *"), Arrow(Arrow::EType::eMorphism, d.Name(), c.Name(), "f3")));
       }
 
       //============================================================
@@ -366,21 +372,21 @@ namespace cat
 
          cat.AddNodes({a0, a1, b, c, d0, d1});
 
-         cat.AddArrows({Arrow(a0.Name(), a1.Name()), Arrow(a1.Name(), a0.Name())});
+         cat.AddArrows({Arrow(Arrow::EType::eMorphism, a0.Name(), a1.Name()), Arrow(Arrow::EType::eMorphism, a1.Name(), a0.Name())});
 
-         cat.AddArrow(Arrow(a0.Name(), b.Name()));
-         cat.AddArrow(Arrow(a0.Name(), c.Name()));
+         cat.AddArrow(Arrow(Arrow::EType::eMorphism, a0.Name(), b.Name()));
+         cat.AddArrow(Arrow(Arrow::EType::eMorphism, a0.Name(), c.Name()));
 
-         cat.AddArrow(Arrow(a1.Name(), b.Name()));
-         cat.AddArrow(Arrow(a1.Name(), c.Name()));
+         cat.AddArrow(Arrow(Arrow::EType::eMorphism, a1.Name(), b.Name()));
+         cat.AddArrow(Arrow(Arrow::EType::eMorphism, a1.Name(), c.Name()));
 
-         cat.AddArrow(Arrow(b.Name(), d0.Name()));
-         cat.AddArrow(Arrow(c.Name(), d0.Name()));
+         cat.AddArrow(Arrow(Arrow::EType::eMorphism, b.Name(), d0.Name()));
+         cat.AddArrow(Arrow(Arrow::EType::eMorphism, c.Name(), d0.Name()));
 
-         cat.AddArrow(Arrow(b.Name(), d1.Name()));
-         cat.AddArrow(Arrow(c.Name(), d1.Name()));
+         cat.AddArrow(Arrow(Arrow::EType::eMorphism, b.Name(), d1.Name()));
+         cat.AddArrow(Arrow(Arrow::EType::eMorphism, c.Name(), d1.Name()));
 
-         cat.AddArrows({Arrow(d0.Name(), d1.Name()), Arrow(d1.Name(), d0.Name())});
+         cat.AddArrows({Arrow(Arrow::EType::eMorphism, d0.Name(), d1.Name()), Arrow(Arrow::EType::eMorphism, d1.Name(), d0.Name())});
 
          cat.SolveCompositions();
 
@@ -411,24 +417,24 @@ namespace cat
       // Testing of arrow query
       //============================================================
       {
-         Arrow arrow("A", "B");
+         Arrow arrow(Arrow::EType::eFunctor, "A", "B");
 
-         arrow.AddArrow(Arrow("a", "b"));
-         arrow.AddArrow(Arrow("c", "d"));
-         arrow.AddArrow(Arrow("e", "f", "ef_arrow"));
-         arrow.AddArrow(Arrow("g", "f"));
+         arrow.AddArrow(Arrow(Arrow::EType::eMorphism, "a", "b"));
+         arrow.AddArrow(Arrow(Arrow::EType::eMorphism, "c", "d"));
+         arrow.AddArrow(Arrow(Arrow::EType::eMorphism, "e", "f", "ef_arrow"));
+         arrow.AddArrow(Arrow(Arrow::EType::eMorphism, "g", "f"));
 
          auto ret = arrow.QueryArrows("a -> b");
          assert(ret.size() == 1);
-         assert(ret.front() == Arrow("a", "b"));
+         assert(ret.front() == Arrow(Arrow::EType::eMorphism, "a", "b"));
 
          ret = arrow.QueryArrows("* -> b");
          assert(ret.size() == 1);
-         assert(ret.front() == Arrow("a", "b"));
+         assert(ret.front() == Arrow(Arrow::EType::eMorphism, "a", "b"));
 
          ret = arrow.QueryArrows("a -> *");
          assert(ret.size() == 1);
-         assert(ret.front() == Arrow("a", "b"));
+         assert(ret.front() == Arrow(Arrow::EType::eMorphism, "a", "b"));
 
          ret = arrow.QueryArrows("* -> *");
          assert(ret.size() == 4);
@@ -437,10 +443,10 @@ namespace cat
          assert(ret.size() == 2);
 
          ret = arrow.QueryArrows("* -[ ef_arrow ]-> *");
-         assert(ret.front() == Arrow("e", "f", "ef_arrow"));
+         assert(ret.front() == Arrow(Arrow::EType::eMorphism, "e", "f", "ef_arrow"));
 
          ret = arrow.QueryArrows("* -[ ef_arrow ]-> f");
-         assert(ret.front() == Arrow("e", "f", "ef_arrow"));
+         assert(ret.front() == Arrow(Arrow::EType::eMorphism, "e", "f", "ef_arrow"));
 
          ret = arrow.QueryArrows("* -> f", 1);
          assert(ret.size() == 1);
@@ -450,11 +456,11 @@ namespace cat
       // Testing of arrow inversion
       //============================================================
       {
-         Arrow arrow("A", "B");
+         Arrow arrow(Arrow::EType::eFunctor, "A", "B");
 
-         arrow.AddArrow(Arrow("a", "b"));
-         arrow.AddArrow(Arrow("c", "d"));
-         arrow.AddArrow(Arrow("e", "f", "ef_arrow"));
+         arrow.AddArrow(Arrow(Arrow::EType::eMorphism, "a", "b"));
+         arrow.AddArrow(Arrow(Arrow::EType::eMorphism, "c", "d"));
+         arrow.AddArrow(Arrow(Arrow::EType::eMorphism, "e", "f", "ef_arrow"));
 
          arrow.Inverse();
 
@@ -522,23 +528,23 @@ namespace cat
             Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject);
 
             C0.AddNodes({a0, b0});
-            C0.AddArrow(Arrow(a0.Name(), b0.Name()));
+            C0.AddArrow(Arrow(Arrow::EType::eMorphism, a0.Name(), b0.Name()));
 
             // Target category
             Node C1("C1", Node::EType::eSCategory);
             Node a1("a1", Node::EType::eObject), b1("b1", Node::EType::eObject);
 
             C1.AddNodes({a1, b1});
-            C1.AddArrow(Arrow(a1.Name(), b1.Name()));
+            C1.AddArrow(Arrow(Arrow::EType::eMorphism, a1.Name(), b1.Name()));
 
             // Category of categories
             Node ccat("Cat", Node::EType::eLCategory);
             ccat.AddNode(C0);
             ccat.AddNode(C1);
 
-            Arrow functor(C0.Name(), C1.Name());
-            functor.AddArrow(Arrow(a0.Name(), a1.Name()));
-            functor.AddArrow(Arrow(b0.Name(), b1.Name()));
+            Arrow functor(Arrow::EType::eFunctor, C0.Name(), C1.Name());
+            functor.AddArrow(Arrow(Arrow::EType::eMorphism, a0.Name(), a1.Name()));
+            functor.AddArrow(Arrow(Arrow::EType::eMorphism, b0.Name(), b1.Name()));
 
             assert(ccat.AddArrow(functor));
          }
@@ -550,7 +556,7 @@ namespace cat
             Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject);
 
             C0.AddNodes({a0, b0});
-            C0.AddArrow(Arrow(a0.Name(), b0.Name()));
+            C0.AddArrow(Arrow(Arrow::EType::eMorphism, a0.Name(), b0.Name()));
 
             // Target category
             Node C1("C1", Node::EType::eSCategory);
@@ -563,9 +569,9 @@ namespace cat
             ccat.AddNode(C0);
             ccat.AddNode(C1);
 
-            Arrow functor(C0.Name(), C1.Name());
-            functor.AddArrow(Arrow(a0.Name(), a1.Name()));
-            functor.AddArrow(Arrow(b0.Name(), b1.Name()));
+            Arrow functor(Arrow::EType::eFunctor,  C0.Name(), C1.Name());
+            functor.AddArrow(Arrow(Arrow::EType::eMorphism, a0.Name(), a1.Name()));
+            functor.AddArrow(Arrow(Arrow::EType::eMorphism, b0.Name(), b1.Name()));
 
             assert(!ccat.AddArrow(functor));
          }
@@ -577,23 +583,23 @@ namespace cat
             Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject);
 
             C0.AddNodes({a0, b0});
-            C0.AddArrow(Arrow(a0.Name(), b0.Name()));
+            C0.AddArrow(Arrow(Arrow::EType::eMorphism, a0.Name(), b0.Name()));
 
             // Target category
             Node C1("C1", Node::EType::eSCategory);
             Node a1("a1", Node::EType::eObject), b1("b1", Node::EType::eObject);
 
             C1.AddNodes({a1, b1});
-            C1.AddArrow(Arrow(b1.Name(), a1.Name()));
+            C1.AddArrow(Arrow(Arrow::EType::eMorphism, b1.Name(), a1.Name()));
 
             // Category of categories
             Node ccat("Cat", Node::EType::eLCategory);
             ccat.AddNode(C0);
             ccat.AddNode(C1);
 
-            Arrow functor(C0.Name(), C1.Name());
-            functor.AddArrow(Arrow(a0.Name(), a1.Name()));
-            functor.AddArrow(Arrow(b0.Name(), b1.Name()));
+            Arrow functor(Arrow::EType::eFunctor, C0.Name(), C1.Name());
+            functor.AddArrow(Arrow(Arrow::EType::eMorphism, a0.Name(), a1.Name()));
+            functor.AddArrow(Arrow(Arrow::EType::eMorphism, b0.Name(), b1.Name()));
 
             assert(!ccat.AddArrow(functor));
          }
@@ -604,7 +610,7 @@ namespace cat
             Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject);
 
             C0.AddNodes({a0, b0});
-            C0.AddArrow(Arrow(a0.Name(), b0.Name()));
+            C0.AddArrow(Arrow(Arrow::EType::eMorphism, a0.Name(), b0.Name()));
 
             // Category of categories
             Node ccat("Cat", Node::EType::eLCategory);
@@ -623,23 +629,23 @@ namespace cat
             Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject), c0("c0", Node::EType::eObject);
 
             C0.AddNodes({a0, b0, c0});
-            C0.AddArrow(Arrow(a0.Name(), b0.Name()));
+            C0.AddArrow(Arrow(Arrow::EType::eMorphism, a0.Name(), b0.Name()));
 
             // Target category
             Node C1("C1", Node::EType::eSCategory);
             Node a1("a1", Node::EType::eObject), b1("b1", Node::EType::eObject);
 
             C1.AddNodes({a1, b1});
-            C1.AddArrow(Arrow(a1.Name(), b1.Name()));
+            C1.AddArrow(Arrow(Arrow::EType::eMorphism, a1.Name(), b1.Name()));
 
             // Category of categories
             Node ccat("Cat", Node::EType::eLCategory);
             ccat.AddNode(C0);
             ccat.AddNode(C1);
 
-            Arrow functor(C0.Name(), C1.Name());
-            functor.AddArrow(Arrow(a0.Name(), a1.Name()));
-            functor.AddArrow(Arrow(b0.Name(), b1.Name()));
+            Arrow functor(Arrow::EType::eFunctor, C0.Name(), C1.Name());
+            functor.AddArrow(Arrow(Arrow::EType::eMorphism, a0.Name(), a1.Name()));
+            functor.AddArrow(Arrow(Arrow::EType::eMorphism, b0.Name(), b1.Name()));
 
             assert(!ccat.AddArrow(functor));
          }
@@ -651,24 +657,24 @@ namespace cat
             Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject);
 
             C0.AddNodes({a0, b0});
-            C0.AddArrow(Arrow(a0.Name(), b0.Name()));
+            C0.AddArrow(Arrow(Arrow::EType::eMorphism, a0.Name(), b0.Name()));
 
             // Target category
             Node C1("C1", Node::EType::eSCategory);
             Node a1("a1", Node::EType::eObject), b1("b1", Node::EType::eObject);
 
             C1.AddNodes({a1, b1});
-            C1.AddArrow(Arrow(a1.Name(), b1.Name()));
+            C1.AddArrow(Arrow(Arrow::EType::eMorphism, a1.Name(), b1.Name()));
 
             // Category of categories
             Node ccat("Cat", Node::EType::eLCategory);
             ccat.AddNode(C0);
             ccat.AddNode(C1);
 
-            Arrow functor(C0.Name(), C1.Name());
-            functor.AddArrow(Arrow(a0.Name(), a1.Name(), "f"));
-            functor.AddArrow(Arrow(a0.Name(), b1.Name(), "f"));
-            functor.AddArrow(Arrow(b0.Name(), b1.Name()));
+            Arrow functor(Arrow::EType::eFunctor, C0.Name(), C1.Name());
+            functor.AddArrow(Arrow(Arrow::EType::eMorphism, a0.Name(), a1.Name(), "f"));
+            functor.AddArrow(Arrow(Arrow::EType::eMorphism, a0.Name(), b1.Name(), "f"));
+            functor.AddArrow(Arrow(Arrow::EType::eMorphism, b0.Name(), b1.Name()));
 
             assert(!ccat.AddArrow(functor));
          }

@@ -26,12 +26,6 @@ static const char* const sProof     = "proof";
 // File extension
 static const char* const sExt = ".cat";
 
-enum class ArrowType
-{
-      eMorphism
-   ,  eFunctor
-};
-
 using namespace cat;
 
 /**
@@ -72,7 +66,7 @@ static bool is_functor(const std::string& string_)
 }
 
 //-----------------------------------------------------------------------------------------
-template <ArrowType ArrowType>
+template <Arrow::EType ArrowType>
 static std::vector<Arrow> get_chains(const std::string& name_, const Node& source_, const Node& target_, const Node::List& domain_, const Node::List& codomain_, EExpType expr_type_)
 {
    std::vector<Arrow> ret;
@@ -122,7 +116,7 @@ static std::vector<Arrow> get_chains(const std::string& name_, const Node& sourc
       if (!fnCheckTarget())
          return ret;
 
-      ret.push_back(Arrow(source_.Name(), target_.Name(), name_));
+      ret.push_back(Arrow(ArrowType, source_.Name(), target_.Name(), name_));
    }
    // * :: a -> b
    else if  (name_ == sAny && source_.Name() != sAny && target_.Name() != sAny)
@@ -132,7 +126,7 @@ static std::vector<Arrow> get_chains(const std::string& name_, const Node& sourc
       if (!fnCheckTarget())
          return ret;
 
-      ret.push_back(Arrow(source_.Name(), target_.Name()));
+      ret.push_back(Arrow(ArrowType, source_.Name(), target_.Name()));
    }
    // * :: * -> *
    else if (name_ == sAny && source_.Name() == sAny && target_.Name() == sAny)
@@ -141,7 +135,7 @@ static std::vector<Arrow> get_chains(const std::string& name_, const Node& sourc
       {
          for (const auto& cnode : codomain_)
          {
-            ret.push_back(Arrow(dnode.Name(), cnode.Name()));
+            ret.push_back(Arrow(ArrowType, dnode.Name(), cnode.Name()));
          }
       }
    }
@@ -152,7 +146,7 @@ static std::vector<Arrow> get_chains(const std::string& name_, const Node& sourc
          return ret;
 
       for (const auto& dnode : domain_)
-         ret.push_back(Arrow(dnode.Name(), target_.Name()));
+         ret.push_back(Arrow(ArrowType, dnode.Name(), target_.Name()));
    }
    // * :: a -> *
    else if (name_ == sAny && source_.Name() != sAny && target_.Name() == sAny)
@@ -161,7 +155,7 @@ static std::vector<Arrow> get_chains(const std::string& name_, const Node& sourc
          return ret;
 
       for (const auto& cnode : codomain_)
-         ret.push_back(Arrow(source_.Name(), cnode.Name()));
+         ret.push_back(Arrow(ArrowType, source_.Name(), cnode.Name()));
    }
    // f :: a -> *
    else if (name_ != sAny && source_.Name() != sAny && target_.Name() == sAny)
@@ -175,7 +169,7 @@ static std::vector<Arrow> get_chains(const std::string& name_, const Node& sourc
          return ret;
 
       for (const auto& dnode : domain_)
-         ret.push_back(Arrow(dnode.Name(), target_.Name(), name_));
+         ret.push_back(Arrow(ArrowType, dnode.Name(), target_.Name(), name_));
    }
    // f :: * -> *
    else if (name_ != sAny && source_.Name() == sAny && target_.Name() == sAny)
@@ -187,14 +181,14 @@ static std::vector<Arrow> get_chains(const std::string& name_, const Node& sourc
 }
 
 //-----------------------------------------------------------------------------------------
-template <ArrowType T>
+template <Arrow::EType T>
 std::string chain_symbol();
 
-template <> std::string chain_symbol<ArrowType::eMorphism>() { return "->"; }
-template <> std::string chain_symbol<ArrowType::eFunctor >() { return "=>"; }
+template <> std::string chain_symbol<Arrow::EType::eMorphism>() { return "->"; }
+template <> std::string chain_symbol<Arrow::EType::eFunctor >() { return "=>"; }
 
 //-----------------------------------------------------------------------------------------
-template <ArrowType ArrowType>
+template <Arrow::EType ArrowType>
 static std::vector<Arrow> get_chain(const std::string& line_, const Node::List& domain_, const Node::List& codomain_, EExpType expr_type_)
 {
    StringVec subsections = split(line_, "::");
@@ -217,8 +211,8 @@ static std::vector<Arrow> get_chain(const std::string& line_, const Node::List& 
    std::vector<Arrow> ret; ret.reserve(args.size() - 1);
    for (int i = 0; i < (int)args.size() - 1; ++i)
    {
-      Node source(args[i + 0], ArrowType == ArrowType::eMorphism ? Node::EType::eObject : Node::EType::eSCategory);
-      Node target(args[i + 1], ArrowType == ArrowType::eMorphism ? Node::EType::eObject : Node::EType::eSCategory);
+      Node source(args[i + 0], ArrowType == Arrow::EType::eMorphism ? Node::EType::eObject : Node::EType::eSCategory);
+      Node target(args[i + 1], ArrowType == Arrow::EType::eMorphism ? Node::EType::eObject : Node::EType::eSCategory);
 
       for (const auto& it : get_chains<ArrowType>(head, source, target, domain_, codomain_, expr_type_))
          ret.push_back(it);
@@ -280,6 +274,9 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
          Arrow::Vec backup;
          for (const auto& arrow : ccat_.QueryArrows("* -> *"))
          {
+            if (arrow.Source() == arrow.Target())
+               continue;
+
             if (arrow.Source() == crt_cat_->Name() || arrow.Target() == crt_cat_->Name())
                backup.push_back(arrow);
          }
@@ -332,7 +329,7 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
 
       const auto& nodes = crt_cat_->QueryNodes("*");
 
-      std::vector<Arrow> morphs = get_chain<ArrowType::eMorphism>(line_, nodes, nodes, expr_type_);
+      std::vector<Arrow> morphs = get_chain<Arrow::EType::eMorphism>(line_, nodes, nodes, expr_type_);
       if (morphs.empty())
       {
          print_error("Incorrect morphism definition " + line_ + " in category " + crt_cat_->Name());
@@ -361,7 +358,7 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
    {
       auto nodes = ccat_.QueryNodes("*");
 
-      std::vector<Arrow> funcs = get_chain<ArrowType::eFunctor>(line_, nodes, nodes, expr_type_);
+      std::vector<Arrow> funcs = get_chain<Arrow::EType::eFunctor>(line_, nodes, nodes, expr_type_);
       if (funcs.size() != 1)
       {
          print_error("Incorrect functor definition: " + line_);
@@ -395,7 +392,7 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
                   return false;
 
                for (const auto& domain : nodes.front().QueryNodes("*"))
-                  crt_func->AddArrow(Arrow(domain.Name(), domain.Name()));
+                  crt_func->AddArrow(Arrow(Arrow::EType::eMorphism, domain.Name(), domain.Name()));
             }
 
             if (!node_.Statement(crt_func.value()))
@@ -418,7 +415,7 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
       auto itSourceCat = ccat_.QueryNodes(crt_func_->Source()).front();
       auto itTargetCat = ccat_.QueryNodes(crt_func_->Target()).front();
 
-      std::vector<Arrow> morphs = get_chain<ArrowType::eMorphism>(line_, itSourceCat.QueryNodes("*"), itTargetCat.QueryNodes("*"), expr_type_);
+      std::vector<Arrow> morphs = get_chain<Arrow::EType::eMorphism>(line_, itSourceCat.QueryNodes("*"), itTargetCat.QueryNodes("*"), expr_type_);
       if (morphs.empty())
       {
          print_error("Incorrect morphism definition " + line_ + " in functor " + crt_func_->Name());

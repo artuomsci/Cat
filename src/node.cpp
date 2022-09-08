@@ -12,8 +12,11 @@ using namespace cat;
 // Any entity
 static const char* const sAny = "*";
 // Arrow name guards
-static const char* const sArrowNameBegin = "-[";
-static const char* const sArrowNameEnd   = "]->";
+static const char* const sMArrowNameBegin = "-[";
+static const char* const sMArrowNameEnd   = "]->";
+
+static const char* const sFArrowNameBegin = "=[";
+static const char* const sFArrowNameEnd   = "]=>";
 
 //-----------------------------------------------------------------------------------------
 static std::string trim_sp(const std::string& string_)
@@ -23,17 +26,19 @@ static std::string trim_sp(const std::string& string_)
 
 //-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
-Arrow::Arrow(const std::string& source_, const std::string& target_, const std::string& arrow_name_) :
+Arrow::Arrow(EType type_, const std::string& source_, const std::string& target_, const std::string& arrow_name_) :
       m_source   (source_)
    ,  m_target   (target_)
    ,  m_name     (arrow_name_)
+   ,  m_type     (type_)
 {};
 
 //-----------------------------------------------------------------------------------------
-Arrow::Arrow(const std::string& source_, const std::string& target_) :
+Arrow::Arrow(EType type_, const std::string& source_, const std::string& target_) :
       m_source   (source_)
    ,  m_target   (target_)
    ,  m_name     (DefaultArrowName(source_, target_))
+   ,  m_type     (type_)
 {};
 
 //-----------------------------------------------------------------------------------------
@@ -49,7 +54,8 @@ bool Arrow::operator==(const Arrow& arrow_) const
          m_source      == arrow_.m_source
       && m_target      == arrow_.m_target
       && m_name        == arrow_.m_name
-      && m_arrows      == arrow_.m_arrows;
+      && m_arrows      == arrow_.m_arrows
+      && m_type        == arrow_.m_type;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -59,7 +65,8 @@ bool Arrow::operator!=(const Arrow& arrow_) const
          m_source      != arrow_.m_source
       || m_target      != arrow_.m_target
       || m_name        != arrow_.m_name
-      || m_arrows      != arrow_.m_arrows;
+      || m_arrows      != arrow_.m_arrows
+      || m_type        != arrow_.m_type;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -84,7 +91,7 @@ std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
       auto source = SingleMap(Node(arrow.m_source, Node::EType::eObject));
       auto target = SingleMap(Node(arrow.m_target, Node::EType::eObject));
 
-      Arrow mapped_arrow(source->Name(), target->Name());
+      Arrow mapped_arrow(EType::eMorphism, source->Name(), target->Name());
       if (ret.QueryArrows(mapped_arrow.Source() + "-[" + mapped_arrow.Name() + "]->" + mapped_arrow.Target()).empty())
          ret.AddArrow(mapped_arrow);
    }
@@ -125,7 +132,8 @@ const Arrow::AName& Arrow::Name() const
 //-----------------------------------------------------------------------------------------
 void Arrow::AddArrow(const Arrow& arrow_)
 {
-   m_arrows.push_back(arrow_);
+   if (m_type == Arrow::EType::eFunctor && arrow_.Type() == Arrow::EType::eMorphism)
+      m_arrows.push_back(arrow_);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -147,28 +155,31 @@ void Arrow::EraseArrows()
 }
 
 //-----------------------------------------------------------------------------------------
-static std::optional<Arrow> extract_arrow_from_query(const std::string& query_)
+static std::optional<Arrow> extract_arrow_from_query(Arrow::EType type_, const std::string& query_)
 {
    auto query = trim_sp(query_);
 
+   auto begin = type_ == Arrow::EType::eMorphism ? sMArrowNameBegin : sFArrowNameBegin;
+   auto end   = type_ == Arrow::EType::eMorphism ? sMArrowNameEnd   : sFArrowNameEnd  ;
+
    // Arrow name is optional, checking for it
-   if (query.find(sArrowNameBegin) != -1 && query.find(sArrowNameEnd) != -1)
+   if (query.find(begin) != -1 && query.find(end) != -1)
    {
-      auto head = split(query, sArrowNameBegin, false);
+      auto head = split(query, begin, false);
       for (auto& it : head)
          it = trim_sp(it);
 
       if (head.size() != 2)
          return std::optional<Arrow>();
 
-      auto tail = split(head[1], sArrowNameEnd, false);
+      auto tail = split(head[1], end, false);
       for (auto& it : tail)
          it = trim_sp(it);
 
       if (tail.size() != 2)
          return std::optional<Arrow>();
 
-      return Arrow(head[0], tail[1], tail[0]);
+      return Arrow(type_, head[0], tail[1], tail[0]);
    }
    else
    {
@@ -179,14 +190,14 @@ static std::optional<Arrow> extract_arrow_from_query(const std::string& query_)
       if (parts.size() != 2)
          return std::optional<Arrow>();
 
-      return Arrow(parts[0], parts[1], sAny);
+      return Arrow(type_, parts[0], parts[1], sAny);
    }
 }
 
 //-----------------------------------------------------------------------------------------
-Arrow::List query_arrows(const std::string& query_, const Arrow::List& arrows_, std::optional<size_t> matchCount_)
+Arrow::List query_arrows(Arrow::EType type_, const std::string& query_, const Arrow::List& arrows_, std::optional<size_t> matchCount_)
 {
-   auto qarrow = extract_arrow_from_query(query_);
+   auto qarrow = extract_arrow_from_query(type_, query_);
    if (!qarrow)
       return Arrow::List();
 
@@ -383,7 +394,7 @@ Arrow::List query_arrows(const std::string& query_, const Arrow::List& arrows_, 
 //-----------------------------------------------------------------------------------------
 Arrow::List Arrow::QueryArrows(const std::string& query_, std::optional<size_t> matchCount_) const
 {
-   return query_arrows(query_, m_arrows, matchCount_);
+   return query_arrows(Arrow::EType::eMorphism, query_, m_arrows, matchCount_);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -432,6 +443,12 @@ void Arrow::Inverse()
 
    for (auto& arrow : m_arrows)
       arrow.Inverse();
+}
+
+//-----------------------------------------------------------------------------------------
+Arrow::EType Arrow::Type() const
+{
+   return m_type;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -581,10 +598,10 @@ bool Node::AddNode(const Node& node_)
    {
       m_nodes[node_];
 
-      Arrow func(node_.Name(), node_.Name(), Arrow::IdArrowName(node_.Name()));
+      Arrow func(InternalArrow(), node_.Name(), node_.Name(), Arrow::IdArrowName(node_.Name()));
 
       for (const auto& id : node_.QueryNodes("*"))
-         func.AddArrow(Arrow(id.Name(), id.Name()));
+         func.AddArrow(Arrow(Arrow::EType::eMorphism, id.Name(), id.Name()));
 
       if (!AddArrow(func))
          return false;
@@ -678,7 +695,7 @@ bool Node::IsNodesEmpty() const
 //-----------------------------------------------------------------------------------------
 Arrow::List Node::QueryArrows(const std::string& query_, std::optional<size_t> matchCount_) const
 {
-   return query_arrows(query_, m_arrows, matchCount_);
+   return query_arrows(InternalArrow(), query_, m_arrows, matchCount_);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -861,7 +878,7 @@ bool Node::Statement(const Arrow& arrow_)
       auto nodet = arrow_.SingleMap(Node(arrow.Target(), source.front().InternalNode()));
 
       if (target.QueryArrows(nodes->Name() + "->" + nodet->Name()).empty())
-         target.AddArrow(Arrow(nodes->Name(), nodet->Name()));
+         target.AddArrow(Arrow(Arrow::EType::eMorphism, nodes->Name(), nodet->Name()));
    }
 
    for (auto& [domain, codomain] : m_nodes)
@@ -933,7 +950,7 @@ void Node::SolveCompositions()
       std::set_difference(new_codomain.begin(), new_codomain.end(), codomain.begin(), codomain.end(), std::inserter(domain_diff, domain_diff.begin()));
 
       for (const auto& codomain_node : domain_diff)
-         AddArrow(Arrow(domain.Name(), codomain_node.Name()));
+         AddArrow(Arrow(InternalArrow(), domain.Name(), codomain_node.Name()));
    }
 }
 
@@ -1121,7 +1138,7 @@ Arrow::List Node::MapNodes2Arrows(const Node::List& nodes_) const
          return itn->Name() == elem_.Source() && std::next(itn)->Name() == elem_.Target();
       });
 
-      ret.push_back(it != m_arrows.end() ? *it : Arrow("", ""));
+      ret.push_back(it != m_arrows.end() ? *it : Arrow(InternalArrow(), "", ""));
    }
 
    return ret;
@@ -1156,6 +1173,12 @@ Node::EType Node::InternalNode() const
       return EType::eObject;
    else
       return EType::eUndefined;
+}
+
+//-----------------------------------------------------------------------------------------
+Arrow::EType Node::InternalArrow() const
+{
+   return m_type == Node::EType::eLCategory ? Arrow::EType::eFunctor : Arrow::EType::eMorphism;
 }
 
 //-----------------------------------------------------------------------------------------

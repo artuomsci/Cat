@@ -23,8 +23,13 @@ namespace cat
    {
    public:
 
-      Arrow(const std::string& source_, const std::string& target_, const std::string& arrow_name_);
-      Arrow(const std::string& source_, const std::string& target_);
+      enum class EType {
+            eMorphism
+         ,  eFunctor
+      };
+
+      Arrow(EType type_, const std::string& source_, const std::string& target_, const std::string& arrow_name_);
+      Arrow(EType type_, const std::string& source_, const std::string& target_);
 
       bool operator <  (const Arrow& arrow_) const;
       bool operator == (const Arrow& arrow_) const;
@@ -129,12 +134,19 @@ namespace cat
        */
       void Inverse();
 
+      /**
+       * @brief Returns arrow type
+       * @return Arrow type
+       */
+      Arrow::EType Type() const;
+
    private:
 
       std::string m_source;
       std::string m_target;
       AName       m_name;
       List        m_arrows;
+      EType       m_type;
    };
 
    /**
@@ -340,7 +352,13 @@ namespace cat
        * @brief Returns type of internal nodes
        * @return Node type
        */
-      EType InternalNode() const;
+      Node::EType InternalNode() const;
+
+      /**
+       * @brief Return type of internal arrows
+       * @return Arrow type
+       */
+      Arrow::EType InternalArrow() const;
 
       private:
 
