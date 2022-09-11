@@ -18,6 +18,10 @@ static const char* const sMArrowNameEnd   = "]->";
 static const char* const sFArrowNameBegin = "=[";
 static const char* const sFArrowNameEnd   = "]=>";
 
+// Logic statements
+static const char sAND = '&';
+static const char sOR  = '|';
+
 //-----------------------------------------------------------------------------------------
 static std::string trim_sp(const std::string& string_)
 {
@@ -714,7 +718,7 @@ Node::List Node::QueryNodes(const std::string& query_) const
    }
    else
    {
-      auto node_names = split(query, '|', false);
+      auto node_names = split(query, sOR, false);
 
       for (auto& it : node_names)
          it = trim_sp(it);

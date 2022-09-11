@@ -23,6 +23,10 @@ static const char* const sImport = "import";
 static const char* const sStatement = "statement";
 static const char* const sProof     = "proof";
 
+// Logic statements
+static const char sAND = '&';
+static const char sOR  = '|';
+
 // File extension
 static const char* const sExt = ".cat";
 
@@ -305,7 +309,7 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
          return false;
       }
 
-      for (auto& itNodeName : split(line_, ',', false))
+      for (auto& itNodeName : split(line_, sAND, false))
       {
          auto nodeName = trim_sp(itNodeName);
 
