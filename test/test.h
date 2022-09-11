@@ -414,7 +414,7 @@ namespace cat
       }
 
       //============================================================
-      // Testing of arrow query
+      // Testing of arrow query (morphisms)
       //============================================================
       {
          Arrow arrow(Arrow::EType::eFunctor, "A", "B");
@@ -450,6 +450,39 @@ namespace cat
 
          ret = arrow.QueryArrows("* -> f", 1);
          assert(ret.size() == 1);
+      }
+
+      //============================================================
+      // Testing of arrow query (functors)
+      //============================================================
+      {
+         // Source category
+         Node C0("C0", Node::EType::eSCategory);
+         Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject);
+
+         C0.AddNodes({a0, b0});
+         C0.AddArrow(Arrow(Arrow::EType::eMorphism, a0.Name(), b0.Name()));
+
+         // Target category
+         Node C1("C1", Node::EType::eSCategory);
+         Node a1("a1", Node::EType::eObject), b1("b1", Node::EType::eObject);
+
+         C1.AddNodes({a1, b1});
+         C1.AddArrow(Arrow(Arrow::EType::eMorphism, a1.Name(), b1.Name()));
+
+         // Category of categories
+         Node ccat("Cat", Node::EType::eLCategory);
+         ccat.AddNode(C0);
+         ccat.AddNode(C1);
+
+         Arrow functor(Arrow::EType::eFunctor, C0.Name(), C1.Name());
+         functor.AddArrow(Arrow(Arrow::EType::eMorphism, a0.Name(), a1.Name()));
+         functor.AddArrow(Arrow(Arrow::EType::eMorphism, b0.Name(), b1.Name()));
+
+         assert(ccat.AddArrow(functor));
+
+         auto ret = ccat.QueryArrows(C0.Name() + " => " + C1.Name());
+         assert(ret.front().Name() == Arrow(Arrow::EType::eFunctor, C0.Name(), C1.Name()).Name());
       }
 
       //============================================================
@@ -616,7 +649,7 @@ namespace cat
             Node ccat("Cat", Node::EType::eLCategory);
             ccat.AddNode(C0);
 
-            auto arrows = ccat.QueryArrows("* -> *");
+            auto arrows = ccat.QueryArrows("* => *");
             assert(arrows.size() == 1);
             auto arrows_btw_objects = arrows.front().QueryArrows("* -> *");
             assert(arrows_btw_objects.size() == 2);

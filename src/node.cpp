@@ -191,7 +191,7 @@ static std::optional<Arrow> extract_arrow_from_query(Arrow::EType type_, const s
    }
    else
    {
-      auto parts = split(query, sMorphism, false);
+      auto parts = split(query, type_ == Arrow::EType::eMorphism ? sMorphism : sFunctor, false);
       for (auto& it : parts)
          it = trim_sp(it);
 
