@@ -26,13 +26,6 @@ static const char* const sImport = "import";
 static const char* const sStatement = "statement";
 static const char* const sProof     = "proof";
 
-// Arrow name guards
-static const char* const sMArrowNameBegin = "-[";
-static const char* const sMArrowNameEnd   = "]->";
-
-static const char* const sFArrowNameBegin = "=[";
-static const char* const sFArrowNameEnd   = "]=>";
-
 // Arrow type
 static const char* sFunctor  = "=>";
 static const char* sMorphism = "->";
@@ -207,7 +200,7 @@ static std::vector<Arrow> resolve_arrows(const std::string& name_, Arrow::EType 
 }
 
 //-----------------------------------------------------------------------------------------
-static std::vector<Arrow> get_arrows(const std::string& line_, Arrow::EType arrow_type_, const Node::List& domain_, const Node::List& codomain_, EExpType expr_type_)
+static std::vector<Arrow> get_arrows(const std::string& line_, Arrow::EType arrow_type_, const Node::List& domain_, const Node::List& codomain_, EExpType expr_type_, bool resolve_)
 {
    StringVec subsections = split(line_, "::");
    if (subsections.size() != 2)
@@ -234,8 +227,13 @@ static std::vector<Arrow> get_arrows(const std::string& line_, Arrow::EType arro
       Node source(args[i + 0], node_type);
       Node target(args[i + 1], node_type);
 
-      for (const auto& it : resolve_arrows(head, arrow_type_, source, target, domain_, codomain_, expr_type_))
-         ret.push_back(it);
+      if (resolve_)
+      {
+         for (const auto& it : resolve_arrows(head, arrow_type_, source, target, domain_, codomain_, expr_type_))
+            ret.push_back(it);
+      }
+      else
+         ret.push_back(Arrow(arrow_type_, source.Name(), target.Name(), head));
    }
 
    return ret;
@@ -303,13 +301,13 @@ std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
    }
 
    // Mapping of arrows
-   for (const Arrow& arrow : node_->QueryArrows("* -> *"))
+   for (const Arrow& arrow : node_->QueryArrows("* :: * -> *"))
    {
       auto source = SingleMap(Node(arrow.m_source, Node::EType::eObject));
       auto target = SingleMap(Node(arrow.m_target, Node::EType::eObject));
 
       Arrow mapped_arrow(EType::eMorphism, source->Name(), target->Name());
-      if (ret.QueryArrows(mapped_arrow.Source() + sMArrowNameBegin + mapped_arrow.Name() + sMArrowNameEnd + mapped_arrow.Target()).empty())
+      if (ret.QueryArrows(mapped_arrow.Name() + " :: " + mapped_arrow.Source() + sMorphism + mapped_arrow.Target()).empty())
          ret.AddArrow(mapped_arrow);
    }
 
@@ -372,57 +370,17 @@ void Arrow::EraseArrows()
 }
 
 //-----------------------------------------------------------------------------------------
-static std::optional<Arrow> extract_arrow_from_query(Arrow::EType type_, const std::string& query_)
-{
-   auto query = trim_sp(query_);
-
-   auto begin = type_ == Arrow::EType::eMorphism ? sMArrowNameBegin : sFArrowNameBegin;
-   auto end   = type_ == Arrow::EType::eMorphism ? sMArrowNameEnd   : sFArrowNameEnd  ;
-
-   // Arrow name is optional, checking for it
-   if (query.find(begin) != -1 && query.find(end) != -1)
-   {
-      auto head = split(query, begin, false);
-      for (auto& it : head)
-         it = trim_sp(it);
-
-      if (head.size() != 2)
-         return std::optional<Arrow>();
-
-      auto tail = split(head[1], end, false);
-      for (auto& it : tail)
-         it = trim_sp(it);
-
-      if (tail.size() != 2)
-         return std::optional<Arrow>();
-
-      return Arrow(type_, head[0], tail[1], tail[0]);
-   }
-   else
-   {
-      auto parts = split(query, type_ == Arrow::EType::eMorphism ? sMorphism : sFunctor, false);
-      for (auto& it : parts)
-         it = trim_sp(it);
-
-      if (parts.size() != 2)
-         return std::optional<Arrow>();
-
-      return Arrow(type_, parts[0], parts[1], sAny);
-   }
-}
-
-//-----------------------------------------------------------------------------------------
 Arrow::List query_arrows(Arrow::EType type_, const std::string& query_, const Arrow::List& arrows_, std::optional<size_t> matchCount_)
 {
-   auto qarrow = extract_arrow_from_query(type_, query_);
-   if (!qarrow)
+   auto qarrow = get_arrows(query_, type_, Node::List(), Node::List(), EExpType::eProof, false);
+   if (qarrow.size() != 1)
       return Arrow::List();
 
    Arrow::List ret;
 
-   if       (qarrow->Source() == sAny && qarrow->Target() == sAny)
+   if       (qarrow[0].Source() == sAny && qarrow[0].Target() == sAny)
    {
-      if (qarrow->Name() == sAny)
+      if (qarrow[0].Name() == sAny)
       {
          return arrows_;
       }
@@ -432,7 +390,7 @@ Arrow::List query_arrows(Arrow::EType type_, const std::string& query_, const Ar
          {
             for (const auto& arrow : arrows_)
             {
-               if (arrow.Name() == qarrow->Name())
+               if (arrow.Name() == qarrow[0].Name())
                {
                   ret.push_back(arrow);
 
@@ -445,21 +403,21 @@ Arrow::List query_arrows(Arrow::EType type_, const std::string& query_, const Ar
          {
             for (const auto& arrow : arrows_)
             {
-               if (arrow.Name() == qarrow->Name())
+               if (arrow.Name() == qarrow[0].Name())
                   ret.push_back(arrow);
             }
          }
       }
    }
-   else if  (qarrow->Source() != sAny && qarrow->Target() == sAny)
+   else if  (qarrow[0].Source() != sAny && qarrow[0].Target() == sAny)
    {
-      if (qarrow->Name() == sAny)
+      if (qarrow[0].Name() == sAny)
       {
          if (matchCount_)
          {
             for (const auto& arrow : arrows_)
             {
-               if (arrow.Source() == qarrow->Source())
+               if (arrow.Source() == qarrow[0].Source())
                {
                   ret.push_back(arrow);
 
@@ -472,7 +430,7 @@ Arrow::List query_arrows(Arrow::EType type_, const std::string& query_, const Ar
          {
             for (const auto& arrow : arrows_)
             {
-               if (arrow.Source() == qarrow->Source())
+               if (arrow.Source() == qarrow[0].Source())
                   ret.push_back(arrow);
             }
          }
@@ -483,7 +441,7 @@ Arrow::List query_arrows(Arrow::EType type_, const std::string& query_, const Ar
          {
             for (const auto& arrow : arrows_)
             {
-               if (arrow.Source() == qarrow->Source() && arrow.Name() == qarrow->Name())
+               if (arrow.Source() == qarrow[0].Source() && arrow.Name() == qarrow[0].Name())
                {
                   ret.push_back(arrow);
 
@@ -496,21 +454,21 @@ Arrow::List query_arrows(Arrow::EType type_, const std::string& query_, const Ar
          {
             for (const auto& arrow : arrows_)
             {
-               if (arrow.Source() == qarrow->Source() && arrow.Name() == qarrow->Name())
+               if (arrow.Source() == qarrow[0].Source() && arrow.Name() == qarrow[0].Name())
                   ret.push_back(arrow);
             }
          }
       }
    }
-   else if  (qarrow->Source() == sAny && qarrow->Target() != sAny)
+   else if  (qarrow[0].Source() == sAny && qarrow[0].Target() != sAny)
    {
-      if (qarrow->Name() == sAny)
+      if (qarrow[0].Name() == sAny)
       {
          if (matchCount_)
          {
             for (const auto& arrow : arrows_)
             {
-               if (arrow.Target() == qarrow->Target())
+               if (arrow.Target() == qarrow[0].Target())
                {
                   ret.push_back(arrow);
 
@@ -523,7 +481,7 @@ Arrow::List query_arrows(Arrow::EType type_, const std::string& query_, const Ar
          {
             for (const auto& arrow : arrows_)
             {
-               if (arrow.Target() == qarrow->Target())
+               if (arrow.Target() == qarrow[0].Target())
                   ret.push_back(arrow);
             }
          }
@@ -534,7 +492,7 @@ Arrow::List query_arrows(Arrow::EType type_, const std::string& query_, const Ar
          {
             for (const auto& arrow : arrows_)
             {
-               if (arrow.Target() == qarrow->Target() && arrow.Name() == qarrow->Name())
+               if (arrow.Target() == qarrow[0].Target() && arrow.Name() == qarrow[0].Name())
                {
                   ret.push_back(arrow);
 
@@ -547,21 +505,21 @@ Arrow::List query_arrows(Arrow::EType type_, const std::string& query_, const Ar
          {
             for (const auto& arrow : arrows_)
             {
-               if (arrow.Target() == qarrow->Target() && arrow.Name() == qarrow->Name())
+               if (arrow.Target() == qarrow[0].Target() && arrow.Name() == qarrow[0].Name())
                   ret.push_back(arrow);
             }
          }
       }
    }
-   else if  (qarrow->Source() != sAny && qarrow->Target() != sAny)
+   else if  (qarrow[0].Source() != sAny && qarrow[0].Target() != sAny)
    {
-      if (qarrow->Name() == sAny)
+      if (qarrow[0].Name() == sAny)
       {
          if (matchCount_)
          {
             for (const auto& arrow : arrows_)
             {
-               if (arrow.Source() == qarrow->Source() && arrow.Target() == qarrow->Target())
+               if (arrow.Source() == qarrow[0].Source() && arrow.Target() == qarrow[0].Target())
                {
                   ret.push_back(arrow);
 
@@ -574,7 +532,7 @@ Arrow::List query_arrows(Arrow::EType type_, const std::string& query_, const Ar
          {
             for (const auto& arrow : arrows_)
             {
-               if (arrow.Source() == qarrow->Source() && arrow.Target() == qarrow->Target())
+               if (arrow.Source() == qarrow[0].Source() && arrow.Target() == qarrow[0].Target())
                   ret.push_back(arrow);
             }
          }
@@ -585,7 +543,7 @@ Arrow::List query_arrows(Arrow::EType type_, const std::string& query_, const Ar
          {
             for (const auto& arrow : arrows_)
             {
-               if (arrow.Source() == qarrow->Source() && arrow.Target() == qarrow->Target() && arrow.Name() == qarrow->Name())
+               if (arrow.Source() == qarrow[0].Source() && arrow.Target() == qarrow[0].Target() && arrow.Name() == qarrow[0].Name())
                {
                   ret.push_back(arrow);
 
@@ -598,7 +556,7 @@ Arrow::List query_arrows(Arrow::EType type_, const std::string& query_, const Ar
          {
             for (const auto& arrow : arrows_)
             {
-               if (arrow.Source() == qarrow->Source() && arrow.Target() == qarrow->Target() && arrow.Name() == qarrow->Name())
+               if (arrow.Source() == qarrow[0].Source() && arrow.Target() == qarrow[0].Target() && arrow.Name() == qarrow[0].Name())
                   ret.push_back(arrow);
             }
          }
@@ -707,7 +665,9 @@ bool Node::AddArrow(const Arrow& arrow_)
       return false;
    }
 
-   if (!QueryArrows(arrow_.Source() + sMArrowNameBegin + arrow_.Name() + sMArrowNameEnd + arrow_.Target()).empty())
+   auto arrow_str_type = InternalArrow() == Arrow::EType::eMorphism ? sMorphism : sFunctor;
+
+   if (!QueryArrows(arrow_.Name() + " :: " + arrow_.Source() + arrow_str_type + arrow_.Target()).empty())
    {
       print_error("Arrow redefinition: " + arrow_.Name());
       return false;
@@ -977,7 +937,7 @@ bool Node::Verify(const Arrow& arrow_) const
    using TSource2Arrow = std::set<std::pair<Node::NName, Arrow::AName>>;
    TSource2Arrow visited;
 
-   for (const Arrow& arrow : arrow_.QueryArrows("*->*"))
+   for (const Arrow& arrow : arrow_.QueryArrows("* :: * -> *"))
    {
       auto head = TSource2Arrow::value_type(arrow.Source(), arrow.Name());
 
@@ -1009,7 +969,7 @@ bool Node::Verify(const Arrow& arrow_) const
       }
    }
 
-   for (const Arrow& arrow : source_cat.QueryArrows("* -> *"))
+   for (const Arrow& arrow : source_cat.QueryArrows("* :: * -> *"))
    {
       auto objs = arrow_.SingleMap(Node(arrow.Source(), source_cat.InternalNode()));
       auto objt = arrow_.SingleMap(Node(arrow.Target(), source_cat.InternalNode()));
@@ -1051,7 +1011,7 @@ bool Node::Verify(const Arrow& arrow_) const
       }
 
       // Checking mapping of arrows
-      if (target_cat.QueryArrows(objs->Name() + sMorphism + objt->Name()).empty())
+      if (target_cat.QueryArrows("* :: " + objs->Name() + sMorphism + objt->Name()).empty())
       {
          print_error("Failure to match arrow: " + objs->Name() + sMorphism + objt->Name());
          return false;
@@ -1095,12 +1055,12 @@ bool Node::Statement(const Arrow& arrow_)
    }
 
    // Mapping arrows
-   for (const Arrow& arrow : source.front().QueryArrows("* -> *"))
+   for (const Arrow& arrow : source.front().QueryArrows("* :: * -> *"))
    {
       auto nodes = arrow_.SingleMap(Node(arrow.Source(), source.front().InternalNode()));
       auto nodet = arrow_.SingleMap(Node(arrow.Target(), source.front().InternalNode()));
 
-      if (target.QueryArrows(nodes->Name() + sMorphism + nodet->Name()).empty())
+      if (target.QueryArrows("* :: " + nodes->Name() + sMorphism + nodet->Name()).empty())
          target.AddArrow(Arrow(Arrow::EType::eMorphism, nodes->Name(), nodet->Name()));
    }
 
@@ -1124,7 +1084,7 @@ bool Node::Statement(const Arrow& arrow_)
       m_nodes[target] = back_up;
    }
 
-   if (!QueryArrows(arrow_.Source() + sMArrowNameBegin + arrow_.Name() + sMArrowNameEnd + arrow_.Target()).empty())
+   if (!QueryArrows(arrow_.Name() + " :: " + arrow_.Source() + sMorphism + arrow_.Target()).empty())
    {
       print_error("Arrow already defined: " + arrow_.Name());
       return false;
@@ -1455,7 +1415,7 @@ bool Node::parse_source(const std::string& path_)
       if (crt_cat_)
       {
          Arrow::Vec backup;
-         for (const auto& arrow : QueryArrows("* -> *"))
+         for (const auto& arrow : QueryArrows("* :: * -> *"))
          {
             if (arrow.Source() == arrow.Target())
                continue;
@@ -1470,7 +1430,7 @@ bool Node::parse_source(const std::string& path_)
 
          for (const auto& arrow : backup)
          {
-            if (QueryArrows(arrow.Source() + sMArrowNameBegin + arrow.Name() + sMArrowNameEnd + arrow.Target()).empty())
+            if (QueryArrows(arrow.Name() + " :: " + arrow.Source() + sMorphism + arrow.Target()).empty())
                AddArrow(arrow);
          }
       }
@@ -1512,7 +1472,7 @@ bool Node::parse_source(const std::string& path_)
 
       const auto& nodes = crt_cat_->QueryNodes("*");
 
-      std::vector<Arrow> morphs = get_arrows(line_, Arrow::EType::eMorphism, nodes, nodes, expr_type_);
+      std::vector<Arrow> morphs = get_arrows(line_, Arrow::EType::eMorphism, nodes, nodes, expr_type_, true);
       if (morphs.empty())
       {
          print_error("Incorrect morphism definition " + line_ + " in category " + crt_cat_->Name());
@@ -1541,7 +1501,7 @@ bool Node::parse_source(const std::string& path_)
    {
       auto nodes = QueryNodes("*");
 
-      std::vector<Arrow> funcs = get_arrows(line_, Arrow::EType::eFunctor, nodes, nodes, expr_type_);
+      std::vector<Arrow> funcs = get_arrows(line_, Arrow::EType::eFunctor, nodes, nodes, expr_type_, true);
       if (funcs.size() != 1)
       {
          print_error("Incorrect functor definition: " + line_);
@@ -1598,7 +1558,7 @@ bool Node::parse_source(const std::string& path_)
       auto itSourceCat = QueryNodes(crt_func_->Source()).front();
       auto itTargetCat = QueryNodes(crt_func_->Target()).front();
 
-      std::vector<Arrow> morphs = get_arrows(line_, Arrow::EType::eMorphism, itSourceCat.QueryNodes("*"), itTargetCat.QueryNodes("*"), expr_type_);
+      std::vector<Arrow> morphs = get_arrows(line_, Arrow::EType::eMorphism, itSourceCat.QueryNodes("*"), itTargetCat.QueryNodes("*"), expr_type_, true);
       if (morphs.empty())
       {
          print_error("Incorrect morphism definition " + line_ + " in functor " + crt_func_->Name());
