@@ -27,6 +27,17 @@ static const char* const sProof     = "proof";
 static const char sAND = '&';
 static const char sOR  = '|';
 
+// Arrow name guards
+static const char* const sMArrowNameBegin = "-[";
+static const char* const sMArrowNameEnd   = "]->";
+
+static const char* const sFArrowNameBegin = "=[";
+static const char* const sFArrowNameEnd   = "]=>";
+
+// Arrow type
+static const char* sFunctor  = "=>";
+static const char* sMorphism = "->";
+
 // File extension
 static const char* const sExt = ".cat";
 
@@ -60,17 +71,17 @@ static std::string trim_sp(const std::string& string_)
 //-----------------------------------------------------------------------------------------
 static bool is_morphism(const std::string& string_)
 {
-   return (string_.find("::") != -1) && (string_.find("->") != -1);
+   return (string_.find("::") != -1) && (string_.find(sMorphism) != -1);
 }
 
 //-----------------------------------------------------------------------------------------
 static bool is_functor(const std::string& string_)
 {
-   return (string_.find("::") != -1) && (string_.find("=>") != -1);
+   return (string_.find("::") != -1) && (string_.find(sFunctor) != -1);
 }
 
 //-----------------------------------------------------------------------------------------
-static std::vector<Arrow> get_chains(const std::string& name_, Arrow::EType arrow_type_,  const Node& source_, const Node& target_, const Node::List& domain_, const Node::List& codomain_, EExpType expr_type_)
+static std::vector<Arrow> resolve_arrows(const std::string& name_, Arrow::EType arrow_type_,  const Node& source_, const Node& target_, const Node::List& domain_, const Node::List& codomain_, EExpType expr_type_)
 {
    std::vector<Arrow> ret;
 
@@ -184,7 +195,7 @@ static std::vector<Arrow> get_chains(const std::string& name_, Arrow::EType arro
 }
 
 //-----------------------------------------------------------------------------------------
-static std::vector<Arrow> get_chain(const std::string& line_, Arrow::EType arrow_type_, const Node::List& domain_, const Node::List& codomain_, EExpType expr_type_)
+static std::vector<Arrow> get_arrows(const std::string& line_, Arrow::EType arrow_type_, const Node::List& domain_, const Node::List& codomain_, EExpType expr_type_)
 {
    StringVec subsections = split(line_, "::");
    if (subsections.size() != 2)
@@ -196,7 +207,7 @@ static std::vector<Arrow> get_chain(const std::string& line_, Arrow::EType arrow
    const std::string& head = subsections[0];
    const std::string& tail = subsections[1];
 
-   StringVec args = split(tail, arrow_type_ == Arrow::EType::eMorphism ? "->" : "=>", false);
+   StringVec args = split(tail, arrow_type_ == Arrow::EType::eMorphism ? sMorphism : sFunctor, false);
    if (args.size() < 2)
       return std::vector<Arrow>();
 
@@ -206,10 +217,12 @@ static std::vector<Arrow> get_chain(const std::string& line_, Arrow::EType arrow
    std::vector<Arrow> ret; ret.reserve(args.size() - 1);
    for (int i = 0; i < (int)args.size() - 1; ++i)
    {
-      Node source(args[i + 0], arrow_type_ == Arrow::EType::eMorphism ? Node::EType::eObject : Node::EType::eSCategory);
-      Node target(args[i + 1], arrow_type_ == Arrow::EType::eMorphism ? Node::EType::eObject : Node::EType::eSCategory);
+      auto node_type = arrow_type_ == Arrow::EType::eMorphism ? Node::EType::eObject : Node::EType::eSCategory;
 
-      for (const auto& it : get_chains(head, arrow_type_, source, target, domain_, codomain_, expr_type_))
+      Node source(args[i + 0], node_type);
+      Node target(args[i + 1], node_type);
+
+      for (const auto& it : resolve_arrows(head, arrow_type_, source, target, domain_, codomain_, expr_type_))
          ret.push_back(it);
    }
 
@@ -282,7 +295,7 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
 
          for (const auto& arrow : backup)
          {
-            if (ccat_.QueryArrows(arrow.Source() + "-[" + arrow.Name() + "]->" + arrow.Target()).empty())
+            if (ccat_.QueryArrows(arrow.Source() + sMArrowNameBegin + arrow.Name() + sMArrowNameEnd + arrow.Target()).empty())
                ccat_.AddArrow(arrow);
          }
       }
@@ -324,7 +337,7 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
 
       const auto& nodes = crt_cat_->QueryNodes("*");
 
-      std::vector<Arrow> morphs = get_chain(line_, Arrow::EType::eMorphism, nodes, nodes, expr_type_);
+      std::vector<Arrow> morphs = get_arrows(line_, Arrow::EType::eMorphism, nodes, nodes, expr_type_);
       if (morphs.empty())
       {
          print_error("Incorrect morphism definition " + line_ + " in category " + crt_cat_->Name());
@@ -353,7 +366,7 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
    {
       auto nodes = ccat_.QueryNodes("*");
 
-      std::vector<Arrow> funcs = get_chain(line_, Arrow::EType::eFunctor, nodes, nodes, expr_type_);
+      std::vector<Arrow> funcs = get_arrows(line_, Arrow::EType::eFunctor, nodes, nodes, expr_type_);
       if (funcs.size() != 1)
       {
          print_error("Incorrect functor definition: " + line_);
@@ -410,7 +423,7 @@ bool SParser::parse_source(const std::string& source_, Node& node_)
       auto itSourceCat = ccat_.QueryNodes(crt_func_->Source()).front();
       auto itTargetCat = ccat_.QueryNodes(crt_func_->Target()).front();
 
-      std::vector<Arrow> morphs = get_chain(line_, Arrow::EType::eMorphism, itSourceCat.QueryNodes("*"), itTargetCat.QueryNodes("*"), expr_type_);
+      std::vector<Arrow> morphs = get_arrows(line_, Arrow::EType::eMorphism, itSourceCat.QueryNodes("*"), itTargetCat.QueryNodes("*"), expr_type_);
       if (morphs.empty())
       {
          print_error("Incorrect morphism definition " + line_ + " in functor " + crt_func_->Name());

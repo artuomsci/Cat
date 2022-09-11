@@ -18,6 +18,10 @@ static const char* const sMArrowNameEnd   = "]->";
 static const char* const sFArrowNameBegin = "=[";
 static const char* const sFArrowNameEnd   = "]=>";
 
+// Arrow type
+static const char* sFunctor  = "=>";
+static const char* sMorphism = "->";
+
 // Logic statements
 static const char sAND = '&';
 static const char sOR  = '|';
@@ -96,7 +100,7 @@ std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
       auto target = SingleMap(Node(arrow.m_target, Node::EType::eObject));
 
       Arrow mapped_arrow(EType::eMorphism, source->Name(), target->Name());
-      if (ret.QueryArrows(mapped_arrow.Source() + "-[" + mapped_arrow.Name() + "]->" + mapped_arrow.Target()).empty())
+      if (ret.QueryArrows(mapped_arrow.Source() + sMArrowNameBegin + mapped_arrow.Name() + sMArrowNameEnd + mapped_arrow.Target()).empty())
          ret.AddArrow(mapped_arrow);
    }
 
@@ -187,7 +191,7 @@ static std::optional<Arrow> extract_arrow_from_query(Arrow::EType type_, const s
    }
    else
    {
-      auto parts = split(query, "->", false);
+      auto parts = split(query, sMorphism, false);
       for (auto& it : parts)
          it = trim_sp(it);
 
@@ -488,7 +492,7 @@ bool Node::AddArrow(const Arrow& arrow_)
       return false;
    }
 
-   if (!QueryArrows(arrow_.Source() + "-[" + arrow_.Name() + "]->" + arrow_.Target()).empty())
+   if (!QueryArrows(arrow_.Source() + sMArrowNameBegin + arrow_.Name() + sMArrowNameEnd + arrow_.Target()).empty())
    {
       print_error("Arrow redefinition: " + arrow_.Name());
       return false;
@@ -775,7 +779,7 @@ bool Node::Verify(const Arrow& arrow_) const
 
       if (source_cat.QueryNodes(arrow.Source()).empty())
       {
-         print_error("Missing node for " + arrow.Source() + "->" + arrow.Target());
+         print_error("Missing node for " + arrow.Source() + sMorphism + arrow.Target());
          return false;
       }
    }
@@ -832,9 +836,9 @@ bool Node::Verify(const Arrow& arrow_) const
       }
 
       // Checking mapping of arrows
-      if (target_cat.QueryArrows(objs->Name() + "->" + objt->Name()).empty())
+      if (target_cat.QueryArrows(objs->Name() + sMorphism + objt->Name()).empty())
       {
-         print_error("Failure to match arrow: " + objs->Name() + "->" + objt->Name());
+         print_error("Failure to match arrow: " + objs->Name() + sMorphism + objt->Name());
          return false;
       }
    }
@@ -881,7 +885,7 @@ bool Node::Statement(const Arrow& arrow_)
       auto nodes = arrow_.SingleMap(Node(arrow.Source(), source.front().InternalNode()));
       auto nodet = arrow_.SingleMap(Node(arrow.Target(), source.front().InternalNode()));
 
-      if (target.QueryArrows(nodes->Name() + "->" + nodet->Name()).empty())
+      if (target.QueryArrows(nodes->Name() + sMorphism + nodet->Name()).empty())
          target.AddArrow(Arrow(Arrow::EType::eMorphism, nodes->Name(), nodet->Name()));
    }
 
@@ -905,7 +909,7 @@ bool Node::Statement(const Arrow& arrow_)
       m_nodes[target] = back_up;
    }
 
-   if (!QueryArrows(arrow_.Source() + "-[" + arrow_.Name() + "]->" + arrow_.Target()).empty())
+   if (!QueryArrows(arrow_.Source() + sMArrowNameBegin + arrow_.Name() + sMArrowNameEnd + arrow_.Target()).empty())
    {
       print_error("Arrow already defined: " + arrow_.Name());
       return false;
