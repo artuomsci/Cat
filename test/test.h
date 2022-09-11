@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <algorithm>
 
-#include "../include/common.h"
+#include "../include/node.h"
 #include "../include/log.h"
 
 namespace cat

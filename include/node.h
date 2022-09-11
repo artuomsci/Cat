@@ -6,6 +6,7 @@
 #include <optional>
 #include <string>
 #include <list>
+#include <filesystem>
 
 #include "cat_export.h"
 
@@ -188,6 +189,12 @@ namespace cat
       explicit Node(const NName& name_, EType type_);
 
       /**
+      * @brief Parse file
+      * @return True if file was successfully parsed
+      */
+      bool Parse(const std::string& path_);
+
+      /**
        * @brief Add arrow
        * @param arrow_ - arrow
        * @return True if successful
@@ -363,6 +370,13 @@ namespace cat
       private:
 
       bool validate_node_data() const;
+
+      /**
+       * @brief Parse the file contents
+       * @param path_ - file path
+       * @return True if file was successfully parsed
+       */
+      bool parse_source(const std::string& path_);
 
       Map            m_nodes;
       Arrow::List    m_arrows;
