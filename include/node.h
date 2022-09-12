@@ -99,7 +99,7 @@ namespace cat
       void EraseArrows();
 
       /**
-       * @brief Querys for arrows
+       * @brief Queries for arrows
        * Syntax: source name -> target name
        * Syntax for named arrows: source name -[ arrow name ]-> target name
        * Use "*" as a replacement for any name
@@ -195,34 +195,34 @@ namespace cat
       explicit Node(const NName& name_, EType type_);
 
       /**
-      * @brief Parse file
+      * @brief Parses file
       * @return True if file was successfully parsed
       */
       bool Parse(const std::string& path_);
 
       /**
-       * @brief Add arrow
+       * @brief Adds arrow
        * @param arrow_ - arrow
        * @return True if successful
        */
       bool AddArrow(const Arrow& arrow_);
 
       /**
-       * @brief Add arrows
+       * @brief Adds arrows
        * @param arrows_ - arrows
        * @return True if successful
        */
       bool AddArrows(const Arrow::Vec& arrows_);
 
       /**
-       * @brief Erase arrow
+       * @brief Erases arrow
        * @param arrow_ - arrow name
        * @return True if successfull
        */
       bool EraseArrow(const Arrow::AName& name_);
 
       /**
-       * @brief Erase all arrows
+       * @brief Erases all arrows
        */
       void EraseArrows();
 
@@ -233,28 +233,28 @@ namespace cat
       bool IsArrowsEmpty() const;
 
       /**
-      * @brief Add node
+      * @brief Adds node
       * @param node_ - node
       * @return True if successful
       */
       bool AddNode(const Node& node_);
 
       /**
-       * @brief Add nodes
+       * @brief Adds nodes
        * @param nodes_ - nodes
        * @return True if successful
        */
       bool AddNodes(const Vec& nodes_);
 
       /**
-       * @brief Erase node
+       * @brief Erases node
        * @param node_ - node name
        * @return True if successfull
        */
       bool EraseNode(const NName& node_);
 
       /**
-       * @brief Erase all nodes
+       * @brief Erases all nodes
        */
       void EraseNodes();
 
@@ -265,19 +265,18 @@ namespace cat
       bool IsNodesEmpty() const;
 
       /**
-       * @brief Query for arrows
-       * @brief Syntax: source name -> target name
-       * @brief Syntax for named arrows: source name -[ arrow name ]-> target name
+       * @brief Queries for arrows
+       * @brief Syntax: "arrow name :: source name -> target name"
        * @brief Use "*" as a replacement for any name
-       * @brief Query examples: "x -> y", "* -> y", "x -> *", "* -> *"
-       * @brief Query examples: "x -[ * ]-> y", "* -[ operation ]-> *" ... etc
+       * @brief Query examples: "f0 :: x -> y", "* :: x -> y", "* :: * -> y", etc...
        * @param query_ - query
+       * @param matchCount_ - match count limit
        * @return Arrows
        */
       Arrow::List QueryArrows(const std::string& query_, std::optional<size_t> matchCount_ = std::optional<size_t>()) const;
 
       /**
-       * @brief Query for nodes
+       * @brief Queries for nodes
        * @brief Use "*" as a replacement for any name
        * @brief Use "|" as logical operator OR
        * @brief Query example: "x | y", "x"
@@ -287,6 +286,14 @@ namespace cat
       Node::List QueryNodes(const std::string& query_) const;
 
       /**
+       * @brief Queries for patterns
+       * @param query_ - query
+       * @param matchCount_ - match count limit
+       * @return Pattern
+       */
+      Node Query(const std::string& query_, std::optional<size_t> matchCount_ = std::optional<size_t>());
+
+      /**
        * @brief Verifying arrow
        * @param arrow_ - arrow
        * @return True if successful
@@ -294,7 +301,7 @@ namespace cat
       bool Verify(const Arrow& arrow_) const;
 
       /**
-       * @brief Return node name
+       * @brief Returns node name
        * @return Name
        */
       const NName& Name() const;
@@ -302,26 +309,26 @@ namespace cat
       bool Statement(const Arrow& arrow_);
 
       /**
-       * @brief Find all compositions
+       * @brief Creates compositions
        */
       void SolveCompositions();
 
       /**
-       * @brief Find initial nodes. All arrow compositions
+       * @brief Finds initial nodes. All arrow compositions
        * must be resolved before calling this method i.e. call "SolveCompositions" first
        * @return Initial nodes
        */
       Node::List Initial() const;
 
       /**
-       * @brief Find terminal nodes. All arrow compositions
+       * @brief Finds terminal nodes. All arrow compositions
        * must be resolved before calling this method i.e. call "SolveCompositions" first
        * @return Terminal nodes
        */
       Node::List Terminal() const;
 
       /**
-       * @brief Find any sequence of nodes between two given nodes
+       * @brief Finds any sequence of nodes between two given nodes
        * @param from_ - source node of the sequence
        * @param to_ - target node of the sequence
        * @return Sequence of nodes
@@ -329,7 +336,7 @@ namespace cat
       Node::List SolveSequence(const Node& from_, const Node& to_) const;
 
       /**
-       * @brief Find all sequences of nodes between two given nodes
+       * @brief Finds all sequences of nodes between two given nodes
        * @param from_ - source node of the sequences
        * @param to_ - target node of the sequences
        * @return Sequences of nodes
@@ -337,14 +344,14 @@ namespace cat
       std::list<Node::List> SolveSequences(const Node& from_, const Node& to_) const;
 
       /**
-       * @brief Map sequence of nodes onto sequence of arrows
+       * @brief Maps sequence of nodes onto sequence of arrows
        * @param nodes_ - sequence of nodes
        * @return Sequence of arrows
        */
       Arrow::List MapNodes2Arrows(const Node::List& nodes_) const;
 
       /**
-       * @brief Inverse arrows
+       * @brief Inverses arrows
        */
       void Inverse();
 
@@ -361,7 +368,7 @@ namespace cat
       Node::EType InternalNode() const;
 
       /**
-       * @brief Return type of internal arrows
+       * @brief Returns type of internal arrows
        * @return Arrow type
        */
       Arrow::EType InternalArrow() const;

@@ -486,6 +486,32 @@ namespace cat
       }
 
       //============================================================
+      // Testing of arrow query (patterns)
+      //============================================================
+      {
+         Node S("S", Node::EType::eSCategory);
+         Node a("a", Node::EType::eObject), b("b", Node::EType::eObject);
+         Node c("c", Node::EType::eObject), d("d", Node::EType::eObject);
+
+         S.AddNodes({a, b, c, d});
+         S.AddArrow(Arrow(Arrow::EType::eMorphism, a.Name(), b.Name()));
+         S.AddArrow(Arrow(Arrow::EType::eMorphism, a.Name(), c.Name()));
+         S.AddArrow(Arrow(Arrow::EType::eMorphism, c.Name(), d.Name()));
+
+         Node ret = S.Query("* :: * -> *");
+         assert(ret.QueryNodes("*").size() == 4);
+
+         ret = S.Query("* :: a -> *");
+         assert(ret.QueryNodes("*").size() == 3);
+         assert(ret.QueryArrows("* :: a -> b").size() == 1);
+         assert(ret.QueryArrows("* :: a -> c").size() == 1);
+
+         ret = S.Query("* :: c -> d");
+         assert(ret.QueryNodes("*").size() == 2);
+         assert(ret.QueryArrows("* :: c -> d").size() == 1);
+      }
+
+      //============================================================
       // Testing of arrow inversion
       //============================================================
       {
@@ -502,54 +528,6 @@ namespace cat
          assert(arrow.QueryArrows("ef_arrow :: f -> e").size() == 1);
       }
 
-      //============================================================
-      // Coproduct test
-      //============================================================
-      {
-         //Obj a("a");
-         //a.SetValue("a");
-         //Obj b("b");
-         //b.SetValue("b");
-         //assert(coproduct(a, b)->Value() == Obj::TSet("ab"));
-
-         //Obj f("f");
-         //f.SetValue(4);
-         //Obj s("s");
-         //s.SetValue(5);
-         //assert(coproduct(f, s)->Value() == Obj::TSet(9));
-
-         //Obj fd("0.1");
-         //fd.SetValue(0.1);
-         //Obj sd("0.5");
-         //sd.SetValue(0.5);
-         //double result = std::get<double>(coproduct(fd, sd)->Value());
-         //assert(std::abs(result - 0.6) < std::numeric_limits<double>::epsilon());
-      }
-
-//      //============================================================
-//      // Product test
-//      //============================================================
-//      {
-//         Obj a("ac");
-//         a.SetValue("ac");
-//         Obj b("bd");
-//         b.SetValue("bd");
-//         assert(product(a, b)->Value() == Obj::TSet("abadcbcd"));
-//
-//         Obj f("4");
-//         f.SetValue(4);
-//         Obj s("5");
-//         s.SetValue(5);
-//         assert(product(f, s)->Value() == Obj::TSet(20));
-//
-//         Obj fd("1.1");
-//         fd.SetValue(1.1);
-//         Obj sd("5");
-//         sd.SetValue(5.0);
-//         double result = std::get<double>(product(fd, sd)->Value());
-//         assert(std::abs(result - 5.5) < std::numeric_limits<double>::epsilon());
-//      }
-//
       //============================================================
       // Testing functor
       //============================================================
