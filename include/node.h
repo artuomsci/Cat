@@ -259,13 +259,6 @@ namespace cat
       void EraseNodes();
 
       /**
-      * @brief Find nodes as sources to the identified targets
-      * @param targets_ - target node names
-      * @return Nodes
-      */
-      List FindByTargets(const std::list<NName>& targets_) const;
-
-      /**
        * @brief Checks whether the node contains any nodes
        * @return True if there are no nodes
        */

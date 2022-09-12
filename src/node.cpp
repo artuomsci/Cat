@@ -849,32 +849,6 @@ void Node::EraseNodes()
 }
 
 //-----------------------------------------------------------------------------------------
-Node::List Node::FindByTargets(const std::list<Node::NName>& targets_) const
-{
-   Node::List ret;
-
-   for (const auto& [domain, codomain] : m_nodes)
-   {
-      auto it_last = std::prev(targets_.end());
-
-      for (auto it = targets_.begin(); it != targets_.end(); ++it)
-      {
-         // skipping identities
-         if (domain.Name() == *it)
-            continue;
-
-         if (codomain.find(Node(*it, InternalNode())) == codomain.end())
-            break;
-
-         if (it == it_last)
-            ret.push_back(domain);
-      }
-   }
-
-   return ret;
-}
-
-//-----------------------------------------------------------------------------------------
 bool Node::IsNodesEmpty() const
 {
    return m_nodes.empty();
