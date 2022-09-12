@@ -49,7 +49,7 @@ namespace cat
       using AName = std::string;
 
       /**
-       * @brief Return default arrow name
+       * @brief Returns default arrow name
        * @param source_ - source name
        * @param target_ - target name
        * @return Arrow name
@@ -57,7 +57,7 @@ namespace cat
       static std::string DefaultArrowName(const std::string& source_, const std::string& target_);
 
       /**
-       * @brief Return identity arrow name
+       * @brief Returns identity arrow name
        * @param name_ - source/target name
        * @return Arrow name
        */
@@ -82,24 +82,24 @@ namespace cat
       const AName& Name() const;
 
       /**
-       * @brief Add arrow
+       * @brief Adds arrow
        * @param arrow_ - arrow
        */
       void AddArrow(const Arrow& arrow_);
 
       /**
-       * @brief Erase arrow
+       * @brief Erases arrow
        * @param arrow_ - arrow name
        */
       void EraseArrow(const Arrow::AName& arrow_);
 
       /**
-       * @brief Erase all arrows
+       * @brief Erases all arrows
        */
       void EraseArrows();
 
       /**
-       * @brief Query for arrows
+       * @brief Querys for arrows
        * Syntax: source name -> target name
        * Syntax for named arrows: source name -[ arrow name ]-> target name
        * Use "*" as a replacement for any name
@@ -117,21 +117,21 @@ namespace cat
       bool IsEmpty() const;
 
       /**
-      * @brief Map node with arrow
+      * @brief Maps node with arrow
       * @param node_ - node for mapping
       * @return Mapped node
       */
       std::optional<Node> SingleMap(const std::optional<Node>& node_) const;
 
       /**
-      * @brief Map node with arrow
+      * @brief Maps node with arrow
       * @param name_ - node name for mapping
       * @return Mapped node
       */
       std::optional<Node> SingleMap(const std::string& name_) const;
 
       /**
-       * @brief Inverse arrow
+       * @brief Inverses arrow
        */
       void Inverse();
 
@@ -140,6 +140,12 @@ namespace cat
        * @return Arrow type
        */
       Arrow::EType Type() const;
+
+      /**
+       * @brief Returns arrow as query
+       * @return Query representation
+       */
+      std::string AsQuery() const;
 
    private:
 

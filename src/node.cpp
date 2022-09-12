@@ -307,7 +307,7 @@ std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
       auto target = SingleMap(Node(arrow.m_target, Node::EType::eObject));
 
       Arrow mapped_arrow(EType::eMorphism, source->Name(), target->Name());
-      if (ret.QueryArrows(mapped_arrow.Name() + " :: " + mapped_arrow.Source() + sMorphism + mapped_arrow.Target()).empty())
+      if (ret.QueryArrows(mapped_arrow.AsQuery()).empty())
          ret.AddArrow(mapped_arrow);
    }
 
@@ -627,6 +627,13 @@ Arrow::EType Arrow::Type() const
 }
 
 //-----------------------------------------------------------------------------------------
+std::string Arrow::AsQuery() const
+{
+   auto arrow = m_type == Arrow::EType::eMorphism ? sMorphism : sFunctor;
+   return m_name + "::" + m_source + arrow + m_target;
+}
+
+//-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
 bool Node::operator<(const Node& cat_) const
 {
@@ -665,9 +672,7 @@ bool Node::AddArrow(const Arrow& arrow_)
       return false;
    }
 
-   auto arrow_str_type = InternalArrow() == Arrow::EType::eMorphism ? sMorphism : sFunctor;
-
-   if (!QueryArrows(arrow_.Name() + " :: " + arrow_.Source() + arrow_str_type + arrow_.Target()).empty())
+   if (!QueryArrows(arrow_.AsQuery()).empty())
    {
       print_error("Arrow redefinition: " + arrow_.Name());
       return false;
@@ -1084,7 +1089,7 @@ bool Node::Statement(const Arrow& arrow_)
       m_nodes[target] = back_up;
    }
 
-   if (!QueryArrows(arrow_.Name() + " :: " + arrow_.Source() + sMorphism + arrow_.Target()).empty())
+   if (!QueryArrows(arrow_.AsQuery()).empty())
    {
       print_error("Arrow already defined: " + arrow_.Name());
       return false;
@@ -1430,7 +1435,7 @@ bool Node::parse_source(const std::string& path_)
 
          for (const auto& arrow : backup)
          {
-            if (QueryArrows(arrow.Name() + " :: " + arrow.Source() + sMorphism + arrow.Target()).empty())
+            if (QueryArrows(arrow.AsQuery()).empty())
                AddArrow(arrow);
          }
       }
