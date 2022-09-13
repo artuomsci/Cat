@@ -379,123 +379,78 @@ Arrow::List query_arrows(Arrow::EType type_, const std::string& query_, const Ar
    if (qarrow.size() != 1)
       return Arrow::List();
 
+   const auto& source = qarrow[0].Source();
+   const auto& target = qarrow[0].Target();
+   const auto& name   = qarrow[0].Name  ();
+
    Arrow::List ret;
 
-   if       (qarrow[0].Source() == sAny && qarrow[0].Target() == sAny)
+   bool name_check = name != sAny;
+
+   if       (source == sAny && target == sAny)
    {
-      if (qarrow[0].Name() == sAny)
-      {
-         if (matchCount_)
-         {
-            for (const auto& arrow : arrows_)
-            {
-               ret.push_back(arrow);
+      if (!name_check && !matchCount_)
+         return arrows_;
 
-               if (ret.size() == matchCount_)
-                  break;
-            }
-         }
-         else
-            return arrows_;
-      }
-      else
+      for (const auto& arrow : arrows_)
       {
-         for (const auto& arrow : arrows_)
-         {
-            if (arrow.Name() == qarrow[0].Name())
-            {
-               ret.push_back(arrow);
+         if (name_check && arrow.Name() != name)
+            continue;
 
-               if (matchCount_ && ret.size() == matchCount_)
-                  break;
-            }
+         if (arrow.Name() == name)
+         {
+            ret.push_back(arrow);
+
+            if (matchCount_ && ret.size() == matchCount_)
+               break;
          }
       }
    }
-   else if  (qarrow[0].Source() != sAny && qarrow[0].Target() == sAny)
+   else if  (source != sAny && target == sAny)
    {
-      if (qarrow[0].Name() == sAny)
+      for (const auto& arrow : arrows_)
       {
-         for (const auto& arrow : arrows_)
-         {
-            if (arrow.Source() == qarrow[0].Source())
-            {
-               ret.push_back(arrow);
+         if (name_check && arrow.Name() != name)
+            continue;
 
-               if (matchCount_ && ret.size() == matchCount_)
-                  break;
-            }
-         }
-      }
-      else
-      {
-         for (const auto& arrow : arrows_)
+         if (arrow.Source() == source)
          {
-            if (arrow.Source() == qarrow[0].Source() && arrow.Name() == qarrow[0].Name())
-            {
-               ret.push_back(arrow);
+            ret.push_back(arrow);
 
-               if (matchCount_ && ret.size() == matchCount_)
-                  break;
-            }
+            if (matchCount_ && ret.size() == matchCount_)
+               break;
          }
       }
    }
-   else if  (qarrow[0].Source() == sAny && qarrow[0].Target() != sAny)
+   else if  (source == sAny && target != sAny)
    {
-      if (qarrow[0].Name() == sAny)
+      for (const auto& arrow : arrows_)
       {
-         for (const auto& arrow : arrows_)
-         {
-            if (arrow.Target() == qarrow[0].Target())
-            {
-               ret.push_back(arrow);
+         if (name_check && arrow.Name() != name)
+            continue;
 
-               if (matchCount_ && ret.size() == matchCount_)
-                  break;
-            }
-         }
-      }
-      else
-      {
-         for (const auto& arrow : arrows_)
+         if (arrow.Target() == target)
          {
-            if (arrow.Target() == qarrow[0].Target() && arrow.Name() == qarrow[0].Name())
-            {
-               ret.push_back(arrow);
+            ret.push_back(arrow);
 
-               if (matchCount_ && ret.size() == matchCount_)
-                  break;
-            }
+            if (matchCount_ && ret.size() == matchCount_)
+               break;
          }
       }
    }
-   else if  (qarrow[0].Source() != sAny && qarrow[0].Target() != sAny)
+   else if  (source != sAny && target != sAny)
    {
-      if (qarrow[0].Name() == sAny)
+      for (const auto& arrow : arrows_)
       {
-         for (const auto& arrow : arrows_)
-         {
-            if (arrow.Source() == qarrow[0].Source() && arrow.Target() == qarrow[0].Target())
-            {
-               ret.push_back(arrow);
+         if (name_check && arrow.Name() != name)
+            continue;
 
-               if (matchCount_ && ret.size() == matchCount_)
-                  break;
-            }
-         }
-      }
-      else
-      {
-         for (const auto& arrow : arrows_)
+         if (arrow.Source() == source && arrow.Target() == target)
          {
-            if (arrow.Source() == qarrow[0].Source() && arrow.Target() == qarrow[0].Target() && arrow.Name() == qarrow[0].Name())
-            {
-               ret.push_back(arrow);
+            ret.push_back(arrow);
 
-               if (matchCount_ && ret.size() == matchCount_)
-                  break;
-            }
+            if (matchCount_ && ret.size() == matchCount_)
+               break;
          }
       }
    }
@@ -842,217 +797,121 @@ Node Node::Query(const std::string& query_, std::optional<size_t> matchCount_)
    Node ret(m_name, m_type);
    size_t counter {};
 
-   if       (qarrow[0].Source() == sAny && qarrow[0].Target() == sAny)
+   const auto& source = qarrow[0].Source();
+   const auto& target = qarrow[0].Target();
+   const auto& name   = qarrow[0].Name  ();
+
+   bool name_check = name != sAny;
+
+   if       (source == sAny && target == sAny)
    {
-      if (qarrow[0].Name() == sAny)
+      if (!name_check && !matchCount_)
+         return *this;
+
+      for (const Arrow& arrow : m_arrows)
       {
-         if (matchCount_)
+         if (name_check && arrow.Name() != name)
+            continue;
+
+         if (ret.QueryNodes(arrow.Source()).empty())
          {
-            for (const Arrow& arrow : m_arrows)
-            {
-               if (ret.QueryNodes(arrow.Source()).empty())
-               {
-                  auto it = m_nodes.find(Node(arrow.Source(), InternalNode()));
-                  ret.AddNode(it->first);
-               }
-
-               if (ret.QueryNodes(arrow.Target()).empty())
-               {
-                  auto it = m_nodes.find(Node(arrow.Target(), InternalNode()));
-                  ret.AddNode(it->first);
-               }
-
-               ret.AddArrow(arrow);
-
-               if (matchCount_ && ++counter == matchCount_)
-                  break;
-            }
+            auto it = m_nodes.find(Node(arrow.Source(), InternalNode()));
+            ret.AddNode(it->first);
          }
-         else
-            return *this;
-      }
-      else
-      {
-         for (const Arrow& arrow : m_arrows)
+
+         if (ret.QueryNodes(arrow.Target()).empty())
          {
-            if (arrow.Name() == qarrow[0].Name())
+            auto it = m_nodes.find(Node(arrow.Target(), InternalNode()));
+            ret.AddNode(it->first);
+         }
+
+         ret.AddArrow(arrow);
+
+         if (matchCount_ && ++counter == matchCount_)
+            break;
+      }
+   }
+   else if  (source != sAny && target == sAny)
+   {
+      for (const Arrow& arrow : m_arrows)
+      {
+         if (name_check && arrow.Name() != name)
+            continue;
+
+         if (arrow.Source() == source)
+         {
+            if (ret.QueryNodes(arrow.Source()).empty())
             {
-               if (ret.QueryNodes(arrow.Source()).empty())
-               {
-                  auto it = m_nodes.find(Node(arrow.Source(), InternalNode()));
-                  ret.AddNode(it->first);
-               }
-
-               if (ret.QueryNodes(arrow.Target()).empty())
-               {
-                  auto it = m_nodes.find(Node(arrow.Target(), InternalNode()));
-                  ret.AddNode(it->first);
-               }
-
-               ret.AddArrow(arrow);
-
-               if (matchCount_ && ++counter == matchCount_)
-                  break;
+               auto it = m_nodes.find(Node(arrow.Source(), InternalNode()));
+               ret.AddNode(it->first);
             }
+
+            if (ret.QueryNodes(arrow.Target()).empty())
+            {
+               auto it = m_nodes.find(Node(arrow.Target(), InternalNode()));
+               ret.AddNode(it->first);
+            }
+
+            ret.AddArrow(arrow);
+
+            if (matchCount_ && ++counter == matchCount_)
+               break;
          }
       }
    }
-   else if  (qarrow[0].Source() != sAny && qarrow[0].Target() == sAny)
+   else if  (source == sAny && target != sAny)
    {
-      if (qarrow[0].Name() == sAny)
+      for (const auto& arrow : m_arrows)
       {
-         for (const Arrow& arrow : m_arrows)
+         if (name_check && arrow.Name() != name)
+            continue;
+
+         if (arrow.Target() == target)
          {
-            if (arrow.Source() == qarrow[0].Source())
+            if (ret.QueryNodes(arrow.Source()).empty())
             {
-               if (ret.QueryNodes(arrow.Source()).empty())
-               {
-                  auto it = m_nodes.find(Node(arrow.Source(), InternalNode()));
-                  ret.AddNode(it->first);
-               }
-
-               if (ret.QueryNodes(arrow.Target()).empty())
-               {
-                  auto it = m_nodes.find(Node(arrow.Target(), InternalNode()));
-                  ret.AddNode(it->first);
-               }
-
-               ret.AddArrow(arrow);
-
-               if (matchCount_ && ++counter == matchCount_)
-                  break;
+               auto it = m_nodes.find(Node(arrow.Source(), InternalNode()));
+               ret.AddNode(it->first);
             }
-         }
-      }
-      else
-      {
-         for (const auto& arrow : m_arrows)
-         {
-            if (arrow.Source() == qarrow[0].Source() && arrow.Name() == qarrow[0].Name())
+
+            if (ret.QueryNodes(arrow.Target()).empty())
             {
-               if (ret.QueryNodes(arrow.Source()).empty())
-               {
-                  auto it = m_nodes.find(Node(arrow.Source(), InternalNode()));
-                  ret.AddNode(it->first);
-               }
-
-               if (ret.QueryNodes(arrow.Target()).empty())
-               {
-                  auto it = m_nodes.find(Node(arrow.Target(), InternalNode()));
-                  ret.AddNode(it->first);
-               }
-
-               ret.AddArrow(arrow);
-
-               if (matchCount_ && ++counter == matchCount_)
-                  break;
+               auto it = m_nodes.find(Node(arrow.Target(), InternalNode()));
+               ret.AddNode(it->first);
             }
+
+            ret.AddArrow(arrow);
+
+            if (matchCount_ && ++counter == matchCount_)
+               break;
          }
       }
    }
-   else if  (qarrow[0].Source() == sAny && qarrow[0].Target() != sAny)
+   else if  (source != sAny && target != sAny)
    {
-      if (qarrow[0].Name() == sAny)
+      for (const auto& arrow : m_arrows)
       {
-         for (const auto& arrow : m_arrows)
+         if (name_check && arrow.Name() != name)
+            continue;
+
+         if (arrow.Source() == source && arrow.Target() == target)
          {
-            if (arrow.Target() == qarrow[0].Target())
+            if (ret.QueryNodes(arrow.Source()).empty())
             {
-               if (ret.QueryNodes(arrow.Source()).empty())
-               {
-                  auto it = m_nodes.find(Node(arrow.Source(), InternalNode()));
-                  ret.AddNode(it->first);
-               }
-
-               if (ret.QueryNodes(arrow.Target()).empty())
-               {
-                  auto it = m_nodes.find(Node(arrow.Target(), InternalNode()));
-                  ret.AddNode(it->first);
-               }
-
-               ret.AddArrow(arrow);
-
-               if (matchCount_ && ++counter == matchCount_)
-                  break;
+               auto it = m_nodes.find(Node(arrow.Source(), InternalNode()));
+               ret.AddNode(it->first);
             }
-         }
-      }
-      else
-      {
-         for (const auto& arrow : m_arrows)
-         {
-            if (arrow.Target() == qarrow[0].Target() && arrow.Name() == qarrow[0].Name())
+
+            if (ret.QueryNodes(arrow.Target()).empty())
             {
-               if (ret.QueryNodes(arrow.Source()).empty())
-               {
-                  auto it = m_nodes.find(Node(arrow.Source(), InternalNode()));
-                  ret.AddNode(it->first);
-               }
-
-               if (ret.QueryNodes(arrow.Target()).empty())
-               {
-                  auto it = m_nodes.find(Node(arrow.Target(), InternalNode()));
-                  ret.AddNode(it->first);
-               }
-
-               ret.AddArrow(arrow);
-
-               if (matchCount_ && ++counter == matchCount_)
-                  break;
+               auto it = m_nodes.find(Node(arrow.Target(), InternalNode()));
+               ret.AddNode(it->first);
             }
-         }
-      }
-   }
-   else if  (qarrow[0].Source() != sAny && qarrow[0].Target() != sAny)
-   {
-      if (qarrow[0].Name() == sAny)
-      {
-         for (const auto& arrow : m_arrows)
-         {
-            if (arrow.Source() == qarrow[0].Source() && arrow.Target() == qarrow[0].Target())
-            {
-               if (ret.QueryNodes(arrow.Source()).empty())
-               {
-                  auto it = m_nodes.find(Node(arrow.Source(), InternalNode()));
-                  ret.AddNode(it->first);
-               }
 
-               if (ret.QueryNodes(arrow.Target()).empty())
-               {
-                  auto it = m_nodes.find(Node(arrow.Target(), InternalNode()));
-                  ret.AddNode(it->first);
-               }
+            ret.AddArrow(arrow);
 
-               ret.AddArrow(arrow);
-
-               if (matchCount_ && ++counter == matchCount_)
-                  break;
-            }
-         }
-      }
-      else
-      {
-         for (const auto& arrow : m_arrows)
-         {
-            if (arrow.Source() == qarrow[0].Source() && arrow.Target() == qarrow[0].Target() && arrow.Name() == qarrow[0].Name())
-            {
-               if (ret.QueryNodes(arrow.Source()).empty())
-               {
-                  auto it = m_nodes.find(Node(arrow.Source(), InternalNode()));
-                  ret.AddNode(it->first);
-               }
-
-               if (ret.QueryNodes(arrow.Target()).empty())
-               {
-                  auto it = m_nodes.find(Node(arrow.Target(), InternalNode()));
-                  ret.AddNode(it->first);
-               }
-
-               ret.AddArrow(arrow);
-
-               if (matchCount_ && ++counter == matchCount_)
-                  break;
-            }
+            if (matchCount_ && ++counter == matchCount_)
+               break;
          }
       }
    }
