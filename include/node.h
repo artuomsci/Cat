@@ -331,9 +331,10 @@ namespace cat
        * @brief Finds any sequence of nodes between two given nodes
        * @param from_ - source node of the sequence
        * @param to_ - target node of the sequence
+       * @param length_ - match for length
        * @return Sequence of nodes
        */
-      std::list<Node::NName> SolveSequence(const Node::NName& from_, const Node::NName& to_) const;
+      std::list<Node::NName> SolveSequence(const Node::NName& from_, const Node::NName& to_, std::optional<size_t> length_ = std::optional<size_t>()) const;
 
       /**
        * @brief Finds all sequences of nodes between two given nodes

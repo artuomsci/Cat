@@ -1183,7 +1183,7 @@ Node::List Node::Terminal() const
 }
 
 //-----------------------------------------------------------------------------------------
-std::list<Node::NName> Node::SolveSequence(const Node::NName& from_, const Node::NName& to_) const
+std::list<Node::NName> Node::SolveSequence(const Node::NName& from_, const Node::NName& to_, std::optional<size_t> length_) const
 {
    std::list<Node::NName> ret;
 
@@ -1196,12 +1196,17 @@ std::list<Node::NName> Node::SolveSequence(const Node::NName& from_, const Node:
       // Checking for destination
       if (current_node.value() == to_)
       {
-         for (auto & [nodei, _] : stack)
-            ret.push_back(nodei.Name());
+         bool pass = !length_ || (length_ && length_ == stack.size() + 1);
 
-         ret.push_back(current_node.value());
+         if (pass)
+         {
+            for (auto & [nodei, _] : stack)
+               ret.push_back(nodei.Name());
 
-         return ret;
+            ret.push_back(current_node.value());
+
+            return ret;
+         }
       }
 
       stack.emplace_back(Node(current_node.value(), InternalNode()), m_nodes.at(Node(current_node.value(), InternalNode())));
