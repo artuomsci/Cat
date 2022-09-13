@@ -1324,13 +1324,13 @@ Node::List Node::Terminal() const
 }
 
 //-----------------------------------------------------------------------------------------
-Node::List Node::SolveSequence(const Node& from_, const Node& to_) const
+std::list<Node::NName> Node::SolveSequence(const Node::NName& from_, const Node::NName& to_) const
 {
-   Node::List ret;
+   std::list<Node::NName> ret;
 
    std::list<Node::PairSet> stack;
 
-   std::optional<Node> current_node(from_);
+   std::optional<Node::NName> current_node(from_);
 
    while (true)
    {
@@ -1338,17 +1338,17 @@ Node::List Node::SolveSequence(const Node& from_, const Node& to_) const
       if (current_node.value() == to_)
       {
          for (auto & [nodei, _] : stack)
-            ret.push_back(nodei);
+            ret.push_back(nodei.Name());
 
          ret.push_back(current_node.value());
 
          return ret;
       }
 
-      stack.emplace_back(current_node.value(), m_nodes.at(current_node.value()));
+      stack.emplace_back(Node(current_node.value(), InternalNode()), m_nodes.at(Node(current_node.value(), InternalNode())));
 
       // Remove identity morphism
-      stack.back().second.erase(current_node.value());
+      stack.back().second.erase(Node(current_node.value(), InternalNode()));
 
       current_node.reset();
 
@@ -1368,13 +1368,13 @@ Node::List Node::SolveSequence(const Node& from_, const Node& to_) const
          }
 
          // Moving one node forward
-         current_node.emplace(forward_codomain.extract(forward_codomain.begin()).value());
+         current_node.emplace(forward_codomain.extract(forward_codomain.begin()).value().Name());
 
          // Checking for loops
          for (const auto& [node, _] : stack)
          {
             // Is already visited
-            if (node == current_node.value())
+            if (node.Name() == current_node.value())
             {
                current_node.reset();
                break;
@@ -1387,35 +1387,40 @@ Node::List Node::SolveSequence(const Node& from_, const Node& to_) const
 }
 
 //-----------------------------------------------------------------------------------------
-std::list<Node::List> Node::SolveSequences(const Node& from_, const Node& to_) const
+std::list<std::list<Node::NName>> Node::SolveSequences(const Node::NName& from_, const Node::NName& to_, std::optional<size_t> length_) const
 {
-   std::list<Node::List> ret;
+   std::list<std::list<Node::NName>> ret;
 
    std::list<Node::PairSet> stack;
 
-   std::optional<Node> current_node(from_);
+   std::optional<Node::NName> current_node(from_);
 
    while (true)
    {
       // Checking for destination
       if (current_node.value() == to_)
       {
-         Node::List seq;
+         std::list<Node::NName> seq;
 
-         for (auto & [nodei, _] : stack)
-            seq.push_back(nodei);
+         bool pass = !length_ || (length_ && length_ == stack.size() + 1);
 
-         seq.push_back(current_node.value());
+         if (pass)
+         {
+            for (auto& [nodei, _] : stack)
+               seq.push_back(nodei.Name());
 
-         ret.push_back(seq);
+            seq.push_back(current_node.value());
+
+            ret.push_back(seq);
+         }
       }
       else
       {
          // Stacking forward movements
-         stack.emplace_back(current_node.value(), m_nodes.at(current_node.value()));
+         stack.emplace_back(Node(current_node.value(), InternalNode()), m_nodes.at(Node(current_node.value(), InternalNode())));
 
          // Removing identity morphism
-         stack.back().second.erase(current_node.value());
+         stack.back().second.erase(Node(current_node.value(), InternalNode()));
       }
 
       current_node.reset();
@@ -1436,13 +1441,13 @@ std::list<Node::List> Node::SolveSequences(const Node& from_, const Node& to_) c
          }
 
          // Moving one node forward
-         current_node.emplace(forward_codomain.extract(forward_codomain.begin()).value());
+         current_node.emplace(forward_codomain.extract(forward_codomain.begin()).value().Name());
 
          // Checking for loops
          for (const auto& [node, _] : stack)
          {
             // Is already visited
-            if (node == current_node.value())
+            if (node.Name() == current_node.value())
             {
                current_node.reset();
                break;
@@ -1455,7 +1460,7 @@ std::list<Node::List> Node::SolveSequences(const Node& from_, const Node& to_) c
 }
 
 //-----------------------------------------------------------------------------------------
-Arrow::List Node::MapNodes2Arrows(const Node::List& nodes_) const
+Arrow::List Node::MapNodes2Arrows(const std::list<Node::NName>& nodes_) const
 {
    Arrow::List ret;
 
@@ -1465,7 +1470,7 @@ Arrow::List Node::MapNodes2Arrows(const Node::List& nodes_) const
    {
       auto it = std::find_if(m_arrows.begin(), m_arrows.end(), [&](const Arrow::List::value_type& elem_)
       {
-         return itn->Name() == elem_.Source() && std::next(itn)->Name() == elem_.Target();
+         return *itn == elem_.Source() && *std::next(itn) == elem_.Target();
       });
 
       ret.push_back(it != m_arrows.end() ? *it : Arrow(InternalArrow(), "", ""));

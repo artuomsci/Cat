@@ -333,22 +333,23 @@ namespace cat
        * @param to_ - target node of the sequence
        * @return Sequence of nodes
        */
-      Node::List SolveSequence(const Node& from_, const Node& to_) const;
+      std::list<Node::NName> SolveSequence(const Node::NName& from_, const Node::NName& to_) const;
 
       /**
        * @brief Finds all sequences of nodes between two given nodes
        * @param from_ - source node of the sequences
        * @param to_ - target node of the sequences
+       * @param length_ - match for length
        * @return Sequences of nodes
        */
-      std::list<Node::List> SolveSequences(const Node& from_, const Node& to_) const;
+      std::list<std::list<Node::NName>> SolveSequences(const Node::NName& from_, const Node::NName& to_, std::optional<size_t> length_ = std::optional<size_t>()) const;
 
       /**
        * @brief Maps sequence of nodes onto sequence of arrows
        * @param nodes_ - sequence of nodes
        * @return Sequence of arrows
        */
-      Arrow::List MapNodes2Arrows(const Node::List& nodes_) const;
+      Arrow::List MapNodes2Arrows(const std::list<Node::NName>& nodes_) const;
 
       /**
        * @brief Inverses arrows

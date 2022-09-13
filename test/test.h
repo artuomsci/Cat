@@ -250,7 +250,7 @@ namespace cat
                   ,  Arrow(Arrow::EType::eMorphism, c.Name(), f.Name())
                   ,  Arrow(Arrow::EType::eMorphism, d.Name(), e.Name())});
 
-         Node::List seq = cat.SolveSequence(a, e);
+         std::list<Node::NName> seq = cat.SolveSequence(a.Name(), e.Name());
 
          assert(seq.size() == 4);
 
@@ -260,7 +260,7 @@ namespace cat
          assert(*(++it) == Arrow(Arrow::EType::eMorphism, b.Name(), d.Name()));
          assert(*(++it) == Arrow(Arrow::EType::eMorphism, d.Name(), e.Name()));
 
-         seq = cat.SolveSequence(e, a);
+         seq = cat.SolveSequence(e.Name(), a.Name());
 
          assert(seq.size() == 0);
       }
@@ -290,7 +290,7 @@ namespace cat
                   ,  Arrow(Arrow::EType::eMorphism, d.Name(), e.Name())
                   ,  Arrow(Arrow::EType::eMorphism, f.Name(), e.Name())});
 
-         std::list<Node::List> seqs = cat.SolveSequences(a, e);
+         std::list<std::list<Node::NName>> seqs = cat.SolveSequences(a.Name(), e.Name());
 
          assert(seqs.size() == 3);
 
@@ -324,7 +324,7 @@ namespace cat
             assert(*(++it) == Arrow(Arrow::EType::eMorphism, f.Name(), e.Name()));
          }
 
-         seqs = cat.SolveSequences(e, a);
+         seqs = cat.SolveSequences(e.Name(), a.Name());
 
          assert(seqs.size() == 0);
       }
