@@ -37,15 +37,6 @@ static const char sOR  = '|';
 // File extension
 static const char* const sExt = ".cat";
 
-/**
- * @brief The EExpType enum represents type of the expression
- */
-enum class EExpType
-{
-      eStatement
-   ,  eProof
-};
-
 //-----------------------------------------------------------------------------------------
 static std::string trim_sp(const std::string& string_)
 {
@@ -86,15 +77,12 @@ static std::string conform(std::string string_)
 }
 
 //-----------------------------------------------------------------------------------------
-static std::vector<Arrow> resolve_arrows(const std::string& name_, Arrow::EType arrow_type_,  const Node& source_, const Node& target_, const Node::List& domain_, const Node::List& codomain_, EExpType expr_type_)
+static std::vector<Arrow> resolve_arrows(const std::string& name_, Arrow::EType arrow_type_,  const Node& source_, const Node& target_, const Node::List& domain_, const Node::List& codomain_)
 {
    std::vector<Arrow> ret;
 
    auto fnCheckSource = [&]()
    {
-      if (expr_type_ == EExpType::eStatement)
-         return true;
-
       auto it_d = std::find_if(domain_.begin(), domain_.end(), [&](const Node& element_)
       {
          return element_ == source_;
@@ -110,9 +98,6 @@ static std::vector<Arrow> resolve_arrows(const std::string& name_, Arrow::EType 
 
    auto fnCheckTarget = [&]()
    {
-      if (expr_type_ == EExpType::eStatement)
-         return true;
-
       auto it_c = std::find_if(codomain_.begin(), codomain_.end(), [&](const Node& element_)
       {
          return element_ == target_;
@@ -200,7 +185,7 @@ static std::vector<Arrow> resolve_arrows(const std::string& name_, Arrow::EType 
 }
 
 //-----------------------------------------------------------------------------------------
-static std::vector<Arrow> get_arrows(const std::string& line_, Arrow::EType arrow_type_, const Node::List& domain_, const Node::List& codomain_, EExpType expr_type_, bool resolve_)
+static std::vector<Arrow> get_arrows(const std::string& line_, Arrow::EType arrow_type_, const Node::List& domain_, const Node::List& codomain_, bool resolve_)
 {
    StringVec subsections = split(line_, "::");
    if (subsections.size() != 2)
@@ -229,7 +214,7 @@ static std::vector<Arrow> get_arrows(const std::string& line_, Arrow::EType arro
 
       if (resolve_)
       {
-         for (const auto& it : resolve_arrows(head, arrow_type_, source, target, domain_, codomain_, expr_type_))
+         for (const auto& it : resolve_arrows(head, arrow_type_, source, target, domain_, codomain_))
             ret.push_back(it);
       }
       else
@@ -375,7 +360,7 @@ Arrow::List query_arrows(Arrow::EType type_, const std::string& query_, const Ar
    if (matchCount_ && matchCount_ == 0)
       return Arrow::List();
 
-   auto qarrow = get_arrows(query_, type_, Node::List(), Node::List(), EExpType::eProof, false);
+   auto qarrow = get_arrows(query_, type_, Node::List(), Node::List(), false);
    if (qarrow.size() != 1)
       return Arrow::List();
 
@@ -790,7 +775,7 @@ Node Node::Query(const std::string& query_, std::optional<size_t> matchCount_)
    if (matchCount_ && matchCount_ == 0)
       return Node("", Node::EType::eUndefined);
 
-   auto qarrow = get_arrows(query_, InternalArrow(), Node::List(), Node::List(), EExpType::eProof, false);
+   auto qarrow = get_arrows(query_, InternalArrow(), Node::List(), Node::List(), false);
    if (qarrow.size() != 1)
       return Node("", Node::EType::eUndefined);
 
@@ -1031,76 +1016,6 @@ bool Node::Verify(const Arrow& arrow_) const
 const Node::NName& Node::Name() const
 {
    return m_name;
-}
-
-//-----------------------------------------------------------------------------------------
-bool Node::Statement(const Arrow& arrow_)
-{
-   Node target(arrow_.Target(), InternalNode());
-
-   auto it = m_nodes.find(Node(arrow_.Target(), InternalNode()));
-   if (it != m_nodes.end())
-      target = it->first;
-
-   auto source = QueryNodes(arrow_.Source());
-   if (source.empty())
-      return false;
-
-   // Mapping nodes
-   for (const auto& node : source.front().QueryNodes("*"))
-   {
-      std::optional<Node> mnode = arrow_.SingleMap(node);
-      if (!mnode)
-      {
-         print_error("Missing arrow for node " + node.Name() + " in functor " + arrow_.Name());
-         return false;
-      }
-
-      if (target.QueryNodes(mnode->Name()).empty())
-         target.AddNode(mnode.value());
-   }
-
-   // Mapping arrows
-   for (const Arrow& arrow : source.front().QueryArrows("* :: * -> *"))
-   {
-      auto nodes = arrow_.SingleMap(Node(arrow.Source(), source.front().InternalNode()));
-      auto nodet = arrow_.SingleMap(Node(arrow.Target(), source.front().InternalNode()));
-
-      if (target.QueryArrows("* :: " + nodes->Name() + sMorphism + nodet->Name()).empty())
-         target.AddArrow(Arrow(Arrow::EType::eMorphism, nodes->Name(), nodet->Name()));
-   }
-
-   for (auto& [domain, codomain] : m_nodes)
-   {
-      auto itTarget = codomain.find(target);
-      if (itTarget != codomain.end())
-      {
-         codomain.erase(itTarget);
-         codomain.insert(target);
-      }
-   }
-
-   auto itTarget = m_nodes.find(target);
-   if (itTarget != m_nodes.end())
-   {
-      auto back_up = itTarget->second;
-
-      m_nodes.erase(itTarget);
-
-      m_nodes[target] = back_up;
-   }
-
-   if (!QueryArrows(arrow_.AsQuery()).empty())
-   {
-      print_error("Arrow already defined: " + arrow_.Name());
-      return false;
-   }
-
-   m_nodes[Node(arrow_.Source(), InternalNode())].insert(Node(arrow_.Target(), InternalNode()));
-
-   m_arrows.push_back(arrow_);
-
-   return true;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -1412,8 +1327,6 @@ bool Node::parse_source(const std::string& path_)
    }
    process_entity { ECurrentEntity::eNone };
 
-   EExpType expr_type { EExpType::eProof };
-
    std::optional<Node > crt_cat;
    std::optional<Arrow> crt_func;
 
@@ -1478,7 +1391,7 @@ bool Node::parse_source(const std::string& path_)
       return true;
    };
 
-   auto fnAddMorphisms = [&](const std::string& line_, std::optional<Node>& crt_cat_, EExpType expr_type_)
+   auto fnAddMorphisms = [&](const std::string& line_, std::optional<Node>& crt_cat_)
    {
       if (!crt_cat_)
       {
@@ -1488,7 +1401,7 @@ bool Node::parse_source(const std::string& path_)
 
       const auto& nodes = crt_cat_->QueryNodes("*");
 
-      std::vector<Arrow> morphs = get_arrows(line_, Arrow::EType::eMorphism, nodes, nodes, expr_type_, true);
+      std::vector<Arrow> morphs = get_arrows(line_, Arrow::EType::eMorphism, nodes, nodes, true);
       if (morphs.empty())
       {
          print_error("Incorrect morphism definition " + line_ + " in category " + crt_cat_->Name());
@@ -1497,15 +1410,6 @@ bool Node::parse_source(const std::string& path_)
 
       for (const Arrow& morph : morphs)
       {
-         if (expr_type_ == EExpType::eStatement)
-         {
-            if (crt_cat_->QueryNodes(morph.Source()).empty())
-               crt_cat_->AddNode(Node(morph.Source(), Node::EType::eObject));
-
-            if (crt_cat_->QueryNodes(morph.Target()).empty())
-               crt_cat_->AddNode(Node(morph.Target(), Node::EType::eObject));
-         }
-
          if (!crt_cat_->AddArrow(morph))
             return false;
       }
@@ -1513,24 +1417,15 @@ bool Node::parse_source(const std::string& path_)
       return true;
    };
 
-   auto fnBeginFunctor = [&](const std::string& line_, std::optional<Arrow>& crt_func_, EExpType expr_type_)
+   auto fnBeginFunctor = [&](const std::string& line_, std::optional<Arrow>& crt_func_)
    {
       auto nodes = QueryNodes("*");
 
-      std::vector<Arrow> funcs = get_arrows(line_, Arrow::EType::eFunctor, nodes, nodes, expr_type_, true);
+      std::vector<Arrow> funcs = get_arrows(line_, Arrow::EType::eFunctor, nodes, nodes, true);
       if (funcs.size() != 1)
       {
          print_error("Incorrect functor definition: " + line_);
          return false;
-      }
-
-      if (expr_type_ == EExpType::eStatement)
-      {
-         if (QueryNodes(funcs.front().Source()).empty())
-            AddNode(Node(funcs.front().Source(), Node::EType::eSCategory));
-
-         if (QueryNodes(funcs.front().Target()).empty())
-            AddNode(Node(funcs.front().Target(), Node::EType::eSCategory));
       }
 
       crt_func_.emplace(funcs.front());
@@ -1538,30 +1433,12 @@ bool Node::parse_source(const std::string& path_)
       return true;
    };
 
-   auto fnEndFunctor = [&](EExpType expr_type_)
+   auto fnEndFunctor = [&]()
    {
       if (crt_func)
       {
-         if (expr_type_ == EExpType::eStatement)
-         {
-            if (crt_func->IsEmpty())
-            {
-               auto nodes = QueryNodes(crt_func->Source());
-               if (nodes.empty())
-                  return false;
-
-               for (const auto& domain : nodes.front().QueryNodes("*"))
-                  crt_func->AddArrow(Arrow(Arrow::EType::eMorphism, domain.Name(), domain.Name()));
-            }
-
-            if (!Statement(crt_func.value()))
-               return false;
-         }
-         else
-         {
-            if (!AddArrow(crt_func.value()))
-               return false;
-         }
+         if (!AddArrow(crt_func.value()))
+            return false;
 
          crt_func.reset();
       }
@@ -1569,12 +1446,12 @@ bool Node::parse_source(const std::string& path_)
       return true;
    };
 
-   auto fnAddFMorphisms = [&](const std::string& line_, std::optional<Arrow>& crt_func_, EExpType expr_type_)
+   auto fnAddFMorphisms = [&](const std::string& line_, std::optional<Arrow>& crt_func_)
    {
       auto itSourceCat = QueryNodes(crt_func_->Source()).front();
       auto itTargetCat = QueryNodes(crt_func_->Target()).front();
 
-      std::vector<Arrow> morphs = get_arrows(line_, Arrow::EType::eMorphism, itSourceCat.QueryNodes("*"), itTargetCat.QueryNodes("*"), expr_type_, true);
+      std::vector<Arrow> morphs = get_arrows(line_, Arrow::EType::eMorphism, itSourceCat.QueryNodes("*"), itTargetCat.QueryNodes("*"), true);
       if (morphs.empty())
       {
          print_error("Incorrect morphism definition " + line_ + " in functor " + crt_func_->Name());
@@ -1589,7 +1466,7 @@ bool Node::parse_source(const std::string& path_)
 
    auto fnStateSwitch = [&]()
    {
-      return fnEndCategory(crt_cat) && fnEndFunctor(expr_type);
+      return fnEndCategory(crt_cat) && fnEndFunctor();
    };
 
    auto fnImport = [](const std::filesystem::path& path_, const std::string& line_, int line_index_, StringVec& lines_)
@@ -1632,7 +1509,6 @@ bool Node::parse_source(const std::string& path_)
          if (!fnStateSwitch())
             return false;
 
-         expr_type = EExpType::eStatement;
          continue;
       }
       else if (line == sProof)
@@ -1640,7 +1516,6 @@ bool Node::parse_source(const std::string& path_)
          if (!fnStateSwitch())
             return false;
 
-         expr_type = EExpType::eProof;
          continue;
       }
       else
@@ -1696,7 +1571,7 @@ bool Node::parse_source(const std::string& path_)
       // Arrow
       else if (process_entity == ECurrentEntity::eCategory && is_morphism(line))
       {
-         if (!fnAddMorphisms(line, crt_cat, expr_type))
+         if (!fnAddMorphisms(line, crt_cat))
             return false;
       }
       // Arrow
@@ -1707,13 +1582,13 @@ bool Node::parse_source(const std::string& path_)
          if (!fnStateSwitch())
             return false;
 
-         if (!fnBeginFunctor(line, crt_func, expr_type))
+         if (!fnBeginFunctor(line, crt_func))
             return false;
       }
       // Functor morphism
       else if (process_entity == ECurrentEntity::eFunctor && is_morphism(line))
       {
-         if (!fnAddFMorphisms(line, crt_func, expr_type))
+         if (!fnAddFMorphisms(line, crt_func))
             return false;
       }
       else

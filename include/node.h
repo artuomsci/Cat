@@ -306,8 +306,6 @@ namespace cat
        */
       const NName& Name() const;
 
-      bool Statement(const Arrow& arrow_);
-
       /**
        * @brief Creates compositions
        */
