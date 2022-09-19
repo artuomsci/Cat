@@ -13,10 +13,14 @@ obj d
 ```
 Where **cat** is the keyword for category and **obj** is for objects. Multiple objects are separated from each other by **&**.
 
-Entity names may contain the following symbols:
+Names are case sensitive and UTF-8 friendly.
+
+The following symbols may be used in names:
 
 | Symbol | Name   |
 | ------ | ------ |
+|   a-z  |        |
+|   0-9  |        |
 |        | Space  |
 |    ,   | Comma  |
 
