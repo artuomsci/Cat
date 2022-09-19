@@ -25,15 +25,17 @@ namespace cat
 
          Node A("A", Node::EType::eObject);
 
+         Node PK(u8"Павка Корчагин", Node::EType::eObject);
+
          assert(cat.QueryNodes("*").size() == 0);
 
-         assert(cat.AddNodes({a, b, A}));
+         assert(cat.AddNodes({a, b, A, PK}));
 
-         assert(cat.QueryNodes("*").size() == 3);
+         assert(cat.QueryNodes("*").size() == 4);
 
          assert(cat.AddNode(a) == false);
 
-         assert(cat.QueryNodes("*").size() == 3);
+         assert(cat.QueryNodes("*").size() == 4);
       }
 
       //============================================================
