@@ -23,15 +23,17 @@ namespace cat
          Node     a("a", Node::EType::eObject)
                ,  b("b", Node::EType::eObject);
 
+         Node A("A", Node::EType::eObject);
+
          assert(cat.QueryNodes("*").size() == 0);
 
-         assert(cat.AddNodes({a, b}));
+         assert(cat.AddNodes({a, b, A}));
 
-         assert(cat.QueryNodes("*").size() == 2);
+         assert(cat.QueryNodes("*").size() == 3);
 
          assert(cat.AddNode(a) == false);
 
-         assert(cat.QueryNodes("*").size() == 2);
+         assert(cat.QueryNodes("*").size() == 3);
       }
 
       //============================================================
