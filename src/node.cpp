@@ -1330,48 +1330,40 @@ bool Node::parse_source(const std::string& path_)
    std::optional<Node > crt_cat;
    std::optional<Arrow> crt_func;
 
-   auto fnBeginCategory = [&](const std::string& line_, std::optional<Node>& crt_cat_)
+   auto fnEndCategory = [&]()
    {
-      auto nodes = QueryNodes(line_);
-      if (nodes.empty())
-         crt_cat_.emplace(line_, Node::EType::eSCategory);
-      else
-         crt_cat_.emplace(nodes.front());
-   };
+      if (crt_cat)
+         AddNode(crt_cat.value());
 
-   auto fnEndCategory = [&](std::optional<Node>& crt_cat_)
-   {
-      if (crt_cat_)
-      {
-         Arrow::Vec backup;
-         for (const auto& arrow : QueryArrows("* :: * -> *"))
-         {
-            if (arrow.Source() == arrow.Target())
-               continue;
-
-            if (arrow.Source() == crt_cat_->Name() || arrow.Target() == crt_cat_->Name())
-               backup.push_back(arrow);
-         }
-
-         EraseNode(crt_cat_->Name());
-
-         AddNode(crt_cat_.value());
-
-         for (const auto& arrow : backup)
-         {
-            if (QueryArrows(arrow.AsQuery()).empty())
-               AddArrow(arrow);
-         }
-      }
-
-      crt_cat_.reset();
+      crt_cat.reset();
 
       return true;
    };
 
-   auto fnAddNodes = [](const std::string& line_, std::optional<Node>& crt_cat_)
+   auto fnBeginCategory = [&](const std::string& line_)
    {
-      if (!crt_cat_)
+      auto nodes = QueryNodes(line_);
+      if (!nodes.empty())
+      {
+         print_error("Category redefinition: " + line_);
+         return false;
+      }
+
+      for (auto& itNodeName : split(line_, sAND, false))
+      {
+         fnEndCategory();
+
+         auto nodeName = trim_sp(itNodeName);
+
+         crt_cat.emplace(nodeName, Node::EType::eSCategory);
+      }
+
+      return true;
+   };
+
+   auto fnAddNodes = [&](const std::string& line_)
+   {
+      if (!crt_cat)
       {
          print_error("No category to add node: " + line_);
          return false;
@@ -1381,7 +1373,7 @@ bool Node::parse_source(const std::string& path_)
       {
          auto nodeName = trim_sp(itNodeName);
 
-         if (!crt_cat_->AddNode(Node(nodeName, Node::EType::eObject)))
+         if (!crt_cat->AddNode(Node(nodeName, Node::EType::eObject)))
          {
             print_error("Failure to add node: " + nodeName);
             return false;
@@ -1466,7 +1458,7 @@ bool Node::parse_source(const std::string& path_)
 
    auto fnStateSwitch = [&]()
    {
-      return fnEndCategory(crt_cat) && fnEndFunctor();
+      return fnEndCategory() && fnEndFunctor();
    };
 
    auto fnImport = [](const std::filesystem::path& path_, const std::string& line_, int line_index_, StringVec& lines_)
@@ -1558,14 +1550,15 @@ bool Node::parse_source(const std::string& path_)
          if (!fnStateSwitch())
             return false;
 
-         fnBeginCategory(tail, crt_cat);
+         if (!fnBeginCategory(tail))
+            return false;
 
          process_entity = ECurrentEntity::eCategory;
       }
       // Nodes
       else if (process_entity == ECurrentEntity::eCategory && head == sObj)
       {
-         if (!fnAddNodes(tail, crt_cat))
+         if (!fnAddNodes(tail))
             return false;
       }
       // Arrow
