@@ -54,3 +54,18 @@ f :: a -> d
 
 ```
 The morphism name is on the left side of **::** which splits the definition in two parts. The right side represents sequence of morphisms, where  objects are separated with **->**.
+
+### Defining functors
+
+```haskell
+-- Categories
+cat A & B
+
+-- Named functor
+F :: A => B
+
+-- Anonymous functor
+* :: B => A
+
+```
+The syntax is the same as when defining morphisms except for arrow **=>**.
