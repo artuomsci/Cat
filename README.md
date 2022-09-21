@@ -69,3 +69,27 @@ F :: A => B
 
 ```
 The syntax is the same as when defining morphisms except for arrow **=>**.
+
+```haskell
+-- Categories
+cat A
+
+obj a0, a1
+
+* :: a0 -> a1
+
+cat B
+
+obj b0, b1
+
+* :: b0 -> b1
+
+-- Functor
+* :: A => B
+
+-- Functor body
+* :: a0 -> b0
+* :: a1 -> b1
+
+```
+The body of a functor consists of mappings between objects.
