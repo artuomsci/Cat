@@ -7,6 +7,7 @@
 #include <string>
 #include <list>
 #include <filesystem>
+#include <variant>
 
 #include "cat_export.h"
 
@@ -177,6 +178,9 @@ namespace cat
       using PairSet  = std::pair<Node, Set>;
       using NName    = std::string;
 
+      using TSetValue   = std::variant<double, float, int, std::string>;
+      using Property    = std::pair<Arrow::AName, TSetValue>;
+
       enum class EType {
             eObject     // Object
          ,  eSCategory  // Small category
@@ -233,6 +237,12 @@ namespace cat
       bool IsArrowsEmpty() const;
 
       /**
+       * @brief Counts the number of arrows
+       * @return Number of arrows
+       */
+      size_t CountArrows() const;
+
+      /**
       * @brief Adds node
       * @param node_ - node
       * @return True if successful
@@ -263,6 +273,12 @@ namespace cat
        * @return True if there are no nodes
        */
       bool IsNodesEmpty() const;
+
+      /**
+       * @brief Counts the number of nodes
+       * @return Number of nodes
+       */
+      size_t CountNodes() const;
 
       /**
        * @brief Queries for arrows
@@ -373,6 +389,38 @@ namespace cat
        */
       Arrow::EType InternalArrow() const;
 
+      /**
+       * @brief Adds element to the set
+       * @param aname_ - function returning element of the set
+       * @param nname_ - node containing the set
+       * @param value_ - element of the set
+       * @return True if successful
+       */
+      bool AddSetValue(const Arrow::AName& aname_, const Node::NName& nname_, const TSetValue& value_);
+
+      /**
+       * @brief Removes element from the set
+       * @param aname_ - function returning element of the set
+       * @param nname_ - node containing the set
+       * @return True if successful
+       */
+      bool RemoveSetValue(const Arrow::AName& aname_, const Node::NName& nname_);
+
+      /**
+       * @brief Returns element of the set
+       * @param aname_ - function returning element of the set
+       * @param nname_ - node containing the set
+       * @return Element of the set
+       */
+      std::optional<TSetValue> GetSetValue(const Arrow::AName& aname_, const Node::NName& nname_) const;
+
+      /**
+       * @brief Returns node's set
+       * @param nname_ - node containing the set
+       * @return Set
+       */
+      std::list<Property> GetNodeSet(const Node::NName& nname_) const;
+
       private:
 
       bool validate_node_data() const;
@@ -388,6 +436,12 @@ namespace cat
       Arrow::List    m_arrows;
       NName          m_name;
       EType          m_type;
+
+      // Set category data
+      // Mapping set -> set
+      using Node2Value = std::map<Node::NName, TSetValue>;
+      // Mappings for functions
+      std::map<Arrow::AName, Node2Value> m_setmap;
    };
 
    struct CAT_EXPORT NodeKeyHasher

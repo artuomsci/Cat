@@ -654,6 +654,12 @@ bool Node::IsArrowsEmpty() const
 }
 
 //-----------------------------------------------------------------------------------------
+size_t Node::CountArrows() const
+{
+   return m_arrows.size();
+}
+
+//-----------------------------------------------------------------------------------------
 bool Node::AddNode(const Node& node_)
 {
    if (node_.Name().empty())
@@ -729,6 +735,12 @@ void Node::EraseNodes()
 bool Node::IsNodesEmpty() const
 {
    return m_nodes.empty();
+}
+
+//-----------------------------------------------------------------------------------------
+size_t Node::CountNodes() const
+{
+   return m_nodes.size();
 }
 
 //-----------------------------------------------------------------------------------------
@@ -1293,6 +1305,87 @@ Node::EType Node::InternalNode() const
 Arrow::EType Node::InternalArrow() const
 {
    return m_type == Node::EType::eLCategory ? Arrow::EType::eFunctor : Arrow::EType::eMorphism;
+}
+
+//-----------------------------------------------------------------------------------------
+bool Node::AddSetValue(const Arrow::AName& aname_, const Node::NName& nname_, const TSetValue& value_)
+{
+   if (m_type != EType::eSCategory)
+      return false;
+
+   auto reta = QueryArrows(aname_ + " :: * -> * ");
+   if (reta.empty())
+      return false;
+
+   auto retn = QueryNodes(nname_);
+   if (retn.empty())
+      return false;
+
+   auto tr_aname = trim_sp(aname_);
+   auto tr_nname = trim_sp(nname_);
+
+   Node2Value& codomain = m_setmap[tr_aname];
+
+   codomain[tr_nname] = value_;
+
+   return true;
+}
+
+//-----------------------------------------------------------------------------------------
+bool Node::RemoveSetValue(const Arrow::AName& aname_, const Node::NName& nname_)
+{
+   if (m_type != EType::eSCategory)
+      return false;
+
+   auto tr_aname = trim_sp(aname_);
+   auto tr_nname = trim_sp(nname_);
+
+   auto ita = m_setmap.find(tr_aname);
+   if (ita == m_setmap.end())
+      return false;
+
+   Node2Value& codomain = ita->second;
+
+   return codomain.erase(nname_) != 0;
+}
+
+//-----------------------------------------------------------------------------------------
+std::optional<Node::TSetValue> Node::GetSetValue(const Arrow::AName& aname_, const Node::NName& nname_) const
+{
+   if (m_type != EType::eSCategory)
+      return std::optional<Node::TSetValue>();
+
+   auto tr_aname = trim_sp(aname_);
+   auto tr_nname = trim_sp(nname_);
+
+   auto ita = m_setmap.find(tr_aname);
+   if (ita == m_setmap.end())
+      return std::optional<Node::TSetValue>();
+
+   const Node2Value& codomain = ita->second;
+
+   auto itn = codomain.find(tr_nname);
+   if (itn == codomain.end())
+      return std::optional<Node::TSetValue>();
+
+   return itn->second;
+}
+
+//-----------------------------------------------------------------------------------------
+std::list<Node::Property> Node::GetNodeSet(const Node::NName& nname_) const
+{
+   std::list<Node::Property> ret;
+
+   for (auto& [aname, node2value] : m_setmap)
+   {
+      auto it = node2value.find(nname_);
+      if (it != node2value.end())
+      {
+         ret.push_back({aname, it->second});
+      }
+   }
+
+   return ret;
 }
 
 //-----------------------------------------------------------------------------------------
