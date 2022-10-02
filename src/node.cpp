@@ -22,9 +22,6 @@ static const char* const sAny = "*";
 static const char* const sComment = "--";
 // Import
 static const char* const sImport = "import";
-// Expressions type
-static const char* const sStatement = "statement";
-static const char* const sProof     = "proof";
 
 // Arrow type
 static const char* sFunctor  = "=>";
@@ -1587,30 +1584,11 @@ bool Node::parse_source(const std::string& path_)
 
       std::string line = trim_sp(lines[i]);
 
-      StringVec sections;
-
-      if (line == sStatement)
+      StringVec sections = split(line, ' ', false);
+      if (sections.size() < 2)
       {
-         if (!fnStateSwitch())
-            return false;
-
-         continue;
-      }
-      else if (line == sProof)
-      {
-         if (!fnStateSwitch())
-            return false;
-
-         continue;
-      }
-      else
-      {
-         sections = split(line, ' ', false);
-         if (sections.size() < 2)
-         {
-            print_error("Invalid record: " + line);
-            return false;
-         }
+         print_error("Invalid record: " + line);
+         return false;
       }
 
       const std::string& head = sections[0];
