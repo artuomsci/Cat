@@ -1308,15 +1308,24 @@ Arrow::EType Node::InternalArrow() const
 bool Node::AddSetValue(const Arrow::AName& aname_, const Node::NName& nname_, const TSetValue& value_)
 {
    if (m_type != EType::eSCategory)
+   {
+      print_error("Only objects allowed to contain set");
       return false;
+   }
 
    auto reta = QueryArrows(aname_ + " :: * -> * ");
    if (reta.empty())
+   {
+      print_error("Morphism " + aname_ + " not found");
       return false;
+   }
 
    auto retn = QueryNodes(nname_);
    if (retn.empty())
+   {
+      print_error("Object " + nname_ + " not found");
       return false;
+   }
 
    auto tr_aname = trim_sp(aname_);
    auto tr_nname = trim_sp(nname_);
