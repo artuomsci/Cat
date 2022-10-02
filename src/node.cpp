@@ -1313,13 +1313,6 @@ bool Node::AddSetValue(const Arrow::AName& aname_, const Node::NName& nname_, co
       return false;
    }
 
-   auto reta = QueryArrows(aname_ + " :: * -> * ");
-   if (reta.empty())
-   {
-      print_error("Morphism " + aname_ + " not found");
-      return false;
-   }
-
    auto retn = QueryNodes(nname_);
    if (retn.empty())
    {
@@ -1330,9 +1323,7 @@ bool Node::AddSetValue(const Arrow::AName& aname_, const Node::NName& nname_, co
    auto tr_aname = trim_sp(aname_);
    auto tr_nname = trim_sp(nname_);
 
-   Node2Value& codomain = m_setmap[tr_aname];
-
-   codomain[tr_nname] = value_;
+   m_setmap[tr_aname][tr_nname] = value_;
 
    return true;
 }
