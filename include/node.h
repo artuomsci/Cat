@@ -26,9 +26,16 @@ namespace cat
    public:
 
       enum class EType {
-            eMorphism
-         ,  eFunctor
+            eMorphism   // Morphism
+         ,  eFunctor    // Functor
+         ,  eUndefined
       };
+
+      /**
+      * @brief Converts type to string
+      * @return Type name
+      */
+      static std::string Type2Name(EType type_);
 
       Arrow(EType type_, const std::string& source_, const std::string& target_, const std::string& arrow_name_);
       Arrow(EType type_, const std::string& source_, const std::string& target_);
@@ -187,6 +194,12 @@ namespace cat
          ,  eLCategory  // Large category
          ,  eUndefined
       };
+
+      /**
+      * @brief Converts type to string
+      * @return Type name
+      */
+      static std::string Type2Name(EType type_);
 
       bool operator < (const Node& cat_) const;
       bool operator ==(const Node& cat_) const;
@@ -438,9 +451,9 @@ namespace cat
       EType          m_type;
 
       // Set category data
-      // Mapping set -> set
+      // Table of values for function
       using Node2Value = std::map<Node::NName, TSetValue>;
-      // Mappings for functions
+      // Morphisms and associated functions
       std::map<Arrow::AName, Node2Value> m_setmap;
    };
 

@@ -34,6 +34,14 @@ static const char sOR  = '|';
 // File extension
 static const char* const sExt = ".cat";
 
+// entity names
+static const char* sNObject    = "object";
+static const char* sNSCategory = "category";
+static const char* sNLCategory = "large category";
+
+static const char* sNFunctor   = "functor";
+static const char* sNMorphism  = "morphism";
+
 //-----------------------------------------------------------------------------------------
 static std::string trim_sp(const std::string& string_)
 {
@@ -87,7 +95,7 @@ static std::vector<Arrow> resolve_arrows(const std::string& name_, Arrow::EType 
 
       if (it_d == domain_.end())
       {
-         print_error("No such source: " + source_.Name());
+         print_error("No such source " + Node::Type2Name(source_.Type()) + ": " + source_.Name());
          return false;
       }
       return true;
@@ -102,7 +110,7 @@ static std::vector<Arrow> resolve_arrows(const std::string& name_, Arrow::EType 
 
       if (it_c == codomain_.end())
       {
-         print_error("No such target: " + target_.Name());
+         print_error("No such target " + Node::Type2Name(target_.Type()) + ": " + target_.Name());
          return false;
       }
 
@@ -222,6 +230,17 @@ static std::vector<Arrow> get_arrows(const std::string& line_, Arrow::EType arro
 }
 
 //-----------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------
+std::string Arrow::Type2Name(EType type_)
+{
+   if       (type_ == EType::eFunctor)
+      return sNFunctor;
+   else if  (type_ == EType::eMorphism)
+      return sNMorphism;
+   else
+      return "";
+}
+
 //-----------------------------------------------------------------------------------------
 Arrow::Arrow(EType type_, const std::string& source_, const std::string& target_, const std::string& arrow_name_) :
       m_source   (source_)
@@ -509,6 +528,20 @@ std::string Arrow::AsQuery() const
 
 //-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
+
+std::string Node::Type2Name(Node::EType type_)
+{
+   if       (type_ == EType::eObject)
+      return sNObject;
+   else if  (type_ == EType::eSCategory)
+      return sNSCategory;
+   else if  (type_ == EType::eLCategory)
+      return sNLCategory;
+   else
+      return "";
+}
+
+//-----------------------------------------------------------------------------------------
 bool Node::operator<(const Node& cat_) const
 {
    return m_name < cat_.m_name;
@@ -676,7 +709,7 @@ bool Node::AddNode(const Node& node_)
    }
    else
    {
-      print_error("Node redefinition: " + node_.Name());
+      print_error("Redefinition of " + Node::Type2Name(node_.Type()) + ": " + node_.Name());
       return false;
    }
 
@@ -916,18 +949,21 @@ Node Node::Query(const std::string& query_, std::optional<size_t> matchCount_)
 //-----------------------------------------------------------------------------------------
 bool Node::Verify(const Arrow& arrow_) const
 {
-   auto itSourceCat = m_nodes.find(Node(arrow_.Source(), InternalNode()));
-   auto itTargetCat = m_nodes.find(Node(arrow_.Target(), InternalNode()));
+   auto source_node = Node(arrow_.Source(), InternalNode());
+   auto target_node = Node(arrow_.Target(), InternalNode());
+
+   auto itSourceCat = m_nodes.find(source_node);
+   auto itTargetCat = m_nodes.find(target_node);
 
    if (itSourceCat == m_nodes.end())
    {
-      print_error("No such source node: " + arrow_.Source());
+      print_error("No such source " + Node::Type2Name(source_node.Type()) + ": " + arrow_.Source());
       return false;
    }
 
    if (itTargetCat == m_nodes.end())
    {
-      print_error("No such target node: " + arrow_.Target());
+      print_error("No such target " + Node::Type2Name(target_node.Type()) + ": " + arrow_.Target());
       return false;
    }
 
@@ -945,7 +981,7 @@ bool Node::Verify(const Arrow& arrow_) const
       if (itv != visited.end())
       {
          auto msg = "Functor: " + arrow_.Name() + " : ";
-         msg += "Mapping the same node " + arrow.Source() + " multiple times with arrow " + arrow.Name();
+         msg += "Mapping the same object " + arrow.Source() + " multiple times with morphism " + arrow.Name();
          print_error(msg);
          return false;
       }
@@ -954,7 +990,7 @@ bool Node::Verify(const Arrow& arrow_) const
 
       if (source_cat.QueryNodes(arrow.Source()).empty())
       {
-         print_error("Missing node for " + arrow.Source() + sMorphism + arrow.Target());
+         print_error("Missing object for " + arrow.Source() + sMorphism + arrow.Target());
          return false;
       }
    }
@@ -964,56 +1000,59 @@ bool Node::Verify(const Arrow& arrow_) const
    {
       if (!arrow_.SingleMap(obj))
       {
-         print_error("Failure to map node: " + obj.Name());
+         print_error("Failure to map " + Node::Type2Name(obj.Type()) + ": " + obj.Name());
          return false;
       }
    }
 
    for (const Arrow& arrow : source_cat.QueryArrows("* :: * -> *"))
    {
-      auto objs = arrow_.SingleMap(Node(arrow.Source(), source_cat.InternalNode()));
-      auto objt = arrow_.SingleMap(Node(arrow.Target(), source_cat.InternalNode()));
+      auto mapped_source = Node(arrow.Source(), source_cat.InternalNode());
+      auto mapped_target = Node(arrow.Target(), source_cat.InternalNode());
+
+      auto objs = arrow_.SingleMap(mapped_source);
+      auto objt = arrow_.SingleMap(mapped_target);
 
       if (!objs)
       {
-         print_error("Failure to map node: " + arrow.Source());
+         print_error("Failure to map " + Node::Type2Name(mapped_source.Type()) + " " + mapped_source.Name());
          return false;
       }
 
       if (source_cat.QueryNodes(arrow.Source()).empty())
       {
-         print_error("No such node " + arrow.Source() + " in node " + source_cat.Name());
+         print_error("No such " + Node::Type2Name(mapped_source.Type()) + " " + mapped_source.Name() + " in " + Node::Type2Name(source_cat.Type()) + " " + source_cat.Name());
          return false;
       }
 
       if (target_cat.QueryNodes(objs->Name()).empty())
       {
-         print_error("No such node " + objs->Name() + " in node " + target_cat.Name());
+         print_error("No such " + Node::Type2Name(objs->Type()) + " " + objs->Name() + " in " + Node::Type2Name(target_cat.Type()) + " " + target_cat.Name());
          return false;
       }
 
       if (!objt)
       {
-         print_error("Failure to map node: " + arrow.Target());
+         print_error("Failure to map " + Node::Type2Name(mapped_target.Type()) + " " + mapped_target.Name());
          return false;
       }
 
       if (source_cat.QueryNodes(arrow.Target()).empty())
       {
-         print_error("No such node " + arrow.Target() + " in node " + source_cat.Name());
+         print_error("No such " + Node::Type2Name(mapped_target.Type()) + " " + mapped_target.Name() + " in " + Node::Type2Name(source_cat.Type()) + " " + source_cat.Name());
          return false;
       }
 
       if (target_cat.QueryNodes(objt->Name()).empty())
       {
-         print_error("No such node " + objt->Name() + " in node " + target_cat.Name());
+         print_error("No such " + Node::Type2Name(objt->Type()) + " " + objt->Name() + " in " + Node::Type2Name(target_cat.Type()) + " " + target_cat.Name());
          return false;
       }
 
       // Checking mapping of arrows
       if (target_cat.QueryArrows("* :: " + objs->Name() + sMorphism + objt->Name()).empty())
       {
-         print_error("Failure to match arrow: " + objs->Name() + sMorphism + objt->Name());
+         print_error("Failure to match morphism: " + objs->Name() + sMorphism + objt->Name());
          return false;
       }
    }
@@ -1451,11 +1490,11 @@ bool Node::parse_source(const std::string& path_)
       return true;
    };
 
-   auto fnAddNodes = [&](const std::string& line_)
+   auto fnAddObjects = [&](const std::string& line_)
    {
       if (!crt_cat)
       {
-         print_error("No category to add node: " + line_);
+         print_error("No category to add object: " + line_);
          return false;
       }
 
@@ -1465,7 +1504,7 @@ bool Node::parse_source(const std::string& path_)
 
          if (!crt_cat->AddNode(Node(nodeName, Node::EType::eObject)))
          {
-            print_error("Failure to add node: " + nodeName);
+            print_error("Failure to add object: " + nodeName);
             return false;
          }
       }
@@ -1629,7 +1668,7 @@ bool Node::parse_source(const std::string& path_)
       // Nodes
       else if (process_entity == ECurrentEntity::eCategory && head == sObj)
       {
-         if (!fnAddNodes(tail))
+         if (!fnAddObjects(tail))
             return false;
       }
       // Arrow
