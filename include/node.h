@@ -11,7 +11,6 @@
 
 #include "cat_export.h"
 
-#include "types.h"
 #include "log.h"
 
 namespace cat
