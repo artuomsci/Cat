@@ -17,6 +17,17 @@ namespace cat
 {
    class Node;
 
+   enum class ESetTypes
+   {
+         eDouble
+      ,  eFloat
+      ,  eInt
+      ,  eString
+   };
+   using TSetValue      = std::variant<double, float, int, std::string>;
+   using FunctionName   = std::string;
+   using Function       = std::pair<FunctionName, TSetValue>;
+
    /**
     * @brief The Arrow class represents morphisms and functors
     */
@@ -154,6 +165,38 @@ namespace cat
        */
       std::string AsQuery() const;
 
+      //========================================= Set category =========================================
+      /**
+      * @brief Adds const function value
+      * @param aname_ - function name
+      * @param value_ - function value
+      */
+      void AddFunctionValue(const Arrow::AName& aname_, const TSetValue& value_);
+
+      /**
+      * @brief Returns const function value
+      * @param aname_ - function name
+      * @return Function value
+      */
+      std::optional<TSetValue> GetFunctionValue(const Arrow::AName& aname_) const;
+
+      /**
+      * @brief Removes const function value
+      * @param aname_ - function name
+      */
+      void RemoveFunctionValue(const Arrow::AName& aname_);
+
+      /**
+      * @brief Returns const functions values
+      * @return Functions
+      */
+      std::list<Function> GetFunctions() const;
+
+      /**
+      * @brief Removes functions
+      */
+      void RemoveFunctions();
+
    private:
 
       std::string m_source;
@@ -161,6 +204,10 @@ namespace cat
       AName       m_name;
       List        m_arrows;
       EType       m_type;
+
+      // Set data
+      // const functions values
+      std::map<AName, TSetValue> m_fn2value;
    };
 
    /**
@@ -183,9 +230,6 @@ namespace cat
       using List     = std::list<Node>;
       using PairSet  = std::pair<Node, Set>;
       using NName    = std::string;
-
-      using TSetValue   = std::variant<double, float, int, std::string>;
-      using Property    = std::pair<Arrow::AName, TSetValue>;
 
       enum class EType {
             eObject     // Object
@@ -401,38 +445,6 @@ namespace cat
        */
       Arrow::EType InternalArrow() const;
 
-      /**
-       * @brief Adds element to the set
-       * @param aname_ - function returning element of the set
-       * @param nname_ - node containing the set
-       * @param value_ - element of the set
-       * @return True if successful
-       */
-      bool AddSetValue(const Arrow::AName& aname_, const Node::NName& nname_, const TSetValue& value_);
-
-      /**
-       * @brief Removes element from the set
-       * @param aname_ - function returning element of the set
-       * @param nname_ - node containing the set
-       * @return True if successful
-       */
-      bool RemoveSetValue(const Arrow::AName& aname_, const Node::NName& nname_);
-
-      /**
-       * @brief Returns element of the set
-       * @param aname_ - function returning element of the set
-       * @param nname_ - node containing the set
-       * @return Element of the set
-       */
-      std::optional<TSetValue> GetSetValue(const Arrow::AName& aname_, const Node::NName& nname_) const;
-
-      /**
-       * @brief Returns node's set
-       * @param nname_ - node containing the set
-       * @return Set
-       */
-      std::list<Property> GetNodeSet(const Node::NName& nname_) const;
-
       private:
 
       bool validate_node_data() const;
@@ -448,12 +460,6 @@ namespace cat
       Arrow::List    m_arrows;
       NName          m_name;
       EType          m_type;
-
-      // Set category data
-      // Table of values for function
-      using Node2Value = std::map<Node::NName, TSetValue>;
-      // Morphisms and associated functions
-      std::map<Arrow::AName, Node2Value> m_setmap;
    };
 
    struct CAT_EXPORT NodeKeyHasher

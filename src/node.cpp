@@ -527,6 +527,45 @@ std::string Arrow::AsQuery() const
 }
 
 //-----------------------------------------------------------------------------------------
+void Arrow::AddFunctionValue(const Arrow::AName& aname_, const TSetValue& value_)
+{
+   m_fn2value[aname_] = value_;
+}
+
+//-----------------------------------------------------------------------------------------
+std::optional<TSetValue> Arrow::GetFunctionValue(const Arrow::AName& aname_) const
+{
+   auto it = m_fn2value.find(aname_);
+   if (it != m_fn2value.end())
+      return it->second;
+
+   return std::optional<TSetValue>();
+}
+
+//-----------------------------------------------------------------------------------------
+void Arrow::RemoveFunctionValue(const Arrow::AName& aname_)
+{
+   m_fn2value.erase(aname_);
+}
+
+//-----------------------------------------------------------------------------------------
+std::list<Function> Arrow::GetFunctions() const
+{
+   std::list<Function> ret;
+
+   for (const auto& it : m_fn2value)
+      ret.push_back(it);
+
+   return ret;
+}
+
+//-----------------------------------------------------------------------------------------
+void Arrow::RemoveFunctions()
+{
+   m_fn2value.clear();
+}
+
+//-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
 
 std::string Node::Type2Name(Node::EType type_)
@@ -1341,87 +1380,6 @@ Node::EType Node::InternalNode() const
 Arrow::EType Node::InternalArrow() const
 {
    return m_type == Node::EType::eLCategory ? Arrow::EType::eFunctor : Arrow::EType::eMorphism;
-}
-
-//-----------------------------------------------------------------------------------------
-bool Node::AddSetValue(const Arrow::AName& aname_, const Node::NName& nname_, const TSetValue& value_)
-{
-   if (m_type != EType::eSCategory)
-   {
-      print_error("Only objects allowed to contain set");
-      return false;
-   }
-
-   auto retn = QueryNodes(nname_);
-   if (retn.empty())
-   {
-      print_error("Object " + nname_ + " not found");
-      return false;
-   }
-
-   auto tr_aname = trim_sp(aname_);
-   auto tr_nname = trim_sp(nname_);
-
-   m_setmap[tr_aname][tr_nname] = value_;
-
-   return true;
-}
-
-//-----------------------------------------------------------------------------------------
-bool Node::RemoveSetValue(const Arrow::AName& aname_, const Node::NName& nname_)
-{
-   if (m_type != EType::eSCategory)
-      return false;
-
-   auto tr_aname = trim_sp(aname_);
-   auto tr_nname = trim_sp(nname_);
-
-   auto ita = m_setmap.find(tr_aname);
-   if (ita == m_setmap.end())
-      return false;
-
-   Node2Value& codomain = ita->second;
-
-   return codomain.erase(nname_) != 0;
-}
-
-//-----------------------------------------------------------------------------------------
-std::optional<Node::TSetValue> Node::GetSetValue(const Arrow::AName& aname_, const Node::NName& nname_) const
-{
-   if (m_type != EType::eSCategory)
-      return std::optional<Node::TSetValue>();
-
-   auto tr_aname = trim_sp(aname_);
-   auto tr_nname = trim_sp(nname_);
-
-   auto ita = m_setmap.find(tr_aname);
-   if (ita == m_setmap.end())
-      return std::optional<Node::TSetValue>();
-
-   const Node2Value& codomain = ita->second;
-
-   auto itn = codomain.find(tr_nname);
-   if (itn == codomain.end())
-      return std::optional<Node::TSetValue>();
-
-   return itn->second;
-}
-
-//-----------------------------------------------------------------------------------------
-std::list<Node::Property> Node::GetNodeSet(const Node::NName& nname_) const
-{
-   std::list<Node::Property> ret;
-
-   for (auto& [aname, node2value] : m_setmap)
-   {
-      auto it = node2value.find(nname_);
-      if (it != node2value.end())
-      {
-         ret.push_back({aname, it->second});
-      }
-   }
-
-   return ret;
 }
 
 //-----------------------------------------------------------------------------------------
