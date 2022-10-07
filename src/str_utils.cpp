@@ -105,7 +105,7 @@ StringVec cat::split(const std::string& string_, const std::string& splitter_, b
 std::string cat::trim_left(const std::string& string_, std::string::value_type symbol_)
 {
    int start_ind {};
-   while (true)
+   while (true && start_ind < string_.size())
    {
       if (string_.at(start_ind) != symbol_)
          break;
@@ -119,7 +119,7 @@ std::string cat::trim_left(const std::string& string_, std::string::value_type s
 std::string cat::trim_right(const std::string& string_, std::string::value_type symbol_)
 {
    int end_ind = (int)string_.length() - 1;
-   while (true)
+   while (true && end_ind >= 0)
    {
       if (string_.at(end_ind) != symbol_)
          break;
