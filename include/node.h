@@ -6,7 +6,6 @@
 #include <optional>
 #include <string>
 #include <list>
-#include <filesystem>
 #include <variant>
 
 #include "cat_export.h"
@@ -244,6 +243,18 @@ namespace cat
       */
       static std::string Type2Name(EType type_);
 
+      /**
+      * @brief Converts enum type to string
+      * @return Type
+      */
+      static std::string Type2Str(EType type_);
+
+      /**
+      * @brief Converts string to enum type
+      * @return Type
+      */
+      static EType Str2Type(const std::string& type_);
+
       bool operator < (const Node& cat_) const;
       bool operator ==(const Node& cat_) const;
       bool operator !=(const Node& cat_) const;
@@ -253,12 +264,6 @@ namespace cat
       * @param name_ - node name
       */
       explicit Node(const NName& name_, EType type_);
-
-      /**
-      * @brief Parses file
-      * @return True if file was successfully parsed
-      */
-      bool Parse(const std::string& path_);
 
       /**
        * @brief Adds arrow
@@ -448,13 +453,6 @@ namespace cat
       private:
 
       bool validate_node_data() const;
-
-      /**
-       * @brief Parse the file contents
-       * @param path_ - file path
-       * @return True if file was successfully parsed
-       */
-      bool parse_source(const std::string& path_);
 
       Map            m_nodes;
       Arrow::List    m_arrows;

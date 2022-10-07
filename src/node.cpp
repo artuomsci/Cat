@@ -12,16 +12,8 @@
 using namespace cat;
 
 // Keywords
-// Category
-static const char* const sCat = "cat";
-// Object
-static const char* const sObj = "obj";
 // Any entity
 static const char* const sAny = "*";
-// Comment
-static const char* const sComment = "--";
-// Import
-static const char* const sImport = "import";
 
 // Arrow type
 static const char* sFunctor  = "=>";
@@ -30,9 +22,6 @@ static const char* sMorphism = "->";
 // Logic statements
 static const char sAND = '&';
 static const char sOR  = '|';
-
-// File extension
-static const char* const sExt = ".cat";
 
 // entity names
 static const char* sNObject    = "object";
@@ -43,9 +32,15 @@ static const char* sNFunctor   = "functor";
 static const char* sNMorphism  = "morphism";
 
 //-----------------------------------------------------------------------------------------
+static std::string trim_sp_s(const std::string& string_, std::string::value_type symbol_)
+{
+   return trim_right(trim_left(string_, symbol_), symbol_);
+}
+
+//-----------------------------------------------------------------------------------------
 static std::string trim_sp(const std::string& string_)
 {
-   return trim_right(trim_left(string_, ' '), ' ');
+   return trim_sp_s(string_, ' ');
 }
 
 //-----------------------------------------------------------------------------------------
@@ -581,6 +576,36 @@ std::string Node::Type2Name(Node::EType type_)
 }
 
 //-----------------------------------------------------------------------------------------
+std::string Node::Type2Str(EType type_)
+{
+   if       (type_ == EType::eObject)
+      return "eObject";
+   else if  (type_ == EType::eSCategory)
+      return "eSCategory";
+   else if  (type_ == EType::eLCategory)
+      return "eLCategory";
+   else if  (type_ == EType::eUndefined)
+      return "eUndefined";
+
+   return "";
+}
+
+//-----------------------------------------------------------------------------------------
+Node::EType Node::Str2Type(const std::string& type_)
+{
+   if       (type_ == "eObject")
+      return EType::eObject;
+   else if  (type_ == "eSCategory")
+      return EType::eSCategory;
+   else if  (type_ == "eLCategory")
+      return EType::eLCategory;
+   else if  (type_ == "eUndefined")
+      return EType::eUndefined;
+
+   return EType::eUndefined;
+}
+
+//-----------------------------------------------------------------------------------------
 bool Node::operator<(const Node& cat_) const
 {
    return m_name < cat_.m_name;
@@ -601,12 +626,8 @@ bool Node::operator!=(const Node& cat_) const
 //-----------------------------------------------------------------------------------------
 Node::Node(const NName& name_, EType type_) : m_name(name_), m_type(type_)
 {
-}
-
-//-----------------------------------------------------------------------------------------
-bool Node::Parse(const std::string& path_)
-{
-   return parse_source(path_);
+   if (type_ == EType::eUndefined)
+      throw std::runtime_error("EType::eUndefined is not allowed as a node type");
 }
 
 //-----------------------------------------------------------------------------------------
@@ -1390,279 +1411,6 @@ bool Node::validate_node_data() const
       sz += codomain.size();
 
    return sz == m_arrows.size();
-}
-
-//-----------------------------------------------------------------------------------------
-bool Node::parse_source(const std::string& path_)
-{
-   std::ifstream input(path_);
-   if (!input.is_open())
-      return false;
-
-   std::stringstream descr;
-   descr << input.rdbuf();
-
-   input.close();
-
-   std::filesystem::path path(path_);
-
-   enum class ECurrentEntity
-   {
-         eCategory
-      ,  eFunctor
-      ,  eNone
-   }
-   process_entity { ECurrentEntity::eNone };
-
-   std::optional<Node > crt_cat;
-   std::optional<Arrow> crt_func;
-
-   auto fnEndCategory = [&]()
-   {
-      if (crt_cat)
-         AddNode(crt_cat.value());
-
-      crt_cat.reset();
-
-      return true;
-   };
-
-   auto fnBeginCategory = [&](const std::string& line_)
-   {
-      auto nodes = QueryNodes(line_);
-      if (!nodes.empty())
-      {
-         print_error("Category redefinition: " + line_);
-         return false;
-      }
-
-      for (auto& itNodeName : split(line_, sAND, false))
-      {
-         fnEndCategory();
-
-         auto nodeName = trim_sp(itNodeName);
-
-         crt_cat.emplace(nodeName, Node::EType::eSCategory);
-      }
-
-      return true;
-   };
-
-   auto fnAddObjects = [&](const std::string& line_)
-   {
-      if (!crt_cat)
-      {
-         print_error("No category to add object: " + line_);
-         return false;
-      }
-
-      for (auto& itNodeName : split(line_, sAND, false))
-      {
-         auto nodeName = trim_sp(itNodeName);
-
-         if (!crt_cat->AddNode(Node(nodeName, Node::EType::eObject)))
-         {
-            print_error("Failure to add object: " + nodeName);
-            return false;
-         }
-      }
-
-      return true;
-   };
-
-   auto fnAddMorphisms = [&](const std::string& line_, std::optional<Node>& crt_cat_)
-   {
-      if (!crt_cat_)
-      {
-         print_error("No category to add morphism: " + line_);
-         return false;
-      }
-
-      const auto& nodes = crt_cat_->QueryNodes("*");
-
-      std::vector<Arrow> morphs = get_arrows(line_, Arrow::EType::eMorphism, nodes, nodes, true);
-      if (morphs.empty())
-      {
-         print_error("Incorrect morphism definition " + line_ + " in category " + crt_cat_->Name());
-         return false;
-      }
-
-      for (const Arrow& morph : morphs)
-      {
-         if (!crt_cat_->AddArrow(morph))
-            return false;
-      }
-
-      return true;
-   };
-
-   auto fnBeginFunctor = [&](const std::string& line_, std::optional<Arrow>& crt_func_)
-   {
-      auto nodes = QueryNodes("*");
-
-      std::vector<Arrow> funcs = get_arrows(line_, Arrow::EType::eFunctor, nodes, nodes, true);
-      if (funcs.size() != 1)
-      {
-         print_error("Incorrect functor definition: " + line_);
-         return false;
-      }
-
-      crt_func_.emplace(funcs.front());
-
-      return true;
-   };
-
-   auto fnEndFunctor = [&]()
-   {
-      if (crt_func)
-      {
-         if (!AddArrow(crt_func.value()))
-            return false;
-
-         crt_func.reset();
-      }
-
-      return true;
-   };
-
-   auto fnAddFMorphisms = [&](const std::string& line_, std::optional<Arrow>& crt_func_)
-   {
-      auto itSourceCat = QueryNodes(crt_func_->Source()).front();
-      auto itTargetCat = QueryNodes(crt_func_->Target()).front();
-
-      std::vector<Arrow> morphs = get_arrows(line_, Arrow::EType::eMorphism, itSourceCat.QueryNodes("*"), itTargetCat.QueryNodes("*"), true);
-      if (morphs.empty())
-      {
-         print_error("Incorrect morphism definition " + line_ + " in functor " + crt_func_->Name());
-         return false;
-      }
-
-      for (const Arrow& morph : morphs)
-         crt_func_.value().AddArrow(morph);
-
-     return true;
-   };
-
-   auto fnStateSwitch = [&]()
-   {
-      return fnEndCategory() && fnEndFunctor();
-   };
-
-   auto fnImport = [](const std::filesystem::path& path_, const std::string& line_, int line_index_, StringVec& lines_)
-   {
-      auto pt = path_;
-      std::ifstream input(pt.remove_filename().string() + line_ + sExt);
-      if (input.is_open())
-      {
-         std::stringstream descr;
-         descr << input.rdbuf();
-
-         input.close();
-
-         StringVec import_lines = split(conform(descr.str()), '\n');
-
-         lines_.insert(lines_.begin() + line_index_ + 1, import_lines.begin(), import_lines.end());
-      }
-      else
-      {
-         print_error("Failure to import: " + line_);
-         return false;
-      }
-
-      return true;
-   };
-
-   StringVec lines = split(conform(descr.str()), '\n');
-
-   for (int i = 0; i < lines.size(); ++i)
-   {
-      if (lines[i].empty())
-         continue;
-
-      std::string line = trim_sp(lines[i]);
-
-      StringVec sections = split(line, ' ', false);
-      if (sections.size() < 2)
-      {
-         print_error("Invalid record: " + line);
-         return false;
-      }
-
-      const std::string& head = sections[0];
-
-      size_t tail_start = head.length();
-      while (true)
-      {
-         if (line.at(tail_start) != ' ')
-            break;
-
-         tail_start++;
-      }
-
-      std::string tail = line.substr(tail_start, line.length());
-
-      // Comment
-      if (head == sComment)
-      {
-         continue;
-      }
-      // Import
-      if (head == sImport)
-      {
-         if (!fnImport(path_, tail, i, lines))
-            return false;
-      }
-      // Category
-      else if (head == sCat)
-      {
-         if (!fnStateSwitch())
-            return false;
-
-         if (!fnBeginCategory(tail))
-            return false;
-
-         process_entity = ECurrentEntity::eCategory;
-      }
-      // Nodes
-      else if (process_entity == ECurrentEntity::eCategory && head == sObj)
-      {
-         if (!fnAddObjects(tail))
-            return false;
-      }
-      // Arrow
-      else if (process_entity == ECurrentEntity::eCategory && is_morphism(line))
-      {
-         if (!fnAddMorphisms(line, crt_cat))
-            return false;
-      }
-      // Arrow
-      else if (is_functor(line))
-      {
-         process_entity = ECurrentEntity::eFunctor;
-
-         if (!fnStateSwitch())
-            return false;
-
-         if (!fnBeginFunctor(line, crt_func))
-            return false;
-      }
-      // Functor morphism
-      else if (process_entity == ECurrentEntity::eFunctor && is_morphism(line))
-      {
-         if (!fnAddFMorphisms(line, crt_func))
-            return false;
-      }
-      else
-      {
-         print_error(line);
-         return false;
-      }
-   }
-
-   if (!fnStateSwitch())
-      return false;
-
-   return true;
 }
 
 //-----------------------------------------------------------------------------------------
