@@ -77,7 +77,7 @@ static std::string conform(std::string string_)
 }
 
 //-----------------------------------------------------------------------------------------
-static std::vector<Arrow> resolve_arrows(const std::string& name_, Arrow::EType arrow_type_,  const Node& source_, const Node& target_, const Node::List& domain_, const Node::List& codomain_)
+static std::vector<Arrow> resolve_arrows(const std::string& name_, const Node& source_, const Node& target_, const Node::List& domain_, const Node::List& codomain_)
 {
    std::vector<Arrow> ret;
 
@@ -120,7 +120,7 @@ static std::vector<Arrow> resolve_arrows(const std::string& name_, Arrow::EType 
       if (!fnCheckTarget())
          return ret;
 
-      ret.push_back(Arrow(arrow_type_, source_.Name(), target_.Name(), name_));
+      ret.push_back(Arrow(source_, target_, name_));
    }
    // * :: a -> b
    else if  (name_ == sAny && source_.Name() != sAny && target_.Name() != sAny)
@@ -130,7 +130,7 @@ static std::vector<Arrow> resolve_arrows(const std::string& name_, Arrow::EType 
       if (!fnCheckTarget())
          return ret;
 
-      ret.push_back(Arrow(arrow_type_, source_.Name(), target_.Name()));
+      ret.push_back(Arrow(source_, target_));
    }
    // * :: * -> *
    else if (name_ == sAny && source_.Name() == sAny && target_.Name() == sAny)
@@ -139,7 +139,7 @@ static std::vector<Arrow> resolve_arrows(const std::string& name_, Arrow::EType 
       {
          for (const auto& cnode : codomain_)
          {
-            ret.push_back(Arrow(arrow_type_, dnode.Name(), cnode.Name()));
+            ret.push_back(Arrow(dnode, cnode));
          }
       }
    }
@@ -150,7 +150,7 @@ static std::vector<Arrow> resolve_arrows(const std::string& name_, Arrow::EType 
          return ret;
 
       for (const auto& dnode : domain_)
-         ret.push_back(Arrow(arrow_type_, dnode.Name(), target_.Name()));
+         ret.push_back(Arrow(dnode, target_));
    }
    // * :: a -> *
    else if (name_ == sAny && source_.Name() != sAny && target_.Name() == sAny)
@@ -159,7 +159,7 @@ static std::vector<Arrow> resolve_arrows(const std::string& name_, Arrow::EType 
          return ret;
 
       for (const auto& cnode : codomain_)
-         ret.push_back(Arrow(arrow_type_, source_.Name(), cnode.Name()));
+         ret.push_back(Arrow(source_, cnode));
    }
    // f :: a -> *
    else if (name_ != sAny && source_.Name() != sAny && target_.Name() == sAny)
@@ -173,7 +173,7 @@ static std::vector<Arrow> resolve_arrows(const std::string& name_, Arrow::EType 
          return ret;
 
       for (const auto& dnode : domain_)
-         ret.push_back(Arrow(arrow_type_, dnode.Name(), target_.Name(), name_));
+         ret.push_back(Arrow(dnode, target_, name_));
    }
    // f :: * -> *
    else if (name_ != sAny && source_.Name() == sAny && target_.Name() == sAny)
@@ -214,11 +214,11 @@ static std::vector<Arrow> get_arrows(const std::string& line_, Arrow::EType arro
 
       if (resolve_)
       {
-         for (const auto& it : resolve_arrows(head, arrow_type_, source, target, domain_, codomain_))
+         for (const auto& it : resolve_arrows(head, source, target, domain_, codomain_))
             ret.push_back(it);
       }
       else
-         ret.push_back(Arrow(arrow_type_, source.Name(), target.Name(), head));
+         ret.push_back(Arrow(source, target, head));
    }
 
    return ret;
@@ -251,6 +251,19 @@ Arrow::Arrow(EType type_, const std::string& source_, const std::string& target_
    ,  m_name     (DefaultArrowName(source_, target_))
    ,  m_type     (type_)
 {};
+
+//-----------------------------------------------------------------------------------------
+Arrow::Arrow(const Node& source_, const Node& target_, const std::string& arrow_name_) :
+   m_source (source_.Name())
+ , m_target (target_.Name())
+ , m_name   (arrow_name_)
+ , m_type   (source_.ExternalArrow())
+{}
+
+//-----------------------------------------------------------------------------------------
+Arrow::Arrow(const Node& source_, const Node& target_) :
+   Arrow(source_, target_, DefaultArrowName(source_.Name(), target_.Name()))
+{}
 
 //-----------------------------------------------------------------------------------------
 bool Arrow::operator<(const Arrow& arrow_) const
@@ -302,7 +315,7 @@ std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
       auto source = SingleMap(Node(arrow.m_source, Node::EType::eObject));
       auto target = SingleMap(Node(arrow.m_target, Node::EType::eObject));
 
-      Arrow mapped_arrow(EType::eMorphism, source->Name(), target->Name());
+      Arrow mapped_arrow(*source, *target);
       if (ret.QueryArrows(mapped_arrow.AsQuery()).empty())
          ret.AddArrow(mapped_arrow);
    }
@@ -759,10 +772,10 @@ bool Node::AddNode(const Node& node_)
    {
       m_nodes[node_];
 
-      Arrow func(InternalArrow(), node_.Name(), node_.Name(), Arrow::IdArrowName(node_.Name()));
+      Arrow func(node_, node_, Arrow::IdArrowName(node_.Name()));
 
       for (const auto& id : node_.QueryNodes("*"))
-         func.AddArrow(Arrow(Arrow::EType::eMorphism, id.Name(), id.Name()));
+         func.AddArrow(Arrow(id, id));
 
       if (!AddArrow(func))
          return false;
@@ -1162,7 +1175,7 @@ void Node::SolveCompositions()
       std::set_difference(new_codomain.begin(), new_codomain.end(), codomain.begin(), codomain.end(), std::inserter(domain_diff, domain_diff.begin()));
 
       for (const auto& codomain_node : domain_diff)
-         AddArrow(Arrow(InternalArrow(), domain.Name(), codomain_node.Name()));
+         AddArrow(Arrow(domain, codomain_node));
    }
 }
 
@@ -1360,7 +1373,8 @@ Arrow::List Node::MapNodes2Arrows(const std::list<Node::NName>& nodes_) const
          return *itn == elem_.Source() && *std::next(itn) == elem_.Target();
       });
 
-      ret.push_back(it != m_arrows.end() ? *it : Arrow(InternalArrow(), "", ""));
+      if (it != m_arrows.end())
+         ret.push_back(*it);
    }
 
    return ret;
@@ -1401,6 +1415,19 @@ Node::EType Node::InternalNode() const
 Arrow::EType Node::InternalArrow() const
 {
    return m_type == Node::EType::eLCategory ? Arrow::EType::eFunctor : Arrow::EType::eMorphism;
+}
+
+//-----------------------------------------------------------------------------------------
+Arrow::EType Node::ExternalArrow() const
+{
+   if       (m_type == Node::EType::eObject)
+      return Arrow::EType::eMorphism;
+   else if  (m_type == Node::EType::eSCategory)
+      return Arrow::EType::eFunctor;
+   else if  (m_type == Node::EType::eLCategory)
+      return Arrow::EType::eUndefined;
+
+   return Arrow::EType::eUndefined;
 }
 
 //-----------------------------------------------------------------------------------------

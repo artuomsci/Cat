@@ -49,6 +49,9 @@ namespace cat
       Arrow(EType type_, const std::string& source_, const std::string& target_, const std::string& arrow_name_);
       Arrow(EType type_, const std::string& source_, const std::string& target_);
 
+      Arrow(const Node& source_, const Node& target_, const std::string& arrow_name_);
+      Arrow(const Node& source_, const Node& target_);
+
       bool operator <  (const Arrow& arrow_) const;
       bool operator == (const Arrow& arrow_) const;
       bool operator != (const Arrow& arrow_) const;
@@ -449,6 +452,12 @@ namespace cat
        * @return Arrow type
        */
       Arrow::EType InternalArrow() const;
+
+      /**
+       * @brief Returns type of external arrows
+       * @return Arrow type
+       */
+      Arrow::EType ExternalArrow() const;
 
       private:
 

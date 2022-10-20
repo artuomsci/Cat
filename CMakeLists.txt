@@ -7,7 +7,7 @@ project(cat LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-file(GLOB INCLUDE include/*.h)
+file(GLOB INCLUDE include/*.h test/*.h)
 file(GLOB SRCS src/*.cpp src/*.h)
 
 add_library(cat SHARED ${INCLUDE} ${SRCS})
