@@ -31,6 +31,8 @@ static const char* sNLCategory = "large category";
 static const char* sNFunctor   = "functor";
 static const char* sNMorphism  = "morphism";
 
+static const char* sVoid       = "void";
+
 //-----------------------------------------------------------------------------------------
 static std::string trim_sp_s(const std::string& string_, std::string::value_type symbol_)
 {
@@ -356,7 +358,8 @@ const Arrow::AName& Arrow::Name() const
 //-----------------------------------------------------------------------------------------
 void Arrow::AddArrow(const Arrow& arrow_)
 {
-   if (m_type == Arrow::EType::eFunctor && arrow_.Type() == Arrow::EType::eMorphism)
+   if (m_type == Arrow::EType::eFunctor  && arrow_.Type() == Arrow::EType::eMorphism ||
+       m_type == Arrow::EType::eMorphism && arrow_.Type() == Arrow::EType::eFunction)
       m_arrows.push_back(arrow_);
 }
 
@@ -535,45 +538,6 @@ std::string Arrow::AsQuery() const
 }
 
 //-----------------------------------------------------------------------------------------
-void Arrow::AddFunctionValue(const Arrow::AName& aname_, const TSetValue& value_)
-{
-   m_fn2value[aname_] = value_;
-}
-
-//-----------------------------------------------------------------------------------------
-std::optional<TSetValue> Arrow::GetFunctionValue(const Arrow::AName& aname_) const
-{
-   auto it = m_fn2value.find(aname_);
-   if (it != m_fn2value.end())
-      return it->second;
-
-   return std::optional<TSetValue>();
-}
-
-//-----------------------------------------------------------------------------------------
-void Arrow::RemoveFunctionValue(const Arrow::AName& aname_)
-{
-   m_fn2value.erase(aname_);
-}
-
-//-----------------------------------------------------------------------------------------
-std::list<Function> Arrow::GetFunctions() const
-{
-   std::list<Function> ret;
-
-   for (const auto& it : m_fn2value)
-      ret.push_back(it);
-
-   return ret;
-}
-
-//-----------------------------------------------------------------------------------------
-void Arrow::RemoveFunctions()
-{
-   m_fn2value.clear();
-}
-
-//-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
 
 std::string Node::Type2Name(Node::EType type_)
@@ -646,9 +610,14 @@ Node::Node(const NName& name_, EType type_) : m_name(name_), m_type(type_)
 //-----------------------------------------------------------------------------------------
 bool Node::AddArrow(const Arrow& arrow_)
 {
-   if (m_type == EType::eObject)
+   bool constraint =
+   (m_type == EType::eObject     ) && (arrow_.Type() == Arrow::EType::eFunction  ) ||
+   (m_type == EType::eSCategory  ) && (arrow_.Type() == Arrow::EType::eMorphism  ) ||
+   (m_type == EType::eLCategory  ) && (arrow_.Type() == Arrow::EType::eFunctor   );
+
+   if (!constraint)
    {
-      print_error("Arrows aren't allowed");
+      print_error("Incompatible type of arrows");
       return false;
    }
 
@@ -825,6 +794,26 @@ bool Node::EraseNode(const NName& node_)
    }
 
    return false;
+}
+
+//-----------------------------------------------------------------------------------------
+void Node::ReplaceNode(const Node& node_)
+{
+   auto it = m_nodes.find(node_);
+   if (it != m_nodes.end())
+   {
+      auto codomain = it->second;
+
+      codomain.erase(node_);
+
+      codomain.insert(node_);
+
+      m_nodes.erase(it);
+
+      m_nodes[node_] = codomain;
+   }
+   else
+      AddNode(node_);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -1048,6 +1037,9 @@ bool Node::Verify(const Arrow& arrow_) const
 
    for (const Arrow& arrow : arrow_.QueryArrows("* :: * -> *"))
    {
+      if (arrow.Source() == sVoid)
+         continue;
+
       auto head = TSource2Arrow::value_type(arrow.Source(), arrow.Name());
 
       auto itv = visited.find(head);
@@ -1407,6 +1399,8 @@ Node::EType Node::InternalNode() const
       return EType::eSCategory;
    else if  (m_type == EType::eSCategory)
       return EType::eObject;
+   else if  (m_type == EType::eObject)
+      return EType::eSet;
    else
       return EType::eUndefined;
 }
@@ -1420,7 +1414,9 @@ Arrow::EType Node::InternalArrow() const
 //-----------------------------------------------------------------------------------------
 Arrow::EType Node::ExternalArrow() const
 {
-   if       (m_type == Node::EType::eObject)
+   if       (m_type == Node::EType::eSet)
+      return Arrow::EType::eFunction;
+   else if  (m_type == Node::EType::eObject)
       return Arrow::EType::eMorphism;
    else if  (m_type == Node::EType::eSCategory)
       return Arrow::EType::eFunctor;
@@ -1428,6 +1424,18 @@ Arrow::EType Node::ExternalArrow() const
       return Arrow::EType::eUndefined;
 
    return Arrow::EType::eUndefined;
+}
+
+//-----------------------------------------------------------------------------------------
+void Node::SetValue(const TSetValue& value_)
+{
+   m_value = value_;
+}
+
+//-----------------------------------------------------------------------------------------
+const TSetValue& Node::GetValue() const
+{
+   return m_value;
 }
 
 //-----------------------------------------------------------------------------------------

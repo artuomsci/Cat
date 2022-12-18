@@ -37,6 +37,7 @@ namespace cat
       enum class EType {
             eMorphism   // Morphism
          ,  eFunctor    // Functor
+         ,  eFunction   // Function
          ,  eUndefined
       };
 
@@ -167,38 +168,6 @@ namespace cat
        */
       std::string AsQuery() const;
 
-      //========================================= Set category =========================================
-      /**
-      * @brief Adds const function value
-      * @param aname_ - function name
-      * @param value_ - function value
-      */
-      void AddFunctionValue(const Arrow::AName& aname_, const TSetValue& value_);
-
-      /**
-      * @brief Returns const function value
-      * @param aname_ - function name
-      * @return Function value
-      */
-      std::optional<TSetValue> GetFunctionValue(const Arrow::AName& aname_) const;
-
-      /**
-      * @brief Removes const function value
-      * @param aname_ - function name
-      */
-      void RemoveFunctionValue(const Arrow::AName& aname_);
-
-      /**
-      * @brief Returns const functions values
-      * @return Functions
-      */
-      std::list<Function> GetFunctions() const;
-
-      /**
-      * @brief Removes functions
-      */
-      void RemoveFunctions();
-
    private:
 
       std::string m_source;
@@ -206,10 +175,6 @@ namespace cat
       AName       m_name;
       List        m_arrows;
       EType       m_type;
-
-      // Set data
-      // const functions values
-      std::map<AName, TSetValue> m_fn2value;
    };
 
    /**
@@ -234,7 +199,8 @@ namespace cat
       using NName    = std::string;
 
       enum class EType {
-            eObject     // Object
+            eSet        // Set
+         ,  eObject     // Object
          ,  eSCategory  // Small category
          ,  eLCategory  // Large category
          ,  eUndefined
@@ -326,6 +292,12 @@ namespace cat
        * @return True if successfull
        */
       bool EraseNode(const NName& node_);
+
+      /**
+       * @brief Replaces node
+       * @param node_ - node
+       */
+      void ReplaceNode(const Node& node_);
 
       /**
        * @brief Erases all nodes
@@ -459,6 +431,17 @@ namespace cat
        */
       Arrow::EType ExternalArrow() const;
 
+      /**
+       * @brief Sets value
+       */
+      void SetValue(const TSetValue& value_);
+
+      /**
+       * @brief Returns value
+       * @return Value
+       */
+      const TSetValue& GetValue() const;
+
       private:
 
       bool validate_node_data() const;
@@ -467,6 +450,7 @@ namespace cat
       Arrow::List    m_arrows;
       NName          m_name;
       EType          m_type;
+      TSetValue      m_value;
    };
 
    struct CAT_EXPORT NodeKeyHasher
