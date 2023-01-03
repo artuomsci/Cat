@@ -18,7 +18,7 @@ namespace cat
 
    enum class ESetTypes
    {
-         eDouble
+         eDouble = 0
       ,  eFloat
       ,  eInt
       ,  eString

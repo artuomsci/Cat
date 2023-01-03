@@ -1029,6 +1029,9 @@ bool Node::Verify(const Arrow& arrow_) const
       return false;
    }
 
+   if (arrow_.Type() == Arrow::EType::eMorphism || arrow_.Type() == Arrow::EType::eFunction)
+      return true;
+
    const auto& [source_cat, _s] = *itSourceCat;
    const auto& [target_cat, _t] = *itTargetCat;
 
@@ -1037,9 +1040,6 @@ bool Node::Verify(const Arrow& arrow_) const
 
    for (const Arrow& arrow : arrow_.QueryArrows("* :: * -> *"))
    {
-      if (arrow.Source() == sVoid)
-         continue;
-
       auto head = TSource2Arrow::value_type(arrow.Source(), arrow.Name());
 
       auto itv = visited.find(head);
