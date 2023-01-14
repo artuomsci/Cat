@@ -178,7 +178,7 @@ namespace cat
    };
 
    /**
-    * @brief The Node class represents objects and categories
+    * @brief The Node class
     */
    class CAT_EXPORT Node
    {
@@ -343,7 +343,7 @@ namespace cat
        * @param matchCount_ - match count limit
        * @return Pattern
        */
-      Node Query(const std::string& query_, std::optional<size_t> matchCount_ = std::optional<size_t>());
+      Node Query(const std::string& query_, std::optional<size_t> matchCount_ = std::optional<size_t>()) const;
 
       /**
        * @brief Verifying arrow
@@ -351,6 +351,12 @@ namespace cat
        * @return True if successful
        */
       bool Verify(const Arrow& arrow_) const;
+
+      /**
+       * @brief Sets node name
+       * @param name_ - name
+       */
+      void SetName(const NName& name_);
 
       /**
        * @brief Returns node name

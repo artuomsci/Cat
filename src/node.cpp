@@ -874,7 +874,7 @@ Node::List Node::QueryNodes(const std::string& query_) const
 }
 
 //-----------------------------------------------------------------------------------------
-Node Node::Query(const std::string& query_, std::optional<size_t> matchCount_)
+Node Node::Query(const std::string& query_, std::optional<size_t> matchCount_) const
 {
    if (matchCount_ && matchCount_ == 0)
       return Node("", Node::EType::eUndefined);
@@ -1123,6 +1123,12 @@ bool Node::Verify(const Arrow& arrow_) const
    }
 
    return true;
+}
+
+//-----------------------------------------------------------------------------------------
+void Node::SetName(const NName& name_)
+{
+   m_name = name_;
 }
 
 //-----------------------------------------------------------------------------------------
