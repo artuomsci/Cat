@@ -91,10 +91,22 @@ namespace cat
       const std::string& Source() const;
 
       /**
+       * @brief Sets source name
+       * @param source_ - source name
+       */
+      void SetSource(const std::string& source_);
+
+      /**
        * @brief Returns arrow target name
        * @return Name
        */
       const std::string& Target() const;
+
+      /**
+       * @brief Sets target name
+       * @param target_ - target name
+       */
+      void SetTarget(const std::string& target_);
 
       /**
        * @brief Returns arrow name
@@ -315,6 +327,13 @@ namespace cat
        * @return Number of nodes
        */
       size_t CountNodes() const;
+
+      /**
+       * @brief Clones node
+       * @param old_ - name of the node to clone
+       * @param new_ - new node name
+       */
+      void CloneNode(const NName& old_, const NName& new_);
 
       /**
        * @brief Queries for arrows

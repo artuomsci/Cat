@@ -344,9 +344,33 @@ const std::string& Arrow::Source() const
 }
 
 //-----------------------------------------------------------------------------------------
+void Arrow::SetSource(const std::string& source_)
+{
+   if (DefaultArrowName(m_source, m_target) == m_name)
+   {
+      m_source = source_;
+      m_name = DefaultArrowName(m_source, m_target);
+   }
+   else
+      m_source = source_;
+}
+
+//-----------------------------------------------------------------------------------------
 const std::string& Arrow::Target() const
 {
    return m_target;
+}
+
+//-----------------------------------------------------------------------------------------
+void Arrow::SetTarget(const std::string& target_)
+{
+   if (DefaultArrowName(m_source, m_target) == m_name)
+   {
+      m_target = target_;
+      m_name = DefaultArrowName(m_source, m_target);
+   }
+   else
+      m_target = target_;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -833,6 +857,49 @@ bool Node::IsNodesEmpty() const
 size_t Node::CountNodes() const
 {
    return m_nodes.size();
+}
+
+//-----------------------------------------------------------------------------------------
+void Node::CloneNode(const NName& old_, const NName& new_)
+{
+   Node::List nodes = QueryNodes(old_);
+   if (nodes.size() != 1)
+      return;
+
+   Node node = nodes.front();
+   node.SetName(new_);
+
+   AddNode(node);
+
+   // outward
+   {
+      Arrow::List arrows = QueryArrows(Arrow(InternalArrow(), old_, "*", "*").AsQuery());
+
+      for (Arrow& arrow : arrows)
+      {
+         if (arrow.Source() == arrow.Target())
+            continue;
+
+         arrow.SetSource(new_);
+
+         AddArrow(arrow);
+      }
+   }
+
+   // inward
+   {
+      Arrow::List arrows = QueryArrows(Arrow(InternalArrow(), "*", old_, "*").AsQuery());
+
+      for (Arrow& arrow : arrows)
+      {
+         if (arrow.Source() == arrow.Target())
+            continue;
+
+         arrow.SetTarget(new_);
+
+         AddArrow(arrow);
+      }
+   }
 }
 
 //-----------------------------------------------------------------------------------------
