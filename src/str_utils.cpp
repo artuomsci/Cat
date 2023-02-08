@@ -73,6 +73,9 @@ StringVec cat::split(const std::string& string_, const std::string& splitter_, b
 {
    StringVec ret;
 
+   if (splitter_.empty())
+      return { string_ };
+
    std::string remain = string_;
 
    auto ind = remain.find(splitter_);
