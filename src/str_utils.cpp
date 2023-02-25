@@ -34,30 +34,28 @@ std::string cat::remove_rep(const std::string& string_, std::string::value_type 
 //-----------------------------------------------------------------------------------------
 StringVec cat::split(const std::string& string_, std::string::value_type symbol_, bool keep_empty_)
 {
-   std::string newstr = remove_rep(string_, symbol_);
-
    StringVec ret;
 
-   std::string::iterator marker  = newstr.begin();
-   std::string::iterator head    = marker;
+   std::string::const_iterator marker  = string_.begin();
+   std::string::const_iterator head    = marker;
 
    for (;;)
    {
-      if (head == newstr.end() || *head == symbol_)
+      if (head == string_.end() || *head == symbol_)
       {
          std::string str(marker, head);
-
-         marker = std::next(head);
 
          bool add = str.empty() && (keep_empty_ == false);
          if (!add)
             ret.push_back(str);
 
-         if (head == newstr.end())
+         if (head == string_.end())
             break;
-      }
 
-      head++;
+         marker = ++head;
+      }
+      else
+         ++head;
    }
 
    return ret;
