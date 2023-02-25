@@ -38,32 +38,27 @@ StringVec cat::split(const std::string& string_, std::string::value_type symbol_
 
    StringVec ret;
 
-   std::string::iterator marker = newstr.begin();
+   std::string::iterator marker  = newstr.begin();
+   std::string::iterator head    = marker;
 
-   for (std::string::iterator it = marker; it != newstr.end(); ++it)
+   for (;;)
    {
-      if (*it == symbol_)
+      if (head == newstr.end() || *head == symbol_)
       {
-         std::string str(marker, it);
+         std::string str(marker, head);
 
-         marker = std::next(it);
+         marker = std::next(head);
 
          bool add = str.empty() && (keep_empty_ == false);
          if (!add)
             ret.push_back(str);
+
+         if (head == newstr.end())
+            break;
       }
-   }
 
-   if (marker != newstr.begin())
-   {
-      std::string str(marker, newstr.end());
-
-      bool add = str.empty() && (keep_empty_ == false);
-      if (!add)
-         ret.push_back(str);
+      head++;
    }
-   else
-      ret.push_back(string_);
 
    return ret;
 }
