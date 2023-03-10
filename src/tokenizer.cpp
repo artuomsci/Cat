@@ -42,7 +42,7 @@ bool IsToken<TokenGroup::eKey>(std::string::value_type symbol_)
 template <>
 bool IsToken<TokenGroup::eSkip>(std::string::value_type symbol_)
 {
-   return IsInGroup({ TAB::id, SPACE::id }, symbol_);
+   return IsInGroup({ TAB::id, SPACE::id, NEXT_LINE::id }, symbol_);
 }
 
 //-----------------------------------------------------------------------------------------
@@ -356,6 +356,8 @@ std::string Tokenizer::TokenLog(const TToken& tk_, bool append_value_)
       return std::string(1, std::get<SPACE>(tk_).id);
    else if  (std::holds_alternative<TAB>(tk_))
       return std::string(1, std::get<TAB>(tk_).id);
+   else if  (std::holds_alternative<NEXT_LINE>(tk_))
+      return std::string(1, std::get<NEXT_LINE>(tk_).id);
 
    return "";
 }

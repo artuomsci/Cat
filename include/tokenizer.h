@@ -47,6 +47,9 @@ namespace cat
    struct TAB           {
       static const constexpr char id   = '\t';
    };
+   struct NEXT_LINE     {
+      static const constexpr char id   = '\n';
+   };
 
    // Delimeters
    struct COMMA         {
@@ -68,7 +71,7 @@ namespace cat
    using TServiceT    = std::tuple<DOUBLE_ARROW, SINGLE_ARROW>;
    using TDelimeterT  = std::tuple<COMMA, BEGIN_BR, END_BR, SEMICOLON, COLON>;
    using TKeyT        = std::tuple<ASTERISK, QUOTE>;
-   using TSkipT       = std::tuple<SPACE, TAB>;
+   using TSkipT       = std::tuple<SPACE, TAB, NEXT_LINE>;
 
    using TToken = std::variant<
          // Keyword types
@@ -82,7 +85,7 @@ namespace cat
          // Key types
          ASTERISK, QUOTE,
          // Skip types
-         SPACE, TAB,
+         SPACE, TAB, NEXT_LINE,
          // Basic types
          int, float, double, std::string
       >;
