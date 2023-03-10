@@ -103,7 +103,7 @@ static bool AddToken(std::list<TToken>& tokens_, std::string::const_iterator beg
       tokens_.push_back(TToken(std::stod(tk)));
    }
    // Word
-   else if  (std::regex_match(tk, std::regex("[a-zA-Z]+[0-9]*")))
+   else if  (std::regex_match(tk, std::regex("[a-zA-Z_]+[0-9]*")))
    {
       if       (tk == LCAT::id)
          tokens_.push_back(LCAT());
