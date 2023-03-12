@@ -1,4 +1,4 @@
-# Cat's sandbox for category theory
+# Cat's sandbox for the category theory
 
 <img src="https://github.com/artuomsci/Cat/blob/main/imgs/cat.png" width="512">
 
