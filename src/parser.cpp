@@ -251,6 +251,9 @@ bool Parser::Parse(const std::string& filename_)
          if (!parse_CAT(it, tokens.end(), cat::Node::EType::eObject, m_pNode))
             return false;
       }
+      else if (std::holds_alternative<SEMICOLON>(tk))
+      {
+      }
       else
          return false;
 
