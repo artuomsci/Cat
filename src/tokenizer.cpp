@@ -88,22 +88,22 @@ static bool AddToken(std::list<TToken>& tokens_, std::string::const_iterator beg
    std::string tk(begin_, end_);
 
    // Int
-   if       (std::regex_match(tk, std::regex("[0-9]+")))
+   if       (std::regex_match(tk, std::regex("^-?[0-9]+$")))
    {
       tokens_.push_back(TToken(std::stoi(tk)));
    }
    // Float
-   else if  (std::regex_match(tk, std::regex("[0-9]*.[0-9]+f")))
+   else if  (std::regex_match(tk, std::regex("^-?[0-9]*\\.[0-9]+f$")))
    {
       tokens_.push_back(TToken(std::stof(tk)));
    }
    // Double
-   else if  (std::regex_match(tk, std::regex("[0-9]*.[0-9]+")))
+   else if  (std::regex_match(tk, std::regex("^-?[0-9]*\\.[0-9]+$")))
    {
       tokens_.push_back(TToken(std::stod(tk)));
    }
    // Word
-   else if  (std::regex_match(tk, std::regex("[a-zA-Z_]+[0-9]*")))
+   else if  (std::regex_match(tk, std::regex("^[a-zA-Z_]+[0-9]*$")))
    {
       if       (tk == LCAT::id)
          tokens_.push_back(LCAT());
