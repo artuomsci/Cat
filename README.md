@@ -1,4 +1,4 @@
-# Cat's sandbox for category theory
+# Cat's sandbox for the category theory
 
 <img src="https://github.com/artuomsci/Cat/blob/main/imgs/cat.png" width="512">
 
@@ -22,7 +22,7 @@ LCAT World
 };
 ```
 
-Where **LCAT** stands for large category and **SCAT** is a small category. **OBJ** is used to declare objects of a small category. Morphisms and functors are indicated by **->** and **=>** respectively. Names of morphisms and functors should be unique in the scope they belong to.
+Where **LCAT** stands for large category and **SCAT** is a small category. **OBJ** is used to declare objects. Morphisms and functors are indicated by **->** and **=>** respectively. Names of morphisms and functors should be unique in the scope they belong to.
 
 ## Examples 
 ### Function: *SolveCompositions*
