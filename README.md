@@ -68,3 +68,27 @@ Function **Inverse** does what its name implies.
 <img src="https://github.com/artuomsci/Cat/blob/main/imgs/smartness_3.png" width="512">
 
 Now that the chicken can rule the world.
+
+### Function: *Initial/Terminal*
+
+Taking example from psychology:
+
+```
+SCAT MaslowHierarchy
+{
+   OBJ PhysiologicalNeeds, SafetyNeeds, LoveAndBelonging, Esteem, SelfActualization;
+   
+   f0 : PhysiologicalNeeds -> SafetyNeeds;
+   f1 : SafetyNeeds -> LoveAndBelonging;
+   f2 : LoveAndBelonging -> Esteem;
+   f3 : Esteem -> SelfActualization;
+};
+```
+
+Maslow's hierarchy of needs is not so obvious in the picture below. It may seem chaotic at first, but the law has been preserved. The structure has only been equiped with compositions.
+
+<img src="https://github.com/artuomsci/Cat/blob/main/imgs/MaslowHierarchy.png" width="512">
+
+Finding the bottom and top of hierarchy obliges us to chase the arrows for some time. However, the same result could be obtained by identifying initial and terminal objects of the category.
+
+Function **Initial** returns the object **PhysiologicalNeeds**. Function **Terminal** returns the object **SelfActualization**.
