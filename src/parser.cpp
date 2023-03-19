@@ -114,13 +114,21 @@ bool Parser::parse_OBJ(TKIt& it_, TKIt end_, NodePtr pNode_)
    {
       ++it_;
 
-      if (!std::holds_alternative<std::string>(*it_))
+      std::string name;
+
+      if (std::holds_alternative<std::string>(*it_))
+      {
+         name = std::get<std::string>(*it_);
+      }
+      else if (std::holds_alternative<int>(*it_))
+      {
+         name = std::to_string(std::get<int>(*it_));
+      }
+      else
       {
          print_error("Incorrect OBJ declaration, name expected");
          return false;
       }
-
-      std::string name = std::get<std::string>(*it_);
 
       Node obj(name, Node::EType::eObject);
 
