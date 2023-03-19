@@ -18,11 +18,22 @@ LCAT World
    SCAT People;
    SCAT Aliens;
    
-   isSuperior : People => Aliens;
+   isSuperior  : People => Aliens;
+   *           : Aliens => People;
 };
 ```
+Where:
 
-Where **LCAT** stands for large category and **SCAT** is a small category. **OBJ** is used to declare objects. Morphisms and functors are indicated by **->** and **=>** respectively. Names of morphisms and functors should be unique in the scope they belong to.
+| Identifier | Meaning |
+| ---      | ---       |
+| **LCAT** | large category |
+| **SCAT** | small category |
+| **OBJ** | object |
+| **->** | morphism |
+| **=>** | functor |
+| * | hint for auto-generating morphism/functor name |
+
+Names of morphisms and functors should be unique in the scope they are defined.
 
 ## Examples 
 ### Function: *SolveCompositions*
