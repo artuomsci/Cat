@@ -44,8 +44,8 @@ SCAT Creatures
 {
    OBJ alien, man, chicken;
    
-   isSmarter_0 : chicken -> man;
-   isSmarter_1 : man -> alien;
+   * : chicken -> man;
+   * : man -> alien;
 }
 ```
 Directed graph is shown below.
@@ -67,9 +67,9 @@ SCAT Creatures
 {
    OBJ alien, man, chicken;
    
-   isSmarter_0 : chicken -> man;
-   isSmarter_1 : man -> alien;
-   isSmarter_2 : chicken -> alien;
+   * : chicken -> man;
+   * : man -> alien;
+   * : chicken -> alien;
 }
 ```
 <img src="https://github.com/artuomsci/Cat/blob/main/imgs/smartness_2.png" width="512">
