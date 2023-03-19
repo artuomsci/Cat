@@ -49,7 +49,7 @@ bool Parser::parse_statement(TKIt& it_, TKIt end_, NodePtr pNode_)
       }
 
       // Word declaration
-      if (std::holds_alternative<std::string>(tk))
+      if (std::holds_alternative<std::string>(tk) || std::holds_alternative<ASTERISK>(tk))
       {
          if (!parse_arrow(it_, end_, pNode_))
          {
@@ -153,7 +153,7 @@ bool Parser::parse_OBJ(TKIt& it_, TKIt end_, NodePtr pNode_)
 //-----------------------------------------------------------------------------------------
 bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_)
 {
-   std::string name = std::get<std::string>(*it_);
+   TToken name_tk = *it_;
 
    ++it_;
 
@@ -165,13 +165,21 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_)
 
    ++it_;
 
-   if (!std::holds_alternative<std::string>(*it_))
+   std::string source;
+
+   if (std::holds_alternative<std::string>(*it_))
+   {
+      source = std::get<std::string>(*it_);
+   }
+   else if (std::holds_alternative<int>(*it_))
+   {
+      source = std::to_string(std::get<int>(*it_));
+   }
+   else
    {
       print_error("Incorrect arrow declaration");
       return false;
    }
-
-   std::string source = std::get<std::string>(*it_);
 
    ++it_;
 
@@ -200,13 +208,37 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_)
 
    ++it_;
 
-   if (!std::holds_alternative<std::string>(*it_))
+   std::string target;
+
+   if (std::holds_alternative<std::string>(*it_))
+   {
+      target = std::get<std::string>(*it_);
+   }
+   else if (std::holds_alternative<int>(*it_))
+   {
+      target = std::to_string(std::get<int>(*it_));
+   }
+   else
    {
       print_error("Incorrect arrow declaration");
       return false;
    }
 
-   std::string target = std::get<std::string>(*it_);
+   std::string name;
+
+   if (std::holds_alternative<std::string>(name_tk))
+   {
+      name = std::get<std::string>(name_tk);
+   }
+   else if (std::holds_alternative<ASTERISK>(name_tk))
+   {
+      name = Arrow::DefaultArrowName(source, target);
+   }
+   else
+   {
+      print_error("Incorrect arrow declaration. Name expected.");
+      return false;
+   }
 
    Arrow arrow(type, source, target, name);
 
