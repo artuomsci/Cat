@@ -89,6 +89,32 @@ Maslow's hierarchy of needs is not so obvious in the picture below. It may seem 
 
 <img src="https://github.com/artuomsci/Cat/blob/main/imgs/MaslowHierarchy.png" width="512">
 
-Finding the bottom and top of hierarchy obliges us to chase the arrows for some time. However, the same result could be obtained by identifying initial and terminal objects of the category.
+Finding the bottom and top of hierarchy obliges us to chase the arrows. However, the same result could be obtained by identifying initial and terminal objects of the category.
 
-Function **Initial** returns the object **PhysiologicalNeeds**. Function **Terminal** returns the object **SelfActualization**.
+The functions **Initial** and **Terminal** return respectively:
+```
+[PhysiologicalNeeds]
+```
+```
+[SelfActualization]
+```
+
+### Function: *SolveSequences*
+
+The problem is to find all combinations of morphisms from object **0** to object **3** given initially **0 -> 1**, **1 -> 2** and **2 -> 3**.
+```
+SCAT Sum
+{
+   OBJ 0, 1, 2, 3;
+   
+   f0 : 0 -> 1;
+   f1 : 1 -> 2;
+   f2 : 2 -> 3;
+};
+```
+<img src="https://github.com/artuomsci/Cat/blob/main/imgs/0-3_sequences.png" width="512">
+
+The return of the function **SolveSequences** is as follows:
+```
+[0, 1, 2, 3],[0, 1, 3],[0, 2, 3],[0, 3]
+```
