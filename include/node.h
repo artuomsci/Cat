@@ -16,7 +16,7 @@ namespace cat
 {
    class Node;
 
-   enum class ESetTypes
+   enum class ESetTypes : unsigned char
    {
          eDouble = 0
       ,  eFloat
@@ -34,7 +34,7 @@ namespace cat
    {
    public:
 
-      enum class EType {
+      enum class EType : unsigned char {
             eMorphism   // Morphism
          ,  eFunctor    // Functor
          ,  eFunction   // Function
@@ -210,7 +210,7 @@ namespace cat
       using PairSet  = std::pair<Node, Set>;
       using NName    = std::string;
 
-      enum class EType {
+      enum class EType : unsigned char {
             eSet        // Set
          ,  eObject     // Object
          ,  eSCategory  // Small category
