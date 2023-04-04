@@ -8,12 +8,11 @@
 #include <sstream>
 
 #include "str_utils.h"
+#include "tokenizer.h"
 
 using namespace cat;
 
 // Keywords
-// Any entity
-static const char* const sAny = "*";
 
 // Arrow type
 static const char* sFunctor  = "=>";
@@ -58,27 +57,6 @@ static bool is_functor(const std::string& string_)
 }
 
 //-----------------------------------------------------------------------------------------
-static std::string conform(std::string string_)
-{
-   // Get rid of tabs
-   std::replace(string_.begin(), string_.end(), '\t', ' ');
-
-   // Get rid of win eol's
-   size_t eol_ind {};
-   do
-   {
-      eol_ind = string_.find("\r\n", eol_ind);
-      if (eol_ind != -1)
-      {
-         string_.replace(eol_ind, sizeof("\r\n") - 1, "\n");
-      }
-   }
-   while (eol_ind != -1);
-
-   return string_;
-}
-
-//-----------------------------------------------------------------------------------------
 static std::vector<Arrow> resolve_arrows(const std::string& name_, const Node& source_, const Node& target_, const Node::List& domain_, const Node::List& codomain_)
 {
    std::vector<Arrow> ret;
@@ -113,6 +91,8 @@ static std::vector<Arrow> resolve_arrows(const std::string& name_, const Node& s
 
       return true;
    };
+
+   std::string sAny(ASTERISK::id, 1);
 
    // f :: a -> b
    if       (name_ != sAny && source_.Name() != sAny && target_.Name() != sAny)
@@ -420,6 +400,8 @@ Arrow::List query_arrows(Arrow::EType type_, const std::string& query_, const Ar
    const auto& name   = qarrow[0].Name  ();
 
    Arrow::List ret;
+
+   std::string sAny(ASTERISK::id, 1);
 
    bool name_check = name != sAny;
 
@@ -871,9 +853,11 @@ void Node::CloneNode(const NName& old_, const NName& new_)
 
    AddNode(node);
 
+   std::string sAny(ASTERISK::id, 1);
+
    // outward
    {
-      Arrow::List arrows = QueryArrows(Arrow(InternalArrow(), old_, "*", "*").AsQuery());
+      Arrow::List arrows = QueryArrows(Arrow(InternalArrow(), old_, sAny, sAny).AsQuery());
 
       for (Arrow& arrow : arrows)
       {
@@ -888,7 +872,7 @@ void Node::CloneNode(const NName& old_, const NName& new_)
 
    // inward
    {
-      Arrow::List arrows = QueryArrows(Arrow(InternalArrow(), "*", old_, "*").AsQuery());
+      Arrow::List arrows = QueryArrows(Arrow(InternalArrow(), sAny, old_, sAny).AsQuery());
 
       for (Arrow& arrow : arrows)
       {
@@ -914,6 +898,8 @@ Node::List Node::QueryNodes(const std::string& query_) const
    auto query = trim_sp(query_);
 
    Node::List ret;
+
+   std::string sAny(ASTERISK::id, 1);
 
    if (query == sAny)
    {
@@ -956,6 +942,8 @@ Node Node::Query(const std::string& query_, std::optional<size_t> matchCount_) c
    const auto& source = qarrow[0].Source();
    const auto& target = qarrow[0].Target();
    const auto& name   = qarrow[0].Name  ();
+
+   std::string sAny(ASTERISK::id, 1);
 
    bool name_check = name != sAny;
 
@@ -1127,8 +1115,10 @@ bool Node::Verify(const Arrow& arrow_) const
       }
    }
 
+   std::string sAny(ASTERISK::id, 1);
+
    // Checking mapping of objects
-   for (const auto& obj : source_cat.QueryNodes("*"))
+   for (const auto& obj : source_cat.QueryNodes(sAny))
    {
       if (!arrow_.SingleMap(obj))
       {
@@ -1137,7 +1127,7 @@ bool Node::Verify(const Arrow& arrow_) const
       }
    }
 
-   for (const Arrow& arrow : source_cat.QueryArrows("* :: * -> *"))
+   for (const Arrow& arrow : source_cat.QueryArrows(sAny + " :: " + sAny + " -> " + sAny))
    {
       auto mapped_source = Node(arrow.Source(), source_cat.InternalNode());
       auto mapped_target = Node(arrow.Target(), source_cat.InternalNode());
