@@ -11,15 +11,15 @@ LCAT World
    {
       OBJ cow, chicken;
       
-      isBigger : chicken -> cow;
-      isSmaller : cow -> chicken;
+      chicken  -[ isBigger  ]-> cow;
+      cow      -[ isSmaller ]-> chicken;
    }
-   
+
    SCAT People;
    SCAT Aliens;
    
-   isSuperior  : People => Aliens;
-   *           : Aliens => People;
+   People =[   isSuperior  ]=> Aliens;
+   Aliens =[   *           ]=> People;
 };
 ```
 Where:
@@ -29,8 +29,8 @@ Where:
 | **LCAT** | large category |
 | **SCAT** | small category |
 | **OBJ** | object |
-| **->** | morphism |
-| **=>** | functor |
+| **-[]->** | morphism |
+| **=[]=>** | functor |
 | * | hint for auto-generating morphism/functor name |
 
 Names of morphisms and functors should be unique in the scope they are defined.
@@ -44,8 +44,8 @@ SCAT Creatures
 {
    OBJ alien, man, chicken;
    
-   * : chicken -> man;
-   * : man -> alien;
+   chicken  -[*]-> man;
+   man      -[*]-> alien;
 }
 ```
 Directed graph is shown below.
@@ -67,9 +67,9 @@ SCAT Creatures
 {
    OBJ alien, man, chicken;
    
-   * : chicken -> man;
-   * : man -> alien;
-   * : chicken -> alien;
+   chicken  -[*]-> man;
+   man      -[*]-> alien;
+   chicken  -[*]-> alien;
 }
 ```
 <img src="https://github.com/artuomsci/Cat/blob/main/imgs/smartness_2.png" width="512">
@@ -89,10 +89,10 @@ SCAT MaslowHierarchy
 {
    OBJ PhysiologicalNeeds, SafetyNeeds, LoveAndBelonging, Esteem, SelfActualization;
    
-   f0 : PhysiologicalNeeds -> SafetyNeeds;
-   f1 : SafetyNeeds -> LoveAndBelonging;
-   f2 : LoveAndBelonging -> Esteem;
-   f3 : Esteem -> SelfActualization;
+   PhysiologicalNeeds   -[f0]-> SafetyNeeds;
+   SafetyNeeds          -[f1]-> LoveAndBelonging;
+   LoveAndBelonging     -[f2]-> Esteem;
+   Esteem               -[f3]-> SelfActualization;
 };
 ```
 
@@ -118,9 +118,9 @@ SCAT Sum
 {
    OBJ 0, 1, 2, 3;
    
-   f0 : 0 -> 1;
-   f1 : 1 -> 2;
-   f2 : 2 -> 3;
+   0 -[f0]-> 1;
+   1 -[f1]-> 2;
+   2 -[f2]-> 3;
 };
 ```
 <img src="https://github.com/artuomsci/Cat/blob/main/imgs/0-3_sequences.png" width="512">
