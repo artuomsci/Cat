@@ -153,124 +153,135 @@ bool Parser::parse_OBJ(TKIt& it_, TKIt end_, NodePtr pNode_) const
 //-----------------------------------------------------------------------------------------
 bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_) const
 {
-   std::string source;
-
-   if (std::holds_alternative<std::string>(*it_))
+   while (true)
    {
-      source = std::get<std::string>(*it_);
-   }
-   else if (std::holds_alternative<int>(*it_))
-   {
-      source = std::to_string(std::get<int>(*it_));
-   }
-   else
-   {
-      print_error("Incorrect arrow declaration");
-      return false;
-   }
+      std::string source;
 
-   ++it_;
-
-   Arrow::EType type { Arrow::EType::eUndefined };
-
-   if (std::holds_alternative<BEGIN_SINGLE_ARROW>(*it_))
-   {
-      if (pNode_->Type() != Node::EType::eSCategory)
+      if (std::holds_alternative<std::string>(*it_))
+      {
+         source = std::get<std::string>(*it_);
+      }
+      else if (std::holds_alternative<int>(*it_))
+      {
+         source = std::to_string(std::get<int>(*it_));
+      }
+      else
       {
          print_error("Incorrect arrow declaration");
          return false;
       }
 
-      type = Arrow::EType::eMorphism;
-   }
-   else if (std::holds_alternative<BEGIN_DOUBLE_ARROW>(*it_))
-   {
-      if (pNode_->Type() != Node::EType::eLCategory)
+      ++it_;
+
+      Arrow::EType type { Arrow::EType::eUndefined };
+
+      if (std::holds_alternative<BEGIN_SINGLE_ARROW>(*it_))
+      {
+         if (pNode_->Type() != Node::EType::eSCategory)
+         {
+            print_error("Incorrect arrow declaration");
+            return false;
+         }
+
+         type = Arrow::EType::eMorphism;
+      }
+      else if (std::holds_alternative<BEGIN_DOUBLE_ARROW>(*it_))
+      {
+         if (pNode_->Type() != Node::EType::eLCategory)
+         {
+            print_error("Incorrect arrow declaration");
+            return false;
+         }
+
+         type = Arrow::EType::eFunctor;
+      }
+      else
       {
          print_error("Incorrect arrow declaration");
          return false;
       }
 
-      type = Arrow::EType::eFunctor;
-   }
-   else
-   {
-      print_error("Incorrect arrow declaration");
-      return false;
-   }
+      ++it_;
 
-   ++it_;
+      TToken name_tk = *it_;
 
-   TToken name_tk = *it_;
+      ++it_;
 
-   ++it_;
+      if (type == Arrow::EType::eMorphism)
+      {
+         if (!std::holds_alternative<END_SINGLE_ARROW>(*it_))
+         {
+            print_error("Incorrect arrow declaration");
+            return false;
+         }
+      }
+      else if (type == Arrow::EType::eFunctor)
+      {
+         if (!std::holds_alternative<END_DOUBLE_ARROW>(*it_))
+         {
+            print_error("Incorrect arrow declaration");
+            return false;
+         }
+      }
 
-   if (type == Arrow::EType::eMorphism)
-   {
-      if (!std::holds_alternative<END_SINGLE_ARROW>(*it_))
+      ++it_;
+
+      std::string target;
+
+      if (std::holds_alternative<std::string>(*it_))
+      {
+         target = std::get<std::string>(*it_);
+      }
+      else if (std::holds_alternative<int>(*it_))
+      {
+         target = std::to_string(std::get<int>(*it_));
+      }
+      else
       {
          print_error("Incorrect arrow declaration");
          return false;
       }
-   }
-   else if (type == Arrow::EType::eFunctor)
-   {
-      if (!std::holds_alternative<END_DOUBLE_ARROW>(*it_))
+
+      std::string name;
+
+      if (std::holds_alternative<std::string>(name_tk))
+      {
+         name = std::get<std::string>(name_tk);
+      }
+      else if (std::holds_alternative<int>(name_tk))
+      {
+         name = std::to_string(std::get<int>(name_tk));
+      }
+      else if (std::holds_alternative<ASTERISK>(name_tk))
+      {
+         name = Arrow::DefaultArrowName(source, target);
+      }
+      else
+      {
+         print_error("Incorrect arrow declaration. Name expected.");
+         return false;
+      }
+
+      Arrow arrow(type, source, target, name);
+
+      if (!pNode_->AddArrow(arrow))
+         return false;
+
+      ++it_;
+
+      if (std::holds_alternative<SEMICOLON>(*it_))
+      {
+         break;
+      }
+      else if (std::holds_alternative<BEGIN_DOUBLE_ARROW>(*it_) || std::holds_alternative<BEGIN_SINGLE_ARROW>(*it_))
+      {
+         --it_;
+      }
+      else
       {
          print_error("Incorrect arrow declaration");
          return false;
       }
-   }
-
-   ++it_;
-
-   std::string target;
-
-   if (std::holds_alternative<std::string>(*it_))
-   {
-      target = std::get<std::string>(*it_);
-   }
-   else if (std::holds_alternative<int>(*it_))
-   {
-      target = std::to_string(std::get<int>(*it_));
-   }
-   else
-   {
-      print_error("Incorrect arrow declaration");
-      return false;
-   }
-
-   std::string name;
-
-   if (std::holds_alternative<std::string>(name_tk))
-   {
-      name = std::get<std::string>(name_tk);
-   }
-   else if (std::holds_alternative<int>(name_tk))
-   {
-      name = std::to_string(std::get<int>(name_tk));
-   }
-   else if (std::holds_alternative<ASTERISK>(name_tk))
-   {
-      name = Arrow::DefaultArrowName(source, target);
-   }
-   else
-   {
-      print_error("Incorrect arrow declaration. Name expected.");
-      return false;
-   }
-
-   Arrow arrow(type, source, target, name);
-
-   if (!pNode_->AddArrow(arrow))
-      return false;
-
-   ++it_;
-
-   if (!std::holds_alternative<SEMICOLON>(*it_))
-   {
-      print_error("Incorrect arrow declaration");
-      return false;
    }
 
    return true;
