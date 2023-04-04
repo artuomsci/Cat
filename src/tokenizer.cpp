@@ -80,6 +80,61 @@ void AddSpecialToken<TokenGroup::eKey>(std::list<TToken>& tokens_, std::string::
 }
 
 //-----------------------------------------------------------------------------------------
+struct SMNode
+{
+   SMNode(char ch_) : chr(ch_){}
+   SMNode(){}
+
+   std::vector<SMNode>  child;
+   char                 chr { NEXT_LINE::id };
+};
+
+//-----------------------------------------------------------------------------------------
+static SMNode* find_symbol_node(std::vector<SMNode>& nodes_, char symbol_)
+{
+   for (auto& node : nodes_)
+   {
+      if (node.chr == symbol_)
+         return &node;
+   }
+
+   return nullptr;
+}
+
+//-----------------------------------------------------------------------------------------
+static void build_seq_tree(SMNode& root_)
+{
+   std::vector<std::string> seqs
+   {
+         BEGIN_SINGLE_ARROW::id
+      ,  END_SINGLE_ARROW::id
+      ,  BEGIN_DOUBLE_ARROW::id
+      ,  END_DOUBLE_ARROW::id
+   };
+
+   for (const auto& seq : seqs)
+   {
+      SMNode* crt = &root_;
+
+      for (const auto& symbol : seq)
+      {
+         SMNode* pNextSymbol = find_symbol_node(crt->child, symbol);
+
+         if (!pNextSymbol)
+         {
+            crt->child.push_back(symbol);
+
+            crt = &crt->child.back();
+         }
+         else
+            crt = pNextSymbol;
+      }
+
+      crt->child.push_back(NEXT_LINE::id);
+   }
+}
+
+//-----------------------------------------------------------------------------------------
 static bool AddToken(std::list<TToken>& tokens_, std::string::const_iterator begin_, std::string::const_iterator end_)
 {
    if (begin_ == end_)
@@ -141,10 +196,14 @@ static bool AddServiceToken(std::list<TToken>& tokens_, std::string::const_itera
 
    std::string tk(begin_, end_);
 
-   if       (tk == DOUBLE_ARROW::id)
-      tokens_.push_back(DOUBLE_ARROW());
-   else if  (tk == SINGLE_ARROW::id)
-      tokens_.push_back(SINGLE_ARROW());
+   if       (tk == BEGIN_DOUBLE_ARROW::id)
+      tokens_.push_back(BEGIN_DOUBLE_ARROW());
+   else if  (tk == END_DOUBLE_ARROW::id)
+      tokens_.push_back(END_DOUBLE_ARROW());
+   else if  (tk == BEGIN_SINGLE_ARROW::id)
+      tokens_.push_back(BEGIN_SINGLE_ARROW());
+   else if  (tk == END_SINGLE_ARROW::id)
+      tokens_.push_back(END_SINGLE_ARROW());
    else
       return false;
 
@@ -161,23 +220,12 @@ enum class EParseState
 };
 
 //-----------------------------------------------------------------------------------------
-bool IsService(std::string::value_type symbol_)
-{
-   for (auto srv : { DOUBLE_ARROW::id, SINGLE_ARROW::id })
-   {
-      for (auto s : std::string(srv))
-      {
-         if (s == symbol_)
-            return true;
-      }
-   }
-
-   return false;
-}
-
-//-----------------------------------------------------------------------------------------
 std::list<TToken> Tokenizer::Process(const std::string& string_)
 {
+   SMNode*  crtSMNode   {};
+   SMNode   root;
+   build_seq_tree(root);
+
    std::list<TToken> tokens;
 
    auto begin = string_.begin();
@@ -206,9 +254,10 @@ std::list<TToken> Tokenizer::Process(const std::string& string_)
                if (*end == QUOTE::id)
                   state = EParseState::eTokenString;
             }
-            else if  (IsService(*end))
+            else if  (find_symbol_node(root.child, *end))
             {
                state = EParseState::eService;
+               crtSMNode = &root;
                continue;
             }
             else if  (IsToken<TokenGroup::eSkip>(*end))
@@ -258,7 +307,7 @@ std::list<TToken> Tokenizer::Process(const std::string& string_)
                state = EParseState::eInitial;
                begin = ++end;
             }
-            else if (IsService(*end))
+            else if (find_symbol_node(root.child, *end))
             {
                if (!AddToken(tokens, begin, end))
                   return std::list<TToken>();
@@ -292,17 +341,24 @@ std::list<TToken> Tokenizer::Process(const std::string& string_)
 
          case EParseState::eService:
          {
-            if (!IsService(*end))
+            SMNode* pNext = find_symbol_node(crtSMNode->child, *end);
+
+            if (!pNext)
             {
                if (!AddServiceToken(tokens, begin, end))
                   return std::list<TToken>();
 
                begin = end;
 
+               crtSMNode = &root;
+
                state = EParseState::eInitial;
             }
             else
+            {
+               crtSMNode = pNext;
                ++end;
+            }
          }
          break;
       }
@@ -332,10 +388,14 @@ std::string Tokenizer::TokenLog(const TToken& tk_, bool append_value_)
       return std::get<SCAT>(tk_).id;
    else if  (std::holds_alternative<OBJ>(tk_))
       return std::get<OBJ>(tk_).id;
-   else if  (std::holds_alternative<DOUBLE_ARROW>(tk_))
-      return std::get<DOUBLE_ARROW>(tk_).id;
-   else if  (std::holds_alternative<SINGLE_ARROW>(tk_))
-      return std::get<SINGLE_ARROW>(tk_).id;
+   else if  (std::holds_alternative<BEGIN_DOUBLE_ARROW>(tk_))
+      return std::get<BEGIN_DOUBLE_ARROW>(tk_).id;
+   else if  (std::holds_alternative<END_DOUBLE_ARROW>(tk_))
+      return std::get<END_DOUBLE_ARROW>(tk_).id;
+   else if  (std::holds_alternative<BEGIN_SINGLE_ARROW>(tk_))
+      return std::get<BEGIN_SINGLE_ARROW>(tk_).id;
+   else if  (std::holds_alternative<END_SINGLE_ARROW>(tk_))
+      return std::get<END_SINGLE_ARROW>(tk_).id;
    else if  (std::holds_alternative<QUOTE>(tk_))
       return std::string(1, std::get<QUOTE>(tk_).id);
    else if  (std::holds_alternative<COMMA>(tk_))

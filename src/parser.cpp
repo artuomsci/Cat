@@ -153,18 +153,6 @@ bool Parser::parse_OBJ(TKIt& it_, TKIt end_, NodePtr pNode_)
 //-----------------------------------------------------------------------------------------
 bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_)
 {
-   TToken name_tk = *it_;
-
-   ++it_;
-
-   if (!std::holds_alternative<COLON>(*it_))
-   {
-      print_error("Incorrect arrow declaration");
-      return false;
-   }
-
-   ++it_;
-
    std::string source;
 
    if (std::holds_alternative<std::string>(*it_))
@@ -185,7 +173,7 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_)
 
    Arrow::EType type { Arrow::EType::eUndefined };
 
-   if (std::holds_alternative<SINGLE_ARROW>(*it_))
+   if (std::holds_alternative<BEGIN_SINGLE_ARROW>(*it_))
    {
       if (pNode_->Type() != Node::EType::eSCategory)
       {
@@ -195,7 +183,7 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_)
 
       type = Arrow::EType::eMorphism;
    }
-   else if (std::holds_alternative<DOUBLE_ARROW>(*it_))
+   else if (std::holds_alternative<BEGIN_DOUBLE_ARROW>(*it_))
    {
       if (pNode_->Type() != Node::EType::eLCategory)
       {
@@ -204,6 +192,34 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_)
       }
 
       type = Arrow::EType::eFunctor;
+   }
+   else
+   {
+      print_error("Incorrect arrow declaration");
+      return false;
+   }
+
+   ++it_;
+
+   TToken name_tk = *it_;
+
+   ++it_;
+
+   if (type == Arrow::EType::eMorphism)
+   {
+      if (!std::holds_alternative<END_SINGLE_ARROW>(*it_))
+      {
+         print_error("Incorrect arrow declaration");
+         return false;
+      }
+   }
+   else if (type == Arrow::EType::eFunctor)
+   {
+      if (!std::holds_alternative<END_DOUBLE_ARROW>(*it_))
+      {
+         print_error("Incorrect arrow declaration");
+         return false;
+      }
    }
 
    ++it_;
@@ -229,6 +245,10 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_)
    if (std::holds_alternative<std::string>(name_tk))
    {
       name = std::get<std::string>(name_tk);
+   }
+   else if (std::holds_alternative<int>(name_tk))
+   {
+      name = std::to_string(std::get<int>(name_tk));
    }
    else if (std::holds_alternative<ASTERISK>(name_tk))
    {
