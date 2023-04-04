@@ -20,10 +20,10 @@ namespace cat
       using TKIt     = std::list<TToken>::iterator;
       using NodePtr  = std::shared_ptr<Node>;
 
-      bool parse_CAT(TKIt& it_, TKIt end_, cat::Node::EType type_, NodePtr& pNode_);
-      bool parse_OBJ(TKIt& it_, TKIt end_, NodePtr pNode_);
-      bool parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_);
-      bool parse_statement(TKIt& it_, TKIt end_, NodePtr pNode_);
+      bool parse_CAT(TKIt& it_, TKIt end_, cat::Node::EType type_, NodePtr& pNode_) const;
+      bool parse_OBJ(TKIt& it_, TKIt end_, NodePtr pNode_) const;
+      bool parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_) const;
+      bool parse_statement(TKIt& it_, TKIt end_, NodePtr pNode_) const;
 
       NodePtr m_pNode {};
    };

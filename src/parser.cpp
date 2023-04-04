@@ -8,7 +8,7 @@
 using namespace cat;
 
 //-----------------------------------------------------------------------------------------
-bool Parser::parse_statement(TKIt& it_, TKIt end_, NodePtr pNode_)
+bool Parser::parse_statement(TKIt& it_, TKIt end_, NodePtr pNode_) const
 {
    while (it_ != end_)
    {
@@ -65,7 +65,7 @@ bool Parser::parse_statement(TKIt& it_, TKIt end_, NodePtr pNode_)
 }
 
 //-----------------------------------------------------------------------------------------
-bool Parser::parse_CAT(TKIt& it_, TKIt end_, cat::Node::EType type_, NodePtr& pNode_)
+bool Parser::parse_CAT(TKIt& it_, TKIt end_, cat::Node::EType type_, NodePtr& pNode_) const
 {
    ++it_;
 
@@ -108,7 +108,7 @@ bool Parser::parse_CAT(TKIt& it_, TKIt end_, cat::Node::EType type_, NodePtr& pN
 }
 
 //-----------------------------------------------------------------------------------------
-bool Parser::parse_OBJ(TKIt& it_, TKIt end_, NodePtr pNode_)
+bool Parser::parse_OBJ(TKIt& it_, TKIt end_, NodePtr pNode_) const
 {
    while (true)
    {
@@ -151,7 +151,7 @@ bool Parser::parse_OBJ(TKIt& it_, TKIt end_, NodePtr pNode_)
 }
 
 //-----------------------------------------------------------------------------------------
-bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_)
+bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_) const
 {
    std::string source;
 
