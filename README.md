@@ -11,15 +11,13 @@ LCAT World
    {
       OBJ cow, chicken;
       
-      chicken  -[ isBigger  ]-> cow;
-      cow      -[ isSmaller ]-> chicken;
+      chicken -[isBigger]-> cow -[isSmaller]-> chicken;
    }
 
    SCAT People;
    SCAT Aliens;
    
-   People =[   isSuperior  ]=> Aliens;
-   Aliens =[   *           ]=> People;
+   People =[isSuperior]=> Aliens =[*]=> People;
 };
 ```
 Where:
@@ -44,8 +42,7 @@ SCAT Creatures
 {
    OBJ alien, man, chicken;
    
-   chicken  -[*]-> man;
-   man      -[*]-> alien;
+   chicken -[*]-> man -[*]-> alien;
 }
 ```
 Directed graph is shown below.
@@ -118,9 +115,7 @@ SCAT Sum
 {
    OBJ 0, 1, 2, 3;
    
-   0 -[f0]-> 1;
-   1 -[f1]-> 2;
-   2 -[f2]-> 3;
+   0 -[f0]-> 1 -[f1]-> 2 -[f2]-> 3;
 };
 ```
 <img src="https://github.com/artuomsci/Cat/blob/main/imgs/0-3_sequences.png" width="512">
