@@ -153,11 +153,37 @@ bool Parser::parse_OBJ(TKIt& it_, TKIt end_, NodePtr pNode_) const
 //-----------------------------------------------------------------------------------------
 bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_) const
 {
+   if (!pNode_)
+      return false;
+
+   Arrow::List arrows;
+   if (!parse_arrow(it_, end_, arrows))
+      return false;
+
+   for (const auto& arrow : arrows)
+   {
+      if (!pNode_->AddArrow(arrow))
+         return false;
+   }
+
+   return true;
+}
+
+//-----------------------------------------------------------------------------------------
+bool Parser::parse_arrow(TKIt& it_, TKIt end_, Arrow::List& arrows_)
+{
    while (true)
    {
+      if (it_ == end_)
+         return true;
+
       std::string source;
 
-      if (std::holds_alternative<std::string>(*it_))
+      if (std::holds_alternative<ASTERISK>(*it_))
+      {
+         source = ASTERISK::id;
+      }
+      else if (std::holds_alternative<std::string>(*it_))
       {
          source = std::get<std::string>(*it_);
       }
@@ -172,27 +198,17 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_) const
       }
 
       ++it_;
+      if (it_ == end_)
+         return false;
 
       Arrow::EType type { Arrow::EType::eUndefined };
 
       if (std::holds_alternative<BEGIN_SINGLE_ARROW>(*it_))
       {
-         if (pNode_->Type() != Node::EType::eSCategory)
-         {
-            print_error("Incorrect arrow declaration");
-            return false;
-         }
-
          type = Arrow::EType::eMorphism;
       }
       else if (std::holds_alternative<BEGIN_DOUBLE_ARROW>(*it_))
       {
-         if (pNode_->Type() != Node::EType::eLCategory)
-         {
-            print_error("Incorrect arrow declaration");
-            return false;
-         }
-
          type = Arrow::EType::eFunctor;
       }
       else
@@ -202,10 +218,14 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_) const
       }
 
       ++it_;
+      if (it_ == end_)
+         return false;
 
       TToken name_tk = *it_;
 
       ++it_;
+      if (it_ == end_)
+         return false;
 
       if (type == Arrow::EType::eMorphism)
       {
@@ -225,10 +245,16 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_) const
       }
 
       ++it_;
+      if (it_ == end_)
+         return false;
 
       std::string target;
 
-      if (std::holds_alternative<std::string>(*it_))
+      if (std::holds_alternative<ASTERISK>(*it_))
+      {
+         target = ASTERISK::id;
+      }
+      else if (std::holds_alternative<std::string>(*it_))
       {
          target = std::get<std::string>(*it_);
       }
@@ -264,10 +290,11 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_) const
 
       Arrow arrow(type, source, target, name);
 
-      if (!pNode_->AddArrow(arrow))
-         return false;
+      arrows_.push_back(arrow);
 
       ++it_;
+      if (it_ == end_)
+         return false;
 
       if (std::holds_alternative<SEMICOLON>(*it_))
       {
@@ -333,3 +360,9 @@ bool Parser::Parse(const std::string& filename_)
 
    return true;
 }
+
+//-----------------------------------------------------------------------------------------
+std::shared_ptr<Node> Parser::Data() const
+{
+   return m_pNode;
+};

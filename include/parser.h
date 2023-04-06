@@ -12,12 +12,16 @@ namespace cat
    class Parser
    {
    public:
+
+      using TKIt = std::list<TToken>::iterator;
+
       bool Parse(const std::string& filename_);
-      std::shared_ptr<Node> Data() const { return m_pNode; };
+      std::shared_ptr<Node> Data() const;
+
+      static bool parse_arrow(TKIt& it_, TKIt end_, Arrow::List& arrows_);
 
    private:
 
-      using TKIt     = std::list<TToken>::iterator;
       using NodePtr  = std::shared_ptr<Node>;
 
       bool parse_CAT(TKIt& it_, TKIt end_, cat::Node::EType type_, NodePtr& pNode_) const;
