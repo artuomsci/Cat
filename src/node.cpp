@@ -885,28 +885,50 @@ Node::List Node::QueryNodes(const std::string& query_) const
    }
    else
    {
+      // Container for elements joined by AND operation
+      std::vector<TToken> backup;
+
+      auto fnProcess = [&](const TToken& it_)
+      {
+         if (std::holds_alternative<OR>(it_))
+         {
+            Node::List new_nodes;
+            bool failure { false };
+
+            for (const auto& backup_tk : backup)
+            {
+               std::string node_name = std::get<std::string>(backup_tk);
+
+               auto it_node = m_nodes.find(Node(node_name, InternalNode()));
+               if (it_node != m_nodes.end())
+                  new_nodes.push_back(it_node->first);
+               else
+               {
+                  failure = true;
+                  break;
+               }
+            }
+
+            backup.clear();
+
+            if (!failure)
+               ret.insert(ret.end(), new_nodes.begin(), new_nodes.end());
+         }
+      };
+
       int i {};
       for (const TToken& it : tks)
       {
+         // Operations have non-even index
          if (i % 2)
-         {
-            if (!std::holds_alternative<OR>(it))
-               return Node::List();
-         }
+            fnProcess(it);
          else
-         {
-            if (!std::holds_alternative<std::string>(it))
-               return Node::List();
-
-            std::string node_name = std::get<std::string>(it);
-
-            auto it_node = m_nodes.find(Node(node_name, InternalNode()));
-            if (it_node != m_nodes.end())
-               ret.push_back(it_node->first);
-         }
+            backup.push_back(it);
 
          i++;
       }
+
+      fnProcess(TToken(OR()));
    }
 
    return ret;

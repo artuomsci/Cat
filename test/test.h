@@ -533,6 +533,11 @@ namespace cat
          auto or_query = S.QueryNodes("a|b|m");
 
          assert(or_query.size() == 2 && or_query.front().Name() == "a" && or_query.back().Name() == "b");
+
+         assert(S.QueryNodes("a & b & c").size() == 3);
+         assert(S.QueryNodes("a & h").size() == 0);
+         assert(S.QueryNodes("a & b | h").size() == 2);
+         assert(S.QueryNodes("a & b | c & d").size() == 4);
       }
 
       //============================================================
