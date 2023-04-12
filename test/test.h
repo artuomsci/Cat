@@ -517,6 +517,25 @@ namespace cat
       }
 
       //============================================================
+      // Testing of node query
+      //============================================================
+      {
+         Node S("S", Node::EType::eSCategory);
+
+         Node a("a", Node::EType::eObject), b("b", Node::EType::eObject);
+         Node c("c", Node::EType::eObject), d("d", Node::EType::eObject);
+
+         S.AddNodes({a, b, c, d});
+
+         assert(S.QueryNodes("*").size() == 4);
+         assert(S.QueryNodes("a").size() == 1 && S.QueryNodes("a").front().Name() == "a");
+
+         auto or_query = S.QueryNodes("a|b|m");
+
+         assert(or_query.size() == 2 && or_query.front().Name() == "a" && or_query.back().Name() == "b");
+      }
+
+      //============================================================
       // Testing of arrow inversion
       //============================================================
       {

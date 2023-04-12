@@ -36,7 +36,7 @@ bool IsToken<TokenGroup::eDelimeter>(std::string::value_type symbol_)
 template <>
 bool IsToken<TokenGroup::eKey>(std::string::value_type symbol_)
 {
-   return IsInGroup({ ASTERISK::id, QUOTE::id }, symbol_);
+   return IsInGroup({ ASTERISK::id, QUOTE::id, OR::id }, symbol_);
 }
 
 template <>
@@ -412,6 +412,8 @@ std::string Tokenizer::TokenLog(const TToken& tk_, bool append_value_)
       return std::string(1, std::get<COLON>(tk_).id);
    else if  (std::holds_alternative<ASTERISK>(tk_))
       return std::string(1, std::get<ASTERISK>(tk_).id);
+   else if  (std::holds_alternative<OR>(tk_))
+      return std::string(1, std::get<OR>(tk_).id);
    else if  (std::holds_alternative<SPACE>(tk_))
       return std::string(1, std::get<SPACE>(tk_).id);
    else if  (std::holds_alternative<TAB>(tk_))

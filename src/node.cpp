@@ -15,10 +15,6 @@ using namespace cat;
 
 // Keywords
 
-// Logic statements
-static const char sAND = '&';
-static const char sOR  = '|';
-
 // entity names
 static const char* sNObject    = "object";
 static const char* sNSCategory = "category";
@@ -876,13 +872,11 @@ Arrow::List Node::QueryArrows(const std::string& query_, std::optional<size_t> m
 //-----------------------------------------------------------------------------------------
 Node::List Node::QueryNodes(const std::string& query_) const
 {
-   auto query = trim_sp(query_);
+   std::list<TToken> tks = Tokenizer::Process(query_);
 
    Node::List ret;
 
-   std::string sAny(1, ASTERISK::id);
-
-   if (query == sAny)
+   if       (tks.size() == 1 && std::holds_alternative<ASTERISK>(tks.front()))
    {
       for (const auto& [node, _] : m_nodes)
       {
@@ -891,16 +885,27 @@ Node::List Node::QueryNodes(const std::string& query_) const
    }
    else
    {
-      auto node_names = split(query, sOR, false);
-
-      for (auto& it : node_names)
-         it = trim_sp(it);
-
-      for (auto& name : node_names)
+      int i {};
+      for (const TToken& it : tks)
       {
-         auto it = m_nodes.find(Node(name, InternalNode()));
-         if (it != m_nodes.end())
-            ret.push_back(it->first);
+         if (i % 2)
+         {
+            if (!std::holds_alternative<OR>(it))
+               return Node::List();
+         }
+         else
+         {
+            if (!std::holds_alternative<std::string>(it))
+               return Node::List();
+
+            std::string node_name = std::get<std::string>(it);
+
+            auto it_node = m_nodes.find(Node(node_name, InternalNode()));
+            if (it_node != m_nodes.end())
+               ret.push_back(it_node->first);
+         }
+
+         i++;
       }
    }
 

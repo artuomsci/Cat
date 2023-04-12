@@ -45,6 +45,9 @@ namespace cat
    struct QUOTE         {
       static const constexpr char id   = '"';
    };
+   struct OR         {
+      static const constexpr char id   = '|';
+   };
 
    // Skip symbols
    struct SPACE         {
@@ -76,7 +79,7 @@ namespace cat
 
    using TServiceT    = std::tuple<BEGIN_DOUBLE_ARROW, END_DOUBLE_ARROW, BEGIN_SINGLE_ARROW, END_SINGLE_ARROW>;
    using TDelimeterT  = std::tuple<COMMA, BEGIN_BR, END_BR, SEMICOLON, COLON>;
-   using TKeyT        = std::tuple<ASTERISK, QUOTE>;
+   using TKeyT        = std::tuple<ASTERISK, QUOTE, OR>;
    using TSkipT       = std::tuple<SPACE, TAB, NEXT_LINE>;
 
    using TToken = std::variant<
@@ -89,7 +92,7 @@ namespace cat
          // Delimeter types
          COMMA, BEGIN_BR, END_BR, SEMICOLON, COLON,
          // Key types
-         ASTERISK, QUOTE,
+         ASTERISK, QUOTE, OR,
          // Skip types
          SPACE, TAB, NEXT_LINE,
          // Basic types
