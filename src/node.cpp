@@ -882,9 +882,16 @@ Node::List Node::QueryNodes(const std::string& query_) const
             Node::List new_nodes;
             bool failure { false };
 
-            for (const auto& backup_tk : backup)
+            for (const TToken& backup_tk : backup)
             {
-               std::string node_name = std::get<std::string>(backup_tk);
+               std::string node_name;
+
+               if       (std::holds_alternative<std::string>(backup_tk))
+                  node_name = std::get<std::string>(backup_tk);
+               else if  (std::holds_alternative<int>(backup_tk))
+                  node_name = std::to_string(std::get<int>(backup_tk));
+               else
+                  return false;
 
                auto it_node = m_nodes.find(Node(node_name, InternalNode()));
                if (it_node != m_nodes.end())
@@ -901,6 +908,8 @@ Node::List Node::QueryNodes(const std::string& query_) const
             if (!failure)
                ret.insert(ret.end(), new_nodes.begin(), new_nodes.end());
          }
+
+         return true;
       };
 
       int i {};
@@ -908,14 +917,18 @@ Node::List Node::QueryNodes(const std::string& query_) const
       {
          // Operations have non-even index
          if (i % 2)
-            fnProcess(it);
+         {
+            if (!fnProcess(it))
+               return  Node::List();
+         }
          else
             backup.push_back(it);
 
          i++;
       }
 
-      fnProcess(TToken(OR()));
+      if (!fnProcess(TToken(OR())))
+         return Node::List();
    }
 
    return ret;
