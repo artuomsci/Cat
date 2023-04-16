@@ -3,8 +3,7 @@
 
 #include <list>
 #include <variant>
-
-#include "str_utils.h"
+#include <string>
 
 namespace cat
 {
@@ -23,14 +22,20 @@ namespace cat
    struct BEGIN_DOUBLE_ARROW  {
       static const constexpr char* const id   = "=[";
    };
-   struct END_DOUBLE_ARROW  {
+   struct END_DOUBLE_ARROW    {
       static const constexpr char* const id   = "]=>";
    };
    struct BEGIN_SINGLE_ARROW  {
       static const constexpr char* const id   = "-[";
    };
-   struct END_SINGLE_ARROW  {
+   struct END_SINGLE_ARROW    {
       static const constexpr char* const id   = "]->";
+   };
+   struct EQ                  {
+      static const constexpr char* const id   = "==";
+   };
+   struct NEQ                 {
+      static const constexpr char* const id   = "!=";
    };
 
    // Misc
@@ -80,7 +85,7 @@ namespace cat
       static const constexpr char id   = ':';
    };
 
-   using TServiceT    = std::tuple<BEGIN_DOUBLE_ARROW, END_DOUBLE_ARROW, BEGIN_SINGLE_ARROW, END_SINGLE_ARROW>;
+   using TServiceT    = std::tuple<BEGIN_DOUBLE_ARROW, END_DOUBLE_ARROW, BEGIN_SINGLE_ARROW, END_SINGLE_ARROW, EQ, NEQ>;
    using TDelimeterT  = std::tuple<COMMA, BEGIN_BR, END_BR, SEMICOLON, COLON>;
    using TKeyT        = std::tuple<ASTERISK, QUOTE, OR, AND>;
    using TSkipT       = std::tuple<SPACE, TAB, NEXT_LINE>;
@@ -91,7 +96,7 @@ namespace cat
          // Misc
          COMMENT,
          // Service types
-         BEGIN_DOUBLE_ARROW, END_DOUBLE_ARROW, BEGIN_SINGLE_ARROW, END_SINGLE_ARROW,
+         BEGIN_DOUBLE_ARROW, END_DOUBLE_ARROW, BEGIN_SINGLE_ARROW, END_SINGLE_ARROW, EQ, NEQ,
          // Delimeter types
          COMMA, BEGIN_BR, END_BR, SEMICOLON, COLON,
          // Key types
