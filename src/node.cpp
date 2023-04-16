@@ -7,7 +7,6 @@
 #include <fstream>
 #include <sstream>
 
-#include "str_utils.h"
 #include "tokenizer.h"
 #include "parser.h"
 
@@ -24,18 +23,6 @@ static const char* sNFunctor   = "functor";
 static const char* sNMorphism  = "morphism";
 
 static const char* sVoid       = "void";
-
-//-----------------------------------------------------------------------------------------
-static std::string trim_sp_s(const std::string& string_, std::string::value_type symbol_)
-{
-   return trim_right(trim_left(string_, symbol_), symbol_);
-}
-
-//-----------------------------------------------------------------------------------------
-static std::string trim_sp(const std::string& string_)
-{
-   return trim_sp_s(string_, ' ');
-}
 
 //-----------------------------------------------------------------------------------------
 static std::vector<Arrow> resolve_arrows(const std::string& name_, const Node& source_, const Node& target_, const Node::List& domain_, const Node::List& codomain_)
