@@ -15,7 +15,7 @@ bool Parser::parse_statement(TKIt& it_, TKIt end_, NodePtr pNode_) const
       TToken& tk = *it_;
 
       // End of statement
-      if (std::holds_alternative<END_BR>(tk))
+      if (std::holds_alternative<END_CBR>(tk))
          return true;
 
       // Small category declaration
@@ -88,7 +88,7 @@ bool Parser::parse_CAT(TKIt& it_, TKIt end_, cat::Node::EType type_, NodePtr& pN
       return true;
    }
 
-   if (!std::holds_alternative<BEGIN_BR>(*it_))
+   if (!std::holds_alternative<BEGIN_CBR>(*it_))
    {
       print_error("Incorrect CAT declaration");
       return false;

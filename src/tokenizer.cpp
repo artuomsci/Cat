@@ -30,13 +30,13 @@ static bool IsToken(std::string::value_type symbol_);
 template <>
 bool IsToken<TokenGroup::eDelimeter>(std::string::value_type symbol_)
 {
-   return IsInGroup({ COMMA::id, BEGIN_BR::id, END_BR::id, SEMICOLON::id, COLON::id }, symbol_);
+   return IsInGroup({ COMMA::id, BEGIN_CBR::id, END_CBR::id, BEGIN_BR::id, END_BR::id, SEMICOLON::id, COLON::id }, symbol_);
 }
 
 template <>
 bool IsToken<TokenGroup::eKey>(std::string::value_type symbol_)
 {
-   return IsInGroup({ ASTERISK::id, QUOTE::id, OR::id, AND::id }, symbol_);
+   return IsInGroup({ ASTERISK::id, QUOTE::id, OR::id, AND::id, NEG::id }, symbol_);
 }
 
 template <>
@@ -410,6 +410,10 @@ std::string Tokenizer::TokenLog(const TToken& tk_, bool append_value_)
       return std::string(1, std::get<QUOTE>(tk_).id);
    else if  (std::holds_alternative<COMMA>(tk_))
       return std::string(1, std::get<COMMA>(tk_).id);
+   else if  (std::holds_alternative<BEGIN_CBR>(tk_))
+      return std::string(1, std::get<BEGIN_CBR>(tk_).id);
+   else if  (std::holds_alternative<END_CBR>(tk_))
+      return std::string(1, std::get<END_CBR>(tk_).id);
    else if  (std::holds_alternative<BEGIN_BR>(tk_))
       return std::string(1, std::get<BEGIN_BR>(tk_).id);
    else if  (std::holds_alternative<END_BR>(tk_))
@@ -426,6 +430,8 @@ std::string Tokenizer::TokenLog(const TToken& tk_, bool append_value_)
       return std::string(1, std::get<OR>(tk_).id);
    else if  (std::holds_alternative<AND>(tk_))
       return std::string(1, std::get<AND>(tk_).id);
+   else if  (std::holds_alternative<NEG>(tk_))
+      return std::string(1, std::get<NEG>(tk_).id);
    else if  (std::holds_alternative<SPACE>(tk_))
       return std::string(1, std::get<SPACE>(tk_).id);
    else if  (std::holds_alternative<TAB>(tk_))
@@ -434,4 +440,91 @@ std::string Tokenizer::TokenLog(const TToken& tk_, bool append_value_)
       return std::string(1, std::get<NEXT_LINE>(tk_).id);
 
    return "";
+}
+
+//-----------------------------------------------------------------------------------------
+int Tokenizer::Token2Precedence(const TToken& tk_)
+{
+   if       (std::holds_alternative<AND>(tk_))
+      return 1;
+   else if  (std::holds_alternative<OR>(tk_))
+      return 0;
+
+   return 0;
+}
+
+//-----------------------------------------------------------------------------------------
+bool Tokenizer::IsOperand(const TToken& tk_)
+{
+   return std::holds_alternative<std::string>(tk_) || std::holds_alternative<int>(tk_);
+}
+
+//-----------------------------------------------------------------------------------------
+std::list<TToken> Tokenizer::Expr2RPN(const std::list<TToken>& expr_)
+{
+   std::list<TToken> output;
+   std::stack<TToken> st;
+
+   for (const auto& tk : expr_)
+   {
+       if (Tokenizer::IsOperand(tk))
+       {
+           output.push_back(tk);
+       }
+       else
+       {
+           if (std::holds_alternative<END_BR>(tk))
+           {
+               while (true)
+               {
+                   if (!st.empty())
+                   {
+                       if (std::holds_alternative<BEGIN_BR>(st.top()))
+                       {
+                           st.pop();
+                           break;
+                       }
+
+                       output.push_back(st.top());
+                       st.pop();
+                   }
+                   else
+                       break;
+               }
+           }
+           else
+           {
+               while (true)
+               {
+                   if (st.empty() || std::holds_alternative<END_BR>(tk) || std::holds_alternative<BEGIN_BR>(tk))
+                   {
+                       st.push(tk);
+                       break;
+                   }
+                   else
+                   {
+                       if (Tokenizer::Token2Precedence(st.top()) <= Tokenizer::Token2Precedence(tk) ||
+                           std::holds_alternative<BEGIN_BR>(st.top()) || std::holds_alternative<END_BR>(st.top()))
+                       {
+                           st.push(tk);
+                           break;
+                       }
+                       else
+                       {
+                           output.push_back(st.top());
+                           st.pop();
+                       }
+                   }
+               }
+           }
+       }
+   }
+
+   while (!st.empty())
+   {
+       output.push_back(st.top());
+       st.pop();
+   }
+
+   return output;
 }

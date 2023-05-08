@@ -9,7 +9,7 @@
 #include <variant>
 
 #include "cat_export.h"
-
+#include "tokenizer.h"
 #include "log.h"
 
 namespace cat
@@ -469,7 +469,18 @@ namespace cat
 
       private:
 
+      /**
+       * @brief Node structure validation
+       * @return True if valid
+       */
       bool validate_node_data() const;
+
+      /**
+       * @brief Expression (Reverse Polish Notation) evaluation
+       * @param tks_ - sequence of tokens
+       * @return Evaluated value
+       */
+      Node::List evaluateRPN(const std::list<TToken>& tks_) const;
 
       Map            m_nodes;
       Arrow::List    m_arrows;

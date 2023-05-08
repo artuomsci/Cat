@@ -14,6 +14,29 @@ namespace cat
 
       print_info("Start test");
 
+      auto match_nodes = [](const Node::List& list_, std::vector<Node::NName> names_)
+      {
+         if (names_.size() != list_.size())
+            return false;
+
+         for (const auto& name : names_)
+         {
+            int counter {};
+            for (const auto& node : list_)
+            {
+               if (node.Name() == name)
+                  counter++;
+            }
+
+            if (counter != 1)
+               return false;
+
+            counter = 0;
+         }
+
+         return true;
+      };
+
       //============================================================
       // Testing of object addition methods
       //============================================================
@@ -527,17 +550,20 @@ namespace cat
 
          S.AddNodes({a, b, c, d});
 
-         assert(S.QueryNodes("*").size() == 4);
-         assert(S.QueryNodes("a").size() == 1 && S.QueryNodes("a").front().Name() == "a");
+         assert(S.QueryNodes("()").size() == 0);
+         assert(match_nodes(S.QueryNodes("*"), {"a", "b", "c", "d"}));
+         assert(match_nodes(S.QueryNodes("a"), {"a"}));
 
          auto or_query = S.QueryNodes("a|b|m");
 
-         assert(or_query.size() == 2 && or_query.front().Name() == "a" && or_query.back().Name() == "b");
+         assert(or_query.size() == 2 && or_query.front().Name() == "b" && or_query.back().Name() == "a");
 
-         assert(S.QueryNodes("a & b & c").size() == 3);
+         assert(match_nodes(S.QueryNodes("a & b & c"), {"a", "b", "c"}));
          assert(S.QueryNodes("a & h").size() == 0);
-         assert(S.QueryNodes("a & b | h").size() == 2);
-         assert(S.QueryNodes("a & b | c & d").size() == 4);
+         assert(match_nodes(S.QueryNodes("a & b | h"), {"a", "b"}));
+         assert(match_nodes(S.QueryNodes("a & (b | h)"), {"a", "b"}));
+         assert(match_nodes(S.QueryNodes("a & b | c & d"), {"a", "b", "c", "d"}));
+         assert(match_nodes(S.QueryNodes("(a & b) | (c & d)"), {"a", "b", "c", "d"}));
       }
 
       //============================================================

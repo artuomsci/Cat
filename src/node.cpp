@@ -6,8 +6,8 @@
 #include <iterator>
 #include <fstream>
 #include <sstream>
+#include <stack>
 
-#include "tokenizer.h"
 #include "parser.h"
 
 using namespace cat;
@@ -857,6 +857,68 @@ Arrow::List Node::QueryArrows(const std::string& query_, std::optional<size_t> m
 }
 
 //-----------------------------------------------------------------------------------------
+Node::List Node::evaluateRPN(const std::list<TToken>& tks_) const
+{
+   std::list<Node::List> ret;
+
+   for (const auto& tk : tks_)
+   {
+      if (Tokenizer::IsOperand(tk))
+      {
+         std::string name;
+
+         if (std::holds_alternative<std::string>(tk))
+         {
+            name = std::get<std::string>(tk);
+         }
+         else if (std::holds_alternative<int>(tk))
+         {
+            name = std::to_string(std::get<int>(tk));
+         }
+
+         auto it = m_nodes.find(Node(name, InternalNode()));
+         if (it != m_nodes.end())
+            ret.push_back({ it->first });
+         else
+            ret.push_back(Node::List());
+      }
+      else if (std::holds_alternative<AND>(tk))
+      {
+         Node::List left = ret.back();
+         ret.pop_back();
+
+         Node::List right = ret.back();
+         ret.pop_back();
+
+         if (!left.empty() && !right.empty())
+         {
+            left.insert(left.end(), right.begin(), right.end());
+
+            ret.push_back(left);
+         }
+      }
+      else if (std::holds_alternative<OR>(tk))
+      {
+         Node::List left = ret.back();
+         ret.pop_back();
+
+         Node::List right = ret.back();
+         ret.pop_back();
+
+         left.insert(left.end(), right.begin(), right.end());
+
+         if (!left.empty())
+            ret.push_back(left);
+      }
+   }
+
+   if (!ret.empty())
+      return ret.front();
+
+   return Node::List();
+}
+
+//-----------------------------------------------------------------------------------------
 Node::List Node::QueryNodes(const std::string& query_) const
 {
    std::list<TToken> tks = Tokenizer::Process(query_);
@@ -871,65 +933,7 @@ Node::List Node::QueryNodes(const std::string& query_) const
       }
    }
    else
-   {
-      // Container for elements joined by AND operation
-      std::vector<TToken> backup;
-
-      auto fnProcess = [&](const TToken& it_)
-      {
-         if (std::holds_alternative<OR>(it_))
-         {
-            Node::List new_nodes;
-            bool failure { false };
-
-            for (const TToken& backup_tk : backup)
-            {
-               std::string node_name;
-
-               if       (std::holds_alternative<std::string>(backup_tk))
-                  node_name = std::get<std::string>(backup_tk);
-               else if  (std::holds_alternative<int>(backup_tk))
-                  node_name = std::to_string(std::get<int>(backup_tk));
-               else
-                  return false;
-
-               auto it_node = m_nodes.find(Node(node_name, InternalNode()));
-               if (it_node != m_nodes.end())
-                  new_nodes.push_back(it_node->first);
-               else
-               {
-                  failure = true;
-                  break;
-               }
-            }
-
-            backup.clear();
-
-            if (!failure)
-               ret.insert(ret.end(), new_nodes.begin(), new_nodes.end());
-         }
-
-         return true;
-      };
-
-      int i {};
-      for (const TToken& it : tks)
-      {
-         // Operations have non-even index
-         if (i % 2)
-         {
-            if (!fnProcess(it))
-               return  Node::List();
-         }
-         else
-            backup.push_back(it);
-
-         i++;
-      }
-
-      if (!fnProcess(TToken(OR())))
-         return Node::List();
-   }
+      return evaluateRPN(Tokenizer::Expr2RPN(tks));
 
    return ret;
 }

@@ -56,6 +56,9 @@ namespace cat
    struct AND           {
       static const constexpr char id   = '&';
    };
+   struct NEG           {
+      static const constexpr char id   = '~';
+   };
 
    // Skip symbols
    struct SPACE         {
@@ -72,11 +75,17 @@ namespace cat
    struct COMMA         {
       static const constexpr char id   = ',';
    };
-   struct BEGIN_BR      {
+   struct BEGIN_CBR     {
       static const constexpr char id   = '{';
    };
-   struct END_BR        {
+   struct END_CBR       {
       static const constexpr char id   = '}';
+   };
+   struct BEGIN_BR     {
+      static const constexpr char id   = '(';
+   };
+   struct END_BR       {
+      static const constexpr char id   = ')';
    };
    struct SEMICOLON     {
       static const constexpr char id   = ';';
@@ -86,8 +95,8 @@ namespace cat
    };
 
    using TServiceT    = std::tuple<BEGIN_DOUBLE_ARROW, END_DOUBLE_ARROW, BEGIN_SINGLE_ARROW, END_SINGLE_ARROW, EQ, NEQ>;
-   using TDelimeterT  = std::tuple<COMMA, BEGIN_BR, END_BR, SEMICOLON, COLON>;
-   using TKeyT        = std::tuple<ASTERISK, QUOTE, OR, AND>;
+   using TDelimeterT  = std::tuple<COMMA, BEGIN_CBR, END_CBR, BEGIN_BR, END_BR, SEMICOLON, COLON>;
+   using TKeyT        = std::tuple<ASTERISK, QUOTE, OR, AND, NEG>;
    using TSkipT       = std::tuple<SPACE, TAB, NEXT_LINE>;
 
    using TToken = std::variant<
@@ -98,9 +107,9 @@ namespace cat
          // Service types
          BEGIN_DOUBLE_ARROW, END_DOUBLE_ARROW, BEGIN_SINGLE_ARROW, END_SINGLE_ARROW, EQ, NEQ,
          // Delimeter types
-         COMMA, BEGIN_BR, END_BR, SEMICOLON, COLON,
+         COMMA, BEGIN_CBR, END_CBR, BEGIN_BR, END_BR, SEMICOLON, COLON,
          // Key types
-         ASTERISK, QUOTE, OR, AND,
+         ASTERISK, QUOTE, OR, AND, NEG,
          // Skip types
          SPACE, TAB, NEXT_LINE,
          // Basic types
@@ -112,6 +121,9 @@ namespace cat
    public:
       static std::list<TToken> Process(const std::string& string_);
       static std::string TokenLog(const TToken& tk_, bool append_value_ = false);
+      static int Token2Precedence(const TToken& tk_);
+      static bool IsOperand(const TToken& tk_);
+      static std::list<TToken> Expr2RPN(const std::list<TToken>& expr_);
    };
 
 }
