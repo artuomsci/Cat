@@ -136,8 +136,6 @@ namespace cat
        * Syntax: source name -> target name
        * Syntax for named arrows: source name -[ arrow name ]-> target name
        * Use "*" as a replacement for any name
-       * Query examples: x -> y, * -> y, x -> *, * -> *
-       * Query examples: x -[ * ]-> y, * -[ operation ]-> * ... etc
        * @param query_ - query
        * @return Arrows
        */
@@ -337,9 +335,9 @@ namespace cat
 
       /**
        * @brief Queries for arrows
-       * @brief Syntax: "arrow name :: source name -> target name"
-       * @brief Use "*" as a replacement for any name
-       * @brief Query examples: "f0 :: x -> y", "* :: x -> y", "* :: * -> y", etc...
+       * @brief Syntax: for morphisms "source name -[ arrow name ]-> target name"
+       * @brief Syntax: for functors "source name =[ arrow name ]=> target name"
+       * @brief Use "*" for arrow name to match any name
        * @param query_ - query
        * @param matchCount_ - match count limit
        * @return Arrows
@@ -348,9 +346,7 @@ namespace cat
 
       /**
        * @brief Queries for nodes
-       * @brief Use "*" as a replacement for any name
-       * @brief Use "|" as logical operator OR
-       * @brief Query example: "x | y", "x"
+       * @brief Supported operations "|" as OR, "&" as AND, "(", ")"
        * @param query_ - query
        * @return Nodes
        */
