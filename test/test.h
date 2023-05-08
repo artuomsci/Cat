@@ -553,8 +553,10 @@ namespace cat
          assert(S.QueryNodes("()").size() == 0);
          assert(match_nodes(S.QueryNodes("*"), {"a", "b", "c", "d"}));
          assert(match_nodes(S.QueryNodes("a"), {"a"}));
-         assert(match_nodes(S.QueryNodes("a|a"), {"a"}));
-         assert(match_nodes(S.QueryNodes("a|b|m"), {"a", "b"}));
+         assert(match_nodes(S.QueryNodes("a | a"), {"a"}));
+         assert(match_nodes(S.QueryNodes("e | f | a | m | g"), {"a"}));
+         assert(match_nodes(S.QueryNodes("e & f | a | m & g"), {"a"}));
+         assert(match_nodes(S.QueryNodes("a | b | m"), {"a", "b"}));
          assert(match_nodes(S.QueryNodes("a & b & c"), {"a", "b", "c"}));
          assert(S.QueryNodes("a & h").size() == 0);
          assert(match_nodes(S.QueryNodes("a & b | h"), {"a", "b"}));

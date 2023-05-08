@@ -888,31 +888,30 @@ Node::List Node::evaluateRPN(const std::list<TToken>& tks_) const
       }
       else if (std::holds_alternative<AND>(tk))
       {
-         Node::List left = stack.back();
-         stack.pop_back();
+         Node::List& right = *(  stack.rbegin());
+         Node::List& left  = *(++stack.rbegin());
 
-         Node::List right = stack.back();
-         stack.pop_back();
-
+         // Summarizing results by AND
          if (!left.empty() && !right.empty())
          {
             left.insert(left.end(), right.begin(), right.end());
-
-            stack.push_back(left);
+            stack.pop_back();
+         }
+         else
+         {
+            stack.pop_back();
+            stack.back().clear();
          }
       }
       else if (std::holds_alternative<OR>(tk))
       {
-         Node::List left = stack.back();
-         stack.pop_back();
+         Node::List& right = *(  stack.rbegin());
+         Node::List& left  = *(++stack.rbegin());
 
-         Node::List right = stack.back();
-         stack.pop_back();
-
+         // Summarizing results by OR
          left.insert(left.end(), right.begin(), right.end());
 
-         if (!left.empty())
-            stack.push_back(left);
+         stack.pop_back();
       }
    }
 
