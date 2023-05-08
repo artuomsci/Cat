@@ -862,31 +862,31 @@ Node::List Node::evaluateRPN(const std::list<TToken>& tks_) const
    // Evaluation stack
    std::list<Node::List> stack;
 
-   for (const auto& tk : tks_)
+   for (auto tk = tks_.begin(); tk != tks_.end(); ++tk)
    {
-      if (Tokenizer::IsOperand(tk))
+      if (Tokenizer::IsOperand(*tk))
       {
          std::string name;
 
-         if (std::holds_alternative<std::string>(tk))
+         if (std::holds_alternative<std::string>(*tk))
          {
-            name = std::get<std::string>(tk);
+            name = std::get<std::string>(*tk);
          }
-         else if (std::holds_alternative<int>(tk))
+         else if (std::holds_alternative<int>(*tk))
          {
-            name = std::to_string(std::get<int>(tk));
+            name = std::to_string(std::get<int>(*tk));
          }
+
+         // Empty container evaluates to False
+         stack.push_back(Node::List());
 
          // "Resolving" tokens
          auto it = m_nodes.find(Node(name, InternalNode()));
          if (it != m_nodes.end())
             // Not empty container evaluates to True
-            stack.push_back({ it->first });
-         else
-            // Empty container evaluates to False
-            stack.push_back(Node::List());
+            stack.back().push_back(it->first);
       }
-      else if (std::holds_alternative<AND>(tk))
+      else if (std::holds_alternative<AND>(*tk))
       {
          Node::List& right = *(  stack.rbegin());
          Node::List& left  = *(++stack.rbegin());
@@ -903,7 +903,7 @@ Node::List Node::evaluateRPN(const std::list<TToken>& tks_) const
             stack.back().clear();
          }
       }
-      else if (std::holds_alternative<OR>(tk))
+      else if (std::holds_alternative<OR>(*tk))
       {
          Node::List& right = *(  stack.rbegin());
          Node::List& left  = *(++stack.rbegin());
@@ -912,6 +912,48 @@ Node::List Node::evaluateRPN(const std::list<TToken>& tks_) const
          left.insert(left.end(), right.begin(), right.end());
 
          stack.pop_back();
+      }
+      else if (std::holds_alternative<NEG>(*tk))
+      {
+         std::vector<std::string> exclude_names;
+
+         if (stack.back().empty())
+         {
+            --tk;
+
+            if (std::holds_alternative<std::string>(*tk))
+            {
+               exclude_names = {std::get<std::string>(*tk) };
+            }
+            else if (std::holds_alternative<int>(*tk))
+            {
+               exclude_names = { std::to_string(std::get<int>(*tk)) };
+            }
+
+            ++tk;
+         }
+         else
+         {
+            for (const auto& exclude : stack.back())
+               exclude_names.push_back(exclude.Name());
+         }
+
+         stack.back().clear();
+
+         // Adding everyting except indicated nodes
+         for (const auto& [key, _] : m_nodes)
+         {
+            bool isExclude {};
+
+            for (const auto& exclude : exclude_names)
+            {
+               if (key.Name() == exclude)
+                  isExclude = true;
+            }
+
+            if (!isExclude)
+               stack.back().push_back(key);
+         }
       }
    }
 

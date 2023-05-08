@@ -563,6 +563,9 @@ namespace cat
          assert(match_nodes(S.QueryNodes("a & (b | h)"), {"a", "b"}));
          assert(match_nodes(S.QueryNodes("a & b | c & d"), {"a", "b", "c", "d"}));
          assert(match_nodes(S.QueryNodes("(a & b) | (c & d)"), {"a", "b", "c", "d"}));
+         assert(match_nodes(S.QueryNodes("~a"), {"b", "c", "d"}));
+         assert(match_nodes(S.QueryNodes("~f"), {"a", "b", "c", "d"}));
+         assert(match_nodes(S.QueryNodes("~(a & b)"), {"c", "d"}));
       }
 
       //============================================================
