@@ -124,3 +124,7 @@ The return of the function **SolveSequences** is as follows:
 ```
 [0, 1, 2, 3],[0, 1, 3],[0, 2, 3],[0, 3]
 ```
+## Library structure
+
+Library class diagram is presented below. Nodes are used as categories, objects and values. Arrows represent functors, morphisms and functions.
+<img src="https://github.com/artuomsci/Cat/blob/main/imgs/uml.png" width="512">
