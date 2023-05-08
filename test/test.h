@@ -553,11 +553,8 @@ namespace cat
          assert(S.QueryNodes("()").size() == 0);
          assert(match_nodes(S.QueryNodes("*"), {"a", "b", "c", "d"}));
          assert(match_nodes(S.QueryNodes("a"), {"a"}));
-
-         auto or_query = S.QueryNodes("a|b|m");
-
-         assert(or_query.size() == 2 && or_query.front().Name() == "b" && or_query.back().Name() == "a");
-
+         assert(match_nodes(S.QueryNodes("a|a"), {"a"}));
+         assert(match_nodes(S.QueryNodes("a|b|m"), {"a", "b"}));
          assert(match_nodes(S.QueryNodes("a & b & c"), {"a", "b", "c"}));
          assert(S.QueryNodes("a & h").size() == 0);
          assert(match_nodes(S.QueryNodes("a & b | h"), {"a", "b"}));

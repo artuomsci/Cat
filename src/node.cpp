@@ -859,7 +859,8 @@ Arrow::List Node::QueryArrows(const std::string& query_, std::optional<size_t> m
 //-----------------------------------------------------------------------------------------
 Node::List Node::evaluateRPN(const std::list<TToken>& tks_) const
 {
-   std::list<Node::List> ret;
+   // Evaluation stack
+   std::list<Node::List> stack;
 
    for (const auto& tk : tks_)
    {
@@ -876,44 +877,52 @@ Node::List Node::evaluateRPN(const std::list<TToken>& tks_) const
             name = std::to_string(std::get<int>(tk));
          }
 
+         // "Resolving" tokens
          auto it = m_nodes.find(Node(name, InternalNode()));
          if (it != m_nodes.end())
-            ret.push_back({ it->first });
+            // Not empty container evaluates to True
+            stack.push_back({ it->first });
          else
-            ret.push_back(Node::List());
+            // Empty container evaluates to False
+            stack.push_back(Node::List());
       }
       else if (std::holds_alternative<AND>(tk))
       {
-         Node::List left = ret.back();
-         ret.pop_back();
+         Node::List left = stack.back();
+         stack.pop_back();
 
-         Node::List right = ret.back();
-         ret.pop_back();
+         Node::List right = stack.back();
+         stack.pop_back();
 
          if (!left.empty() && !right.empty())
          {
             left.insert(left.end(), right.begin(), right.end());
 
-            ret.push_back(left);
+            stack.push_back(left);
          }
       }
       else if (std::holds_alternative<OR>(tk))
       {
-         Node::List left = ret.back();
-         ret.pop_back();
+         Node::List left = stack.back();
+         stack.pop_back();
 
-         Node::List right = ret.back();
-         ret.pop_back();
+         Node::List right = stack.back();
+         stack.pop_back();
 
          left.insert(left.end(), right.begin(), right.end());
 
          if (!left.empty())
-            ret.push_back(left);
+            stack.push_back(left);
       }
    }
 
-   if (!ret.empty())
-      return ret.front();
+   if (!stack.empty())
+   {
+      // Removing duplicates
+      std::set<Node> tmp(stack.front().begin(), stack.front().end());
+
+      return Node::List(tmp.begin(), tmp.end());
+   }
 
    return Node::List();
 }
