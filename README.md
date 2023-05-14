@@ -2,7 +2,7 @@
 
 <img src="https://github.com/artuomsci/Cat/blob/main/imgs/cat.png" width="512">
 
-## Syntax sample
+## Syntax example
 
 ```
 LCAT World
@@ -33,7 +33,7 @@ Where:
 
 Names of morphisms and functors should be unique in the scope they are defined.
 
-## Examples 
+## Features and example applications 
 ### Function: *SolveCompositions*
 
 Let's have a look at intelligence relations between representatives of different species.
