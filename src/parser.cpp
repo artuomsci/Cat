@@ -1,11 +1,15 @@
 #include "parser.h"
 
+#include <string.h>
 #include <fstream>
 #include <sstream>
 
 #include "log.h"
 
 using namespace cat;
+
+static const char* comment_begin = "/*";
+static const char* comment_end   = "*/";
 
 //-----------------------------------------------------------------------------------------
 bool Parser::parse_statement(TKIt& it_, TKIt end_, NodePtr pNode_) const
@@ -315,6 +319,43 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, Arrow::List& arrows_)
 }
 
 //-----------------------------------------------------------------------------------------
+static std::optional<std::string> remove_comments(std::string string_)
+{
+   size_t initial = 0;
+   while (true)
+   {
+      auto begin     = string_.find(comment_begin  , initial);
+      auto new_end   = string_.find(comment_end    , initial);
+
+      if (new_end < begin)
+      {
+         print_error("Comment's section is not opened.");
+         return std::optional<std::string>();
+      }
+
+      if (begin != std::string::npos)
+      {
+         initial = begin;
+
+         auto end       = string_.find(comment_end    , begin);
+         auto new_start = string_.find(comment_begin  , begin + 1);
+
+         if (end == std::string::npos || (new_start < end))
+         {
+            print_error("Comment's section is not closed.");
+            return std::optional<std::string>();
+         }
+
+         string_.erase(begin, end - begin + strlen(comment_end));
+      }
+      else
+         break;
+   }
+
+   return string_;
+}
+
+//-----------------------------------------------------------------------------------------
 bool Parser::Parse(const std::string& filename_)
 {
    std::ifstream file(filename_);
@@ -327,7 +368,11 @@ bool Parser::Parse(const std::string& filename_)
    std::stringstream buffer;
    buffer << file.rdbuf();
 
-   std::list<TToken> tokens = Tokenizer::Process(buffer.str());
+   auto prep = remove_comments(std::move(buffer.str()));
+   if (!prep)
+      return false;
+
+   std::list<TToken> tokens = Tokenizer::Process(prep.value());
 
    TKIt it = tokens.begin();
    while (it != tokens.end())
