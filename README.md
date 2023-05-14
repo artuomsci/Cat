@@ -5,18 +5,23 @@
 ## Syntax example
 
 ```
+/* Large category definition */
 LCAT World
 {
+   /* Small category definition */
    SCAT Animals
    {
+      /* Objects */
       OBJ cow, chicken;
       
+      /* Morphisms */
       chicken -[isBigger]-> cow -[isSmaller]-> chicken;
    }
 
    SCAT People;
    SCAT Aliens;
    
+   /* Functors */
    People =[isSuperior]=> Aliens =[*]=> People;
 };
 ```
@@ -30,6 +35,7 @@ Where:
 | **-[]->** | morphism |
 | **=[]=>** | functor |
 | * | hint for auto-generating morphism/functor name |
+| **/\*...\*/** | comment section |
 
 Names of morphisms and functors should be unique in the scope they are defined.
 
