@@ -130,6 +130,53 @@ The return of the function **SolveSequences** is as follows:
 ```
 [0, 1, 2, 3],[0, 1, 3],[0, 2, 3],[0, 3]
 ```
+
+### Function: *QueryNodes*
+
+```
+SCAT QuerySample
+{
+   OBJ a, b, c, d;
+};
+
+QueryNodes("*")
+Result:
+[a, b, c, d]
+
+QueryNodes("a")
+Result:
+[a]
+
+QueryNodes("a | a")
+Result:
+[a]
+
+QueryNodes("e | f | a | m | g")
+Result:
+[a]
+
+QueryNodes("e & f | a | m & g")
+Result:
+[a]
+
+QueryNodes("a | b | m")
+Result:
+[a, b]
+
+QueryNodes("a & b & c")
+Result:
+[a, b, c]
+
+QueryNodes("(a & b) | (c & d)")
+Result:
+[a, b, c, d]
+
+QueryNodes("~(a & b)")
+Result:
+[c, d]
+
+```
+
 ## Library structure
 
 Library class diagram is presented below. Nodes are used as categories, objects and values. Arrows represent functors, morphisms and functions.
