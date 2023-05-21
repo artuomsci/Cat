@@ -133,6 +133,8 @@ The return of the function **SolveSequences** is as follows:
 
 ### Function: *QueryNodes*
 
+Function queries for objects in categories and small categories in large categories.
+
 ```
 SCAT QuerySample
 {
