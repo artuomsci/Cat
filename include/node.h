@@ -429,6 +429,14 @@ namespace cat
       void Inverse();
 
       /**
+       * @brief Creates a set of all possible arrows
+       * @param from_ - source node for arrows
+       * @param to_ - target node for arrows
+       * @return Set of arrows corresponding to different mappings between nodes
+       */
+      Arrow::List ProposeArrows(const Node::NName& from_, const Node::NName& to_);
+
+      /**
        * @brief Returns node type
        * @return Node type
        */

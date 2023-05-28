@@ -1512,6 +1512,65 @@ void Node::Inverse()
 }
 
 //-----------------------------------------------------------------------------------------
+Arrow::List Node::ProposeArrows(const Node::NName& from_, const Node::NName& to_)
+{
+   Node::List source_list = QueryNodes(from_);
+   if (source_list.size() != 1)
+      return Arrow::List();
+   const Node& source = source_list.front();
+
+   Node::List target_list = QueryNodes(to_);
+   if (target_list.size() != 1)
+      return Arrow::List();
+   const Node& target = target_list.front();
+
+   std::list<std::list<std::pair<Node, Node>>> projections;
+
+   Node::List source_nodes = source.QueryNodes("*");
+   Node::List target_nodes = target.QueryNodes("*");
+
+   projections.emplace_back(std::list<std::pair<Node, Node>>());
+
+   for (const Node& src_node : source_nodes)
+   {
+      std::list<std::pair<Node, Node>> options;
+      for (const Node& trg_node : target_nodes)
+      {
+         options.emplace_back(src_node, trg_node);
+      }
+
+      std::list<std::list<std::pair<Node, Node>>> update;
+
+      for (auto& option : options)
+      {
+         for (auto& projection : projections)
+         {
+            update.emplace_back(std::list<std::pair<Node, Node>>());
+            update.back().insert(update.back().begin(), projection.begin(), projection.end());
+            update.back().push_back(option);
+         }
+      }
+
+      projections = std::move(update);
+   }
+
+   Arrow::List ret;
+   for (const auto& projection : projections)
+   {
+      Arrow arrow(source, target);
+
+      for (const auto& [from, to] : projection)
+      {
+         arrow.AddArrow(Arrow(source.InternalArrow(), from.Name(), to.Name()));
+      }
+
+      ret.push_back(std::move(arrow));
+   }
+
+   return ret;
+}
+
+//-----------------------------------------------------------------------------------------
 Node::EType Node::Type() const
 {
    return m_type;
@@ -1533,7 +1592,12 @@ Node::EType Node::InternalNode() const
 //-----------------------------------------------------------------------------------------
 Arrow::EType Node::InternalArrow() const
 {
-   return m_type == Node::EType::eLCategory ? Arrow::EType::eFunctor : Arrow::EType::eMorphism;
+   if (m_type == Node::EType::eLCategory)
+      return Arrow::EType::eFunctor;
+   else if (m_type == Node::EType::eSCategory)
+      return Arrow::EType::eMorphism;
+   else
+      return Arrow::EType::eFunction;
 }
 
 //-----------------------------------------------------------------------------------------
