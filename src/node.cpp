@@ -499,12 +499,50 @@ Arrow::EType Arrow::Type() const
 }
 
 //-----------------------------------------------------------------------------------------
+Arrow::EType Arrow::InternalType() const
+{
+   if (m_type == Arrow::EType::eFunction)
+      return Arrow::EType::eUndefined;
+   if (m_type == Arrow::EType::eMorphism)
+      return Arrow::EType::eFunction;
+   if (m_type == Arrow::EType::eFunctor)
+      return Arrow::EType::eMorphism;
+
+   return Arrow::EType::eUndefined;
+}
+
+//-----------------------------------------------------------------------------------------
 std::string Arrow::AsQuery() const
 {
    if (m_type == Arrow::EType::eMorphism)
       return m_source + BEGIN_SINGLE_ARROW::id + m_name + END_SINGLE_ARROW::id + m_target + SEMICOLON::id;
    else
       return m_source + BEGIN_DOUBLE_ARROW::id + m_name + END_DOUBLE_ARROW::id + m_target + SEMICOLON::id;
+}
+
+//-----------------------------------------------------------------------------------------
+bool Arrow::IsEquivalent(const Arrow& arrow) const
+{
+   if (arrow.Source() != Source() || arrow.Target() != Target() || arrow.Type() != Type())
+      return false;
+
+   if (arrow.CountArrows() != CountArrows())
+      return false;
+
+   for (auto & it : arrow.QueryArrows(Arrow(InternalType(), "*", "*").AsQuery()))
+   {
+      auto result = QueryArrows(Arrow(InternalType(), it.Source(), it.Target()).AsQuery());
+      if (result.empty())
+         return false;
+   }
+
+   return true;
+}
+
+//-----------------------------------------------------------------------------------------
+size_t Arrow::CountArrows() const
+{
+   return m_arrows.size();
 }
 
 //-----------------------------------------------------------------------------------------

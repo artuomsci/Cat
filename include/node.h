@@ -173,10 +173,29 @@ namespace cat
       Arrow::EType Type() const;
 
       /**
+       * @brief Returns internal type
+       * @return Internal type
+       */
+      Arrow::EType InternalType() const;
+
+      /**
        * @brief Returns arrow as query
        * @return Query representation
        */
       std::string AsQuery() const;
+
+      /**
+       * @brief Checks equivalence of arrows
+       * @param arrow - arrow for equivalence check
+       * @return True if equivalent
+       */
+      bool IsEquivalent(const Arrow& arrow) const;
+
+      /**
+       * @brief Counts the number of arrows
+       * @return Number of arrows
+       */
+      size_t CountArrows() const;
 
    private:
 

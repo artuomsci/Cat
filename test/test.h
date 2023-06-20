@@ -12,6 +12,7 @@
 #include "sequence_test.h"
 #include "node_query_by_arrow_test.h"
 #include "arrow_query_on_node.h"
+#include "equivalence.h"
 
 namespace cat
 {
@@ -361,6 +362,90 @@ namespace cat
       }
 
       //============================================================
+      // Testing of equivalence
+      //============================================================
+      {
+         {
+            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
+            Arrow arrow_right(Arrow::EType::eFunctor, "A", "B");
+
+            assert(arrow_left.IsEquivalent(arrow_right));
+         }
+
+         {
+            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B", "fff");
+            Arrow arrow_right(Arrow::EType::eFunctor, "A", "B", "aaa");
+
+            assert(arrow_left.IsEquivalent(arrow_right));
+         }
+
+         {
+            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
+            Arrow arrow_right(Arrow::EType::eFunctor, "A", "C");
+
+            assert(!arrow_left.IsEquivalent(arrow_right));
+         }
+
+         {
+            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
+            Arrow arrow_right(Arrow::EType::eMorphism, "A", "C");
+
+            assert(!arrow_left.IsEquivalent(arrow_right));
+         }
+
+         {
+            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
+            Arrow arrow_right(Arrow::EType::eFunctor, "A", "B");
+
+            Arrow arrow_0(Arrow::EType::eMorphism, "a0", "b0");
+
+            arrow_left.AddArrow(arrow_0);
+            arrow_right.AddArrow(arrow_0);
+
+            assert(arrow_left.IsEquivalent(arrow_right));
+         }
+
+         {
+            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
+            Arrow arrow_right(Arrow::EType::eFunctor, "A", "B");
+
+            Arrow arrow_0(Arrow::EType::eMorphism, "a0", "b0");
+            Arrow arrow_1(Arrow::EType::eMorphism, "a1", "b1");
+
+            arrow_left.AddArrow(arrow_0);
+            arrow_right.AddArrow(arrow_1);
+
+            assert(!arrow_left.IsEquivalent(arrow_right));
+         }
+
+         {
+            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
+            Arrow arrow_right(Arrow::EType::eFunctor, "A", "B");
+
+            Arrow arrow_0(Arrow::EType::eMorphism, "a0", "b0");
+            Arrow arrow_1(Arrow::EType::eMorphism, "a1", "b1");
+
+            arrow_left.AddArrow(arrow_0);
+            arrow_left.AddArrow(arrow_1);
+
+            assert(!arrow_left.IsEquivalent(arrow_right));
+         }
+
+         {
+            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
+            Arrow arrow_right(Arrow::EType::eFunctor, "A", "B");
+
+            Arrow arrow_0(Arrow::EType::eMorphism, "a0", "b0");
+            Arrow arrow_1(Arrow::EType::eMorphism, "a1", "b1");
+
+            arrow_right.AddArrow(arrow_0);
+            arrow_right.AddArrow(arrow_1);
+
+            assert(!arrow_left.IsEquivalent(arrow_right));
+         }
+      }
+
+      //============================================================
       // Testing of mapping generator
       //============================================================
       {
@@ -433,6 +518,8 @@ namespace cat
       test_node_query_by_arrow();
 
       test_node_query();
+
+      test_equivalence();
 
       print_info("End test");
 
