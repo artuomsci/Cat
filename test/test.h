@@ -443,6 +443,24 @@ namespace cat
 
             assert(!arrow_left.IsEquivalent(arrow_right));
          }
+
+         {
+            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
+            Arrow arrow_right(Arrow::EType::eFunctor, "A", "B");
+
+            Arrow arrow_0(Arrow::EType::eMorphism, "a0", "b0");
+
+            Arrow arrow_1(Arrow::EType::eFunction, "x", "y", "first");
+            Arrow arrow_2(Arrow::EType::eFunction, "x", "y", "second");
+
+            arrow_0.AddArrow(arrow_1);
+            arrow_0.AddArrow(arrow_2);
+
+            arrow_left.AddArrow(arrow_0);
+            arrow_right.AddArrow(arrow_0);
+
+            assert(arrow_left.IsEquivalent(arrow_right));
+         }
       }
 
       //============================================================
