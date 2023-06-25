@@ -164,6 +164,16 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_) const
    if (!parse_arrow(it_, end_, arrows))
       return false;
 
+   std::string any(1, ASTERISK::id);
+
+   for (auto& arrow : arrows)
+   {
+      if (arrow.Name() == any)
+      {
+         arrow = Arrow(arrow.Source(), arrow.Target());
+      }
+   }
+
    for (const auto& arrow : arrows)
    {
       if (!pNode_->AddArrow(arrow))
