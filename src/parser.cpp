@@ -251,7 +251,7 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, Arrow::List& arrows_)
       }
       else if (std::holds_alternative<ASTERISK>(name_tk))
       {
-         name = Arrow::DefaultArrowName(source, target);
+         name = ASTERISK::id;
       }
       else
       {
