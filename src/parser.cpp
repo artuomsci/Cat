@@ -271,7 +271,7 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, Arrow::List& arrows_)
       {
          break;
       }
-      else if (std::holds_alternative<BEGIN_DOUBLE_ARROW>(*it_) || std::holds_alternative<BEGIN_SINGLE_ARROW>(*it_))
+      else if (std::holds_alternative<BEGIN_SINGLE_ARROW>(*it_))
       {
          --it_;
       }

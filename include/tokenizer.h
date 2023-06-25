@@ -18,13 +18,6 @@ namespace cat
       static const constexpr char* const id   = "OBJ";
    };
 
-   // Service symbols
-   struct BEGIN_DOUBLE_ARROW  {
-      static const constexpr char* const id   = "=[";
-   };
-   struct END_DOUBLE_ARROW    {
-      static const constexpr char* const id   = "]=>";
-   };
    struct BEGIN_SINGLE_ARROW  {
       static const constexpr char* const id   = "-[";
    };
@@ -94,7 +87,7 @@ namespace cat
       static const constexpr char id   = ':';
    };
 
-   using TServiceT    = std::tuple<BEGIN_DOUBLE_ARROW, END_DOUBLE_ARROW, BEGIN_SINGLE_ARROW, END_SINGLE_ARROW, EQ, NEQ>;
+   using TServiceT    = std::tuple<BEGIN_SINGLE_ARROW, END_SINGLE_ARROW, EQ, NEQ>;
    using TDelimeterT  = std::tuple<COMMA, BEGIN_CBR, END_CBR, BEGIN_BR, END_BR, SEMICOLON, COLON>;
    using TKeyT        = std::tuple<ASTERISK, QUOTE, OR, AND, NEG>;
    using TSkipT       = std::tuple<SPACE, TAB, NEXT_LINE>;
@@ -105,7 +98,7 @@ namespace cat
          // Misc
          COMMENT,
          // Service types
-         BEGIN_DOUBLE_ARROW, END_DOUBLE_ARROW, BEGIN_SINGLE_ARROW, END_SINGLE_ARROW, EQ, NEQ,
+         BEGIN_SINGLE_ARROW, END_SINGLE_ARROW, EQ, NEQ,
          // Delimeter types
          COMMA, BEGIN_CBR, END_CBR, BEGIN_BR, END_BR, SEMICOLON, COLON,
          // Key types

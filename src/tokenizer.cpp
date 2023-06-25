@@ -108,8 +108,6 @@ static void build_seq_tree(SMNode& root_)
    {
          BEGIN_SINGLE_ARROW::id
       ,  END_SINGLE_ARROW::id
-      ,  BEGIN_DOUBLE_ARROW::id
-      ,  END_DOUBLE_ARROW::id
       ,  EQ::id
       ,  NEQ::id
    };
@@ -198,11 +196,7 @@ static bool AddServiceToken(std::list<TToken>& tokens_, std::string::const_itera
 
    std::string tk(begin_, end_);
 
-   if       (tk == BEGIN_DOUBLE_ARROW::id)
-      tokens_.push_back(BEGIN_DOUBLE_ARROW());
-   else if  (tk == END_DOUBLE_ARROW::id)
-      tokens_.push_back(END_DOUBLE_ARROW());
-   else if  (tk == BEGIN_SINGLE_ARROW::id)
+   if  (tk == BEGIN_SINGLE_ARROW::id)
       tokens_.push_back(BEGIN_SINGLE_ARROW());
    else if  (tk == END_SINGLE_ARROW::id)
       tokens_.push_back(END_SINGLE_ARROW());
@@ -394,10 +388,6 @@ std::string Tokenizer::TokenLog(const TToken& tk_, bool append_value_)
       return std::get<SCAT>(tk_).id;
    else if  (std::holds_alternative<OBJ>(tk_))
       return std::get<OBJ>(tk_).id;
-   else if  (std::holds_alternative<BEGIN_DOUBLE_ARROW>(tk_))
-      return std::get<BEGIN_DOUBLE_ARROW>(tk_).id;
-   else if  (std::holds_alternative<END_DOUBLE_ARROW>(tk_))
-      return std::get<END_DOUBLE_ARROW>(tk_).id;
    else if  (std::holds_alternative<BEGIN_SINGLE_ARROW>(tk_))
       return std::get<BEGIN_SINGLE_ARROW>(tk_).id;
    else if  (std::holds_alternative<END_SINGLE_ARROW>(tk_))
