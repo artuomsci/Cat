@@ -461,6 +461,24 @@ namespace cat
 
             assert(arrow_left.IsEquivalent(arrow_right));
          }
+
+         {
+            Arrow arrow_left("A", "B");
+            Arrow arrow_right("A", "B");
+
+            Arrow arrow_00("a0", "b0");
+            arrow_00.AddArrow(Arrow("x", "y", "first"));
+            arrow_00.AddArrow(Arrow("x", "y", "second"));
+
+            Arrow arrow_01("a0", "b0");
+            arrow_01.AddArrow(Arrow("x", "y", "first"));
+            arrow_01.AddArrow(Arrow("f", "g", "second"));
+
+            arrow_left.AddArrow(arrow_00);
+            arrow_right.AddArrow(arrow_01);
+
+            assert(!arrow_left.IsEquivalent(arrow_right));
+         }
       }
 
       //============================================================

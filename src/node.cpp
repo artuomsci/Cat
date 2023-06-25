@@ -481,10 +481,23 @@ bool Arrow::IsEquivalent(const Arrow& arrow) const
    if (arrow.CountArrows() != CountArrows())
       return false;
 
-   for (auto & it : arrow.QueryArrows(Arrow("*", "*").AsQuery()))
+   for (auto & right : arrow.QueryArrows(Arrow("*", "*").AsQuery()))
    {
-      auto result = QueryArrows(Arrow(it.Source(), it.Target()).AsQuery());
+      auto result = QueryArrows(Arrow(right.Source(), right.Target(), "*").AsQuery());
       if (result.empty())
+         return false;
+
+      bool isFound{};
+      for (auto & left : result)
+      {
+         if (left.IsEquivalent(right))
+         {
+            isFound = true;
+            break;
+         }
+      }
+
+      if (!isFound)
          return false;
    }
 
