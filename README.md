@@ -22,7 +22,7 @@ LCAT World
    SCAT Aliens;
    
    /* Functors */
-   People =[isSuperior]=> Aliens =[*]=> People;
+   People -[isSuperior]-> Aliens -[*]-> People;
 };
 ```
 Where:
@@ -32,8 +32,7 @@ Where:
 | **LCAT** | large category |
 | **SCAT** | small category |
 | **OBJ** | object |
-| **-[]->** | morphism |
-| **=[]=>** | functor |
+| **-[]->** | morphism/functor/function etc. |
 | * | hint for auto-generating morphism/functor name |
 | **/\*...\*/** | comment section |
 
