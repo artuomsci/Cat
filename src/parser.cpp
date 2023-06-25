@@ -205,22 +205,6 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, Arrow::List& arrows_)
       if (it_ == end_)
          return false;
 
-      Arrow::EType type { Arrow::EType::eUndefined };
-
-      if (std::holds_alternative<BEGIN_SINGLE_ARROW>(*it_))
-      {
-         type = Arrow::EType::eMorphism;
-      }
-      else if (std::holds_alternative<BEGIN_DOUBLE_ARROW>(*it_))
-      {
-         type = Arrow::EType::eFunctor;
-      }
-      else
-      {
-         print_error("Incorrect arrow declaration");
-         return false;
-      }
-
       ++it_;
       if (it_ == end_)
          return false;
@@ -230,23 +214,6 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, Arrow::List& arrows_)
       ++it_;
       if (it_ == end_)
          return false;
-
-      if (type == Arrow::EType::eMorphism)
-      {
-         if (!std::holds_alternative<END_SINGLE_ARROW>(*it_))
-         {
-            print_error("Incorrect arrow declaration");
-            return false;
-         }
-      }
-      else if (type == Arrow::EType::eFunctor)
-      {
-         if (!std::holds_alternative<END_DOUBLE_ARROW>(*it_))
-         {
-            print_error("Incorrect arrow declaration");
-            return false;
-         }
-      }
 
       ++it_;
       if (it_ == end_)
@@ -292,7 +259,7 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, Arrow::List& arrows_)
          return false;
       }
 
-      Arrow arrow(type, source, target, name);
+      Arrow arrow(source, target, name);
 
       arrows_.push_back(arrow);
 

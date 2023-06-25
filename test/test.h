@@ -65,11 +65,11 @@ namespace cat
 
          assert(cat.EraseNode(a.Name()) == true);
 
-         assert(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()).size() == 1);
+         assert(cat.QueryArrows(Arrow("*", "*").AsQuery()).size() == 1);
 
          assert(cat.EraseNode(b.Name()) == true);
 
-         assert(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()).size() == 0);
+         assert(cat.QueryArrows(Arrow("*", "*").AsQuery()).size() == 0);
 
          assert(cat.EraseNode(c.Name()) == false);
 
@@ -106,23 +106,23 @@ namespace cat
 
          cat.AddNodes({a, b, c});
 
-         assert(!cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "a", "a").AsQuery()).empty());
-         assert(!cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "b", "b").AsQuery()).empty());
-         assert(!cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "c", "c").AsQuery()).empty());
+         assert(!cat.QueryArrows(Arrow("a", "a").AsQuery()).empty());
+         assert(!cat.QueryArrows(Arrow("b", "b").AsQuery()).empty());
+         assert(!cat.QueryArrows(Arrow("c", "c").AsQuery()).empty());
 
-         assert(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()).size() == 3);
+         assert(cat.QueryArrows(Arrow("*", "*").AsQuery()).size() == 3);
 
          assert(cat.AddArrow(Arrow(a, b, "f0")));
-         assert(fnCheckArrow(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()), Arrow(a, b, "f0")));
+         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(a, b, "f0")));
 
          assert(cat.AddArrow(Arrow(a, c, "f1")));
-         assert(fnCheckArrow(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()), Arrow(a, c, "f1")));
+         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(a, c, "f1")));
 
-         assert(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()).size() == 5);
+         assert(cat.QueryArrows(Arrow("*", "*").AsQuery()).size() == 5);
 
          assert(cat.AddArrow(Arrow(a, d, "f2")) == false);
-         assert(!fnCheckArrow(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()), Arrow(a, d, "f2")));
-         assert(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()).size() == 5);
+         assert(!fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(a, d, "f2")));
+         assert(cat.QueryArrows(Arrow("*", "*").AsQuery()).size() == 5);
 
          assert(cat.AddArrow(Arrow(b, c, "f0")) == false);
          assert(cat.AddArrow(Arrow(a, b, "f0")) == false);
@@ -145,31 +145,31 @@ namespace cat
 
          // Deleting morphisms one at a time
          {
-            auto prev_count = cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()).size();
+            auto prev_count = cat.QueryArrows(Arrow("*", "*").AsQuery()).size();
             assert(cat.EraseArrow("f0") == true);
-            assert(!fnCheckArrow(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()), Arrow(a, b, "f0")));
-            assert(prev_count = cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()).size() - 1);
+            assert(!fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(a, b, "f0")));
+            assert(prev_count = cat.QueryArrows(Arrow("*", "*").AsQuery()).size() - 1);
 
             assert(cat.EraseArrow("f1") == true);
-            assert(!fnCheckArrow(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()), Arrow(a, c, "f1")));
-            assert(prev_count = cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()).size() - 2);
+            assert(!fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(a, c, "f1")));
+            assert(prev_count = cat.QueryArrows(Arrow("*", "*").AsQuery()).size() - 2);
          }
 
          // It is not allowed to delete identity morphism,
          // before the object has been removed
          {
-            auto prev_count = cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()).size();
+            auto prev_count = cat.QueryArrows(Arrow("*", "*").AsQuery()).size();
             assert(cat.EraseArrow(Arrow::IdArrowName(a.Name())) == false);
-            auto new_count = cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()).size();
+            auto new_count = cat.QueryArrows(Arrow("*", "*").AsQuery()).size();
             assert(prev_count == new_count);
-            assert(fnCheckArrow(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()), Arrow(a, a, Arrow::IdArrowName(a.Name()))));
+            assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(a, a, Arrow::IdArrowName(a.Name()))));
          }
 
          // Non existent morphism can't be deleted
          {
-            auto prev_count = cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()).size();
+            auto prev_count = cat.QueryArrows(Arrow("*", "*").AsQuery()).size();
             assert(cat.EraseArrow("Fake") == false);
-            auto new_count = cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()).size();
+            auto new_count = cat.QueryArrows(Arrow("*", "*").AsQuery()).size();
             assert(prev_count == new_count);
          }
       }
@@ -194,7 +194,7 @@ namespace cat
          {
             cat.EraseArrows();
 
-            assert(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()).size() == 3);
+            assert(cat.QueryArrows(Arrow("*", "*").AsQuery()).size() == 3);
          }
       }
 
@@ -297,9 +297,9 @@ namespace cat
             Node ccat("Cat", Node::EType::eLCategory);
             ccat.AddNode(C0);
 
-            auto arrows = ccat.QueryArrows(Arrow(Arrow::EType::eFunctor, "*", "*").AsQuery());
+            auto arrows = ccat.QueryArrows(Arrow("*", "*").AsQuery());
             assert(arrows.size() == 1);
-            auto arrows_btw_objects = arrows.front().QueryArrows(Arrow(Arrow::EType::eFunctor, "*", "*").AsQuery());
+            auto arrows_btw_objects = arrows.front().QueryArrows(Arrow("*", "*").AsQuery());
             assert(arrows_btw_objects.size() == 2);
          }
 
@@ -366,38 +366,38 @@ namespace cat
       //============================================================
       {
          {
-            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
-            Arrow arrow_right(Arrow::EType::eFunctor, "A", "B");
+            Arrow arrow_left("A", "B");
+            Arrow arrow_right("A", "B");
 
             assert(arrow_left.IsEquivalent(arrow_right));
          }
 
          {
-            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B", "fff");
-            Arrow arrow_right(Arrow::EType::eFunctor, "A", "B", "aaa");
+            Arrow arrow_left("A", "B", "fff");
+            Arrow arrow_right("A", "B", "aaa");
 
             assert(arrow_left.IsEquivalent(arrow_right));
          }
 
          {
-            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
-            Arrow arrow_right(Arrow::EType::eFunctor, "A", "C");
+            Arrow arrow_left("A", "B");
+            Arrow arrow_right("A", "C");
 
             assert(!arrow_left.IsEquivalent(arrow_right));
          }
 
          {
-            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
-            Arrow arrow_right(Arrow::EType::eMorphism, "A", "C");
+            Arrow arrow_left("A", "B");
+            Arrow arrow_right("A", "C");
 
             assert(!arrow_left.IsEquivalent(arrow_right));
          }
 
          {
-            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
-            Arrow arrow_right(Arrow::EType::eFunctor, "A", "B");
+            Arrow arrow_left("A", "B");
+            Arrow arrow_right("A", "B");
 
-            Arrow arrow_0(Arrow::EType::eMorphism, "a0", "b0");
+            Arrow arrow_0("a0", "b0");
 
             arrow_left.AddArrow(arrow_0);
             arrow_right.AddArrow(arrow_0);
@@ -406,11 +406,11 @@ namespace cat
          }
 
          {
-            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
-            Arrow arrow_right(Arrow::EType::eFunctor, "A", "B");
+            Arrow arrow_left("A", "B");
+            Arrow arrow_right("A", "B");
 
-            Arrow arrow_0(Arrow::EType::eMorphism, "a0", "b0");
-            Arrow arrow_1(Arrow::EType::eMorphism, "a1", "b1");
+            Arrow arrow_0("a0", "b0");
+            Arrow arrow_1("a1", "b1");
 
             arrow_left.AddArrow(arrow_0);
             arrow_right.AddArrow(arrow_1);
@@ -419,11 +419,11 @@ namespace cat
          }
 
          {
-            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
-            Arrow arrow_right(Arrow::EType::eFunctor, "A", "B");
+            Arrow arrow_left("A", "B");
+            Arrow arrow_right("A", "B");
 
-            Arrow arrow_0(Arrow::EType::eMorphism, "a0", "b0");
-            Arrow arrow_1(Arrow::EType::eMorphism, "a1", "b1");
+            Arrow arrow_0("a0", "b0");
+            Arrow arrow_1("a1", "b1");
 
             arrow_left.AddArrow(arrow_0);
             arrow_left.AddArrow(arrow_1);
@@ -432,11 +432,11 @@ namespace cat
          }
 
          {
-            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
-            Arrow arrow_right(Arrow::EType::eFunctor, "A", "B");
+            Arrow arrow_left("A", "B");
+            Arrow arrow_right("A", "B");
 
-            Arrow arrow_0(Arrow::EType::eMorphism, "a0", "b0");
-            Arrow arrow_1(Arrow::EType::eMorphism, "a1", "b1");
+            Arrow arrow_0("a0", "b0");
+            Arrow arrow_1("a1", "b1");
 
             arrow_right.AddArrow(arrow_0);
             arrow_right.AddArrow(arrow_1);
@@ -445,13 +445,13 @@ namespace cat
          }
 
          {
-            Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
-            Arrow arrow_right(Arrow::EType::eFunctor, "A", "B");
+            Arrow arrow_left("A", "B");
+            Arrow arrow_right("A", "B");
 
-            Arrow arrow_0(Arrow::EType::eMorphism, "a0", "b0");
+            Arrow arrow_0("a0", "b0");
 
-            Arrow arrow_1(Arrow::EType::eFunction, "x", "y", "first");
-            Arrow arrow_2(Arrow::EType::eFunction, "x", "y", "second");
+            Arrow arrow_1("x", "y", "first");
+            Arrow arrow_2("x", "y", "second");
 
             arrow_0.AddArrow(arrow_1);
             arrow_0.AddArrow(arrow_2);
@@ -490,7 +490,7 @@ namespace cat
 
          auto fnFindArrow = [&](Arrow arrow_, const std::string& source_, const std::string& target_)
          {
-            auto morphisms = arrow_.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery());
+            auto morphisms = arrow_.QueryArrows(Arrow("*", "*").AsQuery());
 
             auto it = std::find_if(morphisms.begin(), morphisms.end(), [&](const Arrow& arrow)
             {

@@ -15,38 +15,38 @@ namespace cat
    void test_equivalence()
    {
       {
-         Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
-         Arrow arrow_right(Arrow::EType::eFunctor, "A", "B");
+         Arrow arrow_left("A", "B");
+         Arrow arrow_right("A", "B");
 
          assert(arrow_left.IsEquivalent(arrow_right));
       }
 
       {
-         Arrow arrow_left(Arrow::EType::eFunctor, "A", "B", "fff");
-         Arrow arrow_right(Arrow::EType::eFunctor, "A", "B", "aaa");
+         Arrow arrow_left("A", "B", "fff");
+         Arrow arrow_right("A", "B", "aaa");
 
          assert(arrow_left.IsEquivalent(arrow_right));
       }
 
       {
-         Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
-         Arrow arrow_right(Arrow::EType::eFunctor, "A", "C");
+         Arrow arrow_left("A", "B");
+         Arrow arrow_right("A", "C");
 
          assert(!arrow_left.IsEquivalent(arrow_right));
       }
 
       {
-         Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
-         Arrow arrow_right(Arrow::EType::eMorphism, "A", "C");
+         Arrow arrow_left("A", "B");
+         Arrow arrow_right("A", "C");
 
          assert(!arrow_left.IsEquivalent(arrow_right));
       }
 
       {
-         Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
-         Arrow arrow_right(Arrow::EType::eFunctor, "A", "B");
+         Arrow arrow_left("A", "B");
+         Arrow arrow_right("A", "B");
 
-         Arrow arrow_0(Arrow::EType::eMorphism, "a0", "b0");
+         Arrow arrow_0("a0", "b0");
 
          arrow_left.AddArrow(arrow_0);
          arrow_right.AddArrow(arrow_0);
@@ -55,11 +55,11 @@ namespace cat
       }
 
       {
-         Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
-         Arrow arrow_right(Arrow::EType::eFunctor, "A", "B");
+         Arrow arrow_left("A", "B");
+         Arrow arrow_right("A", "B");
 
-         Arrow arrow_0(Arrow::EType::eMorphism, "a0", "b0");
-         Arrow arrow_1(Arrow::EType::eMorphism, "a1", "b1");
+         Arrow arrow_0("a0", "b0");
+         Arrow arrow_1("a1", "b1");
 
          arrow_left.AddArrow(arrow_0);
          arrow_right.AddArrow(arrow_1);
@@ -68,11 +68,11 @@ namespace cat
       }
 
       {
-         Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
-         Arrow arrow_right(Arrow::EType::eFunctor, "A", "B");
+         Arrow arrow_left("A", "B");
+         Arrow arrow_right("A", "B");
 
-         Arrow arrow_0(Arrow::EType::eMorphism, "a0", "b0");
-         Arrow arrow_1(Arrow::EType::eMorphism, "a1", "b1");
+         Arrow arrow_0("a0", "b0");
+         Arrow arrow_1("a1", "b1");
 
          arrow_left.AddArrow(arrow_0);
          arrow_left.AddArrow(arrow_1);
@@ -81,11 +81,11 @@ namespace cat
       }
 
       {
-         Arrow arrow_left(Arrow::EType::eFunctor, "A", "B");
-         Arrow arrow_right(Arrow::EType::eFunctor, "A", "B");
+         Arrow arrow_left("A", "B");
+         Arrow arrow_right("A", "B");
 
-         Arrow arrow_0(Arrow::EType::eMorphism, "a0", "b0");
-         Arrow arrow_1(Arrow::EType::eMorphism, "a1", "b1");
+         Arrow arrow_0("a0", "b0");
+         Arrow arrow_1("a1", "b1");
 
          arrow_right.AddArrow(arrow_0);
          arrow_right.AddArrow(arrow_1);

@@ -35,7 +35,7 @@ namespace cat
 
       assert(ccat.AddArrow(functor));
 
-      auto ret = ccat.QueryArrows(Arrow(Arrow::EType::eFunctor, C0.Name(), C1.Name()).AsQuery());
+      auto ret = ccat.QueryArrows(Arrow(C0.Name(), C1.Name()).AsQuery());
       assert(ret.front().Name() == Arrow(C0, C1).Name());
    }
 }

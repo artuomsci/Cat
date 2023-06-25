@@ -48,17 +48,17 @@ namespace cat
 
       cat.SolveCompositions();
 
-      assert(fnCheckArrow(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()), Arrow(a, c)));
-      assert(fnCheckArrow(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()), Arrow(a, d)));
-      assert(fnCheckArrow(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()), Arrow(b, d)));
+      assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(a, c)));
+      assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(a, d)));
+      assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(b, d)));
 
-      assert(fnCheckArrow(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()), Arrow(d, b)));
-      assert(fnCheckArrow(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()), Arrow(d, a)));
-      assert(fnCheckArrow(cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()), Arrow(c, a)));
+      assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(d, b)));
+      assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(d, a)));
+      assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(c, a)));
 
-      auto prev_count = cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()).size();
+      auto prev_count = cat.QueryArrows(Arrow("*", "*").AsQuery()).size();
       cat.SolveCompositions();
-      auto new_count = cat.QueryArrows(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery()).size();
+      auto new_count = cat.QueryArrows(Arrow("*", "*").AsQuery()).size();
 
       assert(new_count == prev_count);
    }

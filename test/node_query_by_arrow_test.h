@@ -22,17 +22,17 @@ namespace cat
       S.AddArrow(Arrow(a, c));
       S.AddArrow(Arrow(c, d));
 
-      Node ret = S.Query(Arrow(Arrow::EType::eMorphism, "*", "*").AsQuery());
+      Node ret = S.Query(Arrow("*", "*").AsQuery());
       assert(ret.QueryNodes("*").size() == 4);
 
-      ret = S.Query(Arrow(Arrow::EType::eMorphism, "a", "*").AsQuery());
+      ret = S.Query(Arrow("a", "*").AsQuery());
       assert(ret.QueryNodes("*").size() == 3);
-      assert(ret.QueryArrows(Arrow(Arrow::EType::eMorphism, "a", "b").AsQuery()).size() == 1);
-      assert(ret.QueryArrows(Arrow(Arrow::EType::eMorphism, "a", "c").AsQuery()).size() == 1);
+      assert(ret.QueryArrows(Arrow("a", "b").AsQuery()).size() == 1);
+      assert(ret.QueryArrows(Arrow("a", "c").AsQuery()).size() == 1);
 
-      ret = S.Query(Arrow(Arrow::EType::eMorphism, "c", "d").AsQuery());
+      ret = S.Query(Arrow("c", "d").AsQuery());
       assert(ret.QueryNodes("*").size() == 2);
-      assert(ret.QueryArrows(Arrow(Arrow::EType::eMorphism, "c", "d").AsQuery()).size() == 1);
+      assert(ret.QueryArrows(Arrow("c", "d").AsQuery()).size() == 1);
    }
 }
 

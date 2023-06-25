@@ -34,21 +34,8 @@ namespace cat
    {
    public:
 
-      enum class EType : unsigned char {
-            eMorphism   // Morphism
-         ,  eFunctor    // Functor
-         ,  eFunction   // Function
-         ,  eUndefined
-      };
-
-      /**
-      * @brief Converts type to string
-      * @return Type name
-      */
-      static std::string Type2Name(EType type_);
-
-      Arrow(EType type_, const std::string& source_, const std::string& target_, const std::string& arrow_name_);
-      Arrow(EType type_, const std::string& source_, const std::string& target_);
+      Arrow(const std::string& source_, const std::string& target_, const std::string& arrow_name_);
+      Arrow(const std::string& source_, const std::string& target_);
 
       Arrow(const Node& source_, const Node& target_, const std::string& arrow_name_);
       Arrow(const Node& source_, const Node& target_);
@@ -167,18 +154,6 @@ namespace cat
       void Inverse();
 
       /**
-       * @brief Returns arrow type
-       * @return Arrow type
-       */
-      Arrow::EType Type() const;
-
-      /**
-       * @brief Returns internal type
-       * @return Internal type
-       */
-      Arrow::EType InternalType() const;
-
-      /**
        * @brief Returns arrow as query
        * @return Query representation
        */
@@ -203,7 +178,6 @@ namespace cat
       std::string m_target;
       AName       m_name;
       List        m_arrows;
-      EType       m_type;
    };
 
    /**
@@ -466,18 +440,6 @@ namespace cat
        * @return Node type
        */
       Node::EType InternalNode() const;
-
-      /**
-       * @brief Returns type of internal arrows
-       * @return Arrow type
-       */
-      Arrow::EType InternalArrow() const;
-
-      /**
-       * @brief Returns type of external arrows
-       * @return Arrow type
-       */
-      Arrow::EType ExternalArrow() const;
 
       /**
        * @brief Sets value
