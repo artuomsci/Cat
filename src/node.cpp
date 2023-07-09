@@ -467,6 +467,28 @@ void Arrow::Inverse()
 }
 
 //-----------------------------------------------------------------------------------------
+bool Arrow::IsInvertible() const
+{
+   for (auto it = m_arrows.begin(); it != m_arrows.end(); ++it)
+   {
+      for (auto it_match = it; it_match != m_arrows.end(); ++it_match)
+      {
+         if (it == it_match)
+         {
+            continue;
+         }
+
+         if (it->Target() == it_match->Target())
+         {
+            return false;
+         }
+      }
+   }
+
+   return true;
+}
+
+//-----------------------------------------------------------------------------------------
 std::string Arrow::AsQuery() const
 {
    return m_source + BEGIN_SINGLE_ARROW::id + m_name + END_SINGLE_ARROW::id + m_target + SEMICOLON::id;
@@ -515,7 +537,7 @@ bool Arrow::IsValid() const
 {
    for (auto it = m_arrows.begin(); it != m_arrows.end(); ++it)
    {
-      for (auto it_match = m_arrows.begin(); it_match != m_arrows.end(); ++it_match)
+      for (auto it_match = it; it_match != m_arrows.end(); ++it_match)
       {
          if (it == it_match)
          {

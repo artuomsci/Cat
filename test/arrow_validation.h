@@ -32,6 +32,7 @@ namespace cat
 
          arrow.EmplaceArrow("a", "b");
          arrow.EmplaceArrow("a", "d");
+         arrow.EmplaceArrow("a", "c");
 
          assert(!arrow.IsValid());
       }

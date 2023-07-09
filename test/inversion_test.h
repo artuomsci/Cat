@@ -46,11 +46,33 @@ namespace cat
          arrow.EmplaceArrow("c", "d");
          arrow.EmplaceArrow("e", "f", "ef_arrow");
 
+         assert(arrow.IsInvertible());
+
          arrow.Inverse();
 
          assert(arrow.QueryArrows(Arrow("b", "a").AsQuery()).size() == 1);
          assert(arrow.QueryArrows(Arrow("d", "c").AsQuery()).size() == 1);
          assert(arrow.QueryArrows(Arrow("*", "*", "ef_arrow").AsQuery()).size() == 1);
+      }
+
+      {
+         Arrow arrow("A", "B");
+
+         arrow.EmplaceArrow("a", "b");
+         arrow.EmplaceArrow("c", "b");
+         arrow.EmplaceArrow("e", "b");
+
+         assert(!arrow.IsInvertible());
+      }
+
+      {
+         Arrow arrow("A", "B");
+
+         arrow.EmplaceArrow("a", "b");
+         arrow.EmplaceArrow("a", "d");
+         arrow.EmplaceArrow("a", "f");
+
+         assert(arrow.IsInvertible());
       }
    }
 }

@@ -164,6 +164,12 @@ namespace cat
       void Inverse();
 
       /**
+       * @brief Cheks for inversion possibility
+       * @return True if successful
+       */
+      bool IsInvertible() const;
+
+      /**
        * @brief Returns arrow as query
        * @return Query representation
        */
