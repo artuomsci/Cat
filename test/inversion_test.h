@@ -14,16 +14,6 @@ namespace cat
    //============================================================
    void test_inversion()
    {
-      auto fnCheckArrow = [](const Arrow::List& morphs_, const Arrow& morph_)
-      {
-         auto it = std::find_if(morphs_.begin(), morphs_.end(), [&](const Arrow::List::value_type& element_)
-         {
-            return element_.Name() == morph_.Name() && element_.Source() == morph_.Source() && element_.Target() == morph_.Target();
-         });
-
-         return it != morphs_.end();
-      };
-
       {
          Node cat("cat", Node::EType::eSCategory);
 
@@ -42,11 +32,11 @@ namespace cat
 
          cat.Inverse();
 
-         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(b, a, "f0")));
-         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(c, a, "f1")));
+         assert(cat.QueryArrows(Arrow("b", "a", "f0").AsQuery()).size() == 1);
+         assert(cat.QueryArrows(Arrow("c", "a", "f1").AsQuery()).size() == 1);
 
-         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(d, b, "f2")));
-         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(d, c, "f3")));
+         assert(cat.QueryArrows(Arrow("d", "b", "f2").AsQuery()).size() == 1);
+         assert(cat.QueryArrows(Arrow("d", "c", "f3").AsQuery()).size() == 1);
       }
 
       {

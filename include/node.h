@@ -182,6 +182,12 @@ namespace cat
        */
       size_t CountArrows() const;
 
+      /**
+       * @brief Validates arrow
+       * @return True if successful
+       */
+      bool IsValid() const;
+
    private:
 
       std::string m_source;

@@ -511,6 +511,28 @@ size_t Arrow::CountArrows() const
 }
 
 //-----------------------------------------------------------------------------------------
+bool Arrow::IsValid() const
+{
+   for (auto it = m_arrows.begin(); it != m_arrows.end(); ++it)
+   {
+      for (auto it_match = m_arrows.begin(); it_match != m_arrows.end(); ++it_match)
+      {
+         if (it == it_match)
+         {
+            continue;
+         }
+
+         if (it->Source() == it_match->Source())
+         {
+            return false;
+         }
+      }
+   }
+
+   return true;
+}
+
+//-----------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------
 
 std::string Node::Type2Name(Node::EType type_)

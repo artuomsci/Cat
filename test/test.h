@@ -13,6 +13,7 @@
 #include "node_query_by_arrow_test.h"
 #include "arrow_query_on_node.h"
 #include "equivalence.h"
+#include "arrow_validation.h"
 
 namespace cat
 {
@@ -585,6 +586,8 @@ namespace cat
       test_node_query();
 
       test_equivalence();
+
+      test_arrow_validation();
 
       print_info("End test");
 
