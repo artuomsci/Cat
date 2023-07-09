@@ -212,7 +212,9 @@ bool Arrow::operator!=(const Arrow& arrow_) const
 std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
 {
    if (!node_.has_value() || node_->Name() != m_source)
+   {
       return {};
+   }
 
    Node ret(m_target, node_->Type());
 
@@ -1302,6 +1304,8 @@ void Node::SolveCompositions()
 {
    for (const auto & [domain, codomain] : m_nodes)
    {
+      Arrow::List compositions;
+
       Node::Set traverse = codomain;
 
       Node::Set new_codomain;
@@ -1323,17 +1327,33 @@ void Node::SolveCompositions()
                   continue;
 
                new_traverse.insert(sub_node);
+
+               auto first = QueryArrows(Arrow(domain.Name(), node.Name(), "*").AsQuery());
+               auto second = QueryArrows(Arrow(node.Name(), sub_node.Name(), "*").AsQuery());
+
+               const auto& first_arrow = first.front();
+               const auto& second_arrow = second.front();
+
+               Arrow composition(domain, sub_node);
+
+               for (const auto& source : domain.QueryNodes("*"))
+               {
+                  auto target = second_arrow.SingleMap(first_arrow.SingleMap(source));
+
+                  composition.EmplaceArrow(source.Name(), target->Name());
+               }
+
+               compositions.push_back(composition);
             }
          }
 
          traverse = new_traverse;
       }
 
-      Node::Set domain_diff;
-      std::set_difference(new_codomain.begin(), new_codomain.end(), codomain.begin(), codomain.end(), std::inserter(domain_diff, domain_diff.begin()));
-
-      for (const auto& codomain_node : domain_diff)
-         AddArrow(Arrow(domain, codomain_node));
+      for (const auto& composition : compositions)
+      {
+         AddArrow(composition);
+      }
    }
 }
 
