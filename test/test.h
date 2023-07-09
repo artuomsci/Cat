@@ -15,6 +15,7 @@
 #include "equivalence.h"
 #include "arrow_validation.h"
 #include "arrow_generator.h"
+#include "arrow_application.h"
 
 namespace cat
 {
@@ -405,6 +406,8 @@ namespace cat
             assert(!ccat.AddArrow(functor));
          }
       }
+
+      test_arrow_application();
 
       test_arrow_generator();
 

@@ -5,7 +5,6 @@
 #include <algorithm>
 
 #include "../include/node.h"
-#include "../include/log.h"
 
 namespace cat
 {

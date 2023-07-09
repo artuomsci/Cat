@@ -211,17 +211,22 @@ bool Arrow::operator!=(const Arrow& arrow_) const
 //-----------------------------------------------------------------------------------------
 std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
 {
-   if (node_->Name() != m_source)
-      return std::optional<Node>();
+   if (!node_.has_value() || node_->Name() != m_source)
+      return {};
 
    Node ret(m_target, node_->Type());
 
    // Mapping of nodes
    for (const auto& node : node_->QueryNodes("*"))
    {
-      Node mapped_node = SingleMap(node).value();
-      if (ret.QueryNodes(mapped_node.Name()).empty())
-         ret.AddNode(mapped_node);
+      auto mapped = SingleMap(node);
+      if (!mapped.has_value())
+      {
+         return {};
+      }
+
+      if (ret.QueryNodes(mapped.value().Name()).empty())
+         ret.AddNode(mapped.value());
    }
 
    // Mapping of arrows

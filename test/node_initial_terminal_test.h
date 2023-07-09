@@ -4,7 +4,6 @@
 #include <assert.h>
 
 #include "../include/node.h"
-#include "../include/log.h"
 
 namespace cat
 {
