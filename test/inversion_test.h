@@ -34,11 +34,11 @@ namespace cat
 
          cat.AddNodes({a, b, c, d});
 
-         cat.AddArrow(Arrow(a, b, "f0"));
-         cat.AddArrow(Arrow(a, c, "f1"));
+         cat.EmplaceArrow(a, b, "f0");
+         cat.EmplaceArrow(a, c, "f1");
 
-         cat.AddArrow(Arrow(b, d, "f2"));
-         cat.AddArrow(Arrow(c, d, "f3"));
+         cat.EmplaceArrow(b, d, "f2");
+         cat.EmplaceArrow(c, d, "f3");
 
          cat.Inverse();
 
@@ -52,9 +52,9 @@ namespace cat
       {
          Arrow arrow("A", "B");
 
-         arrow.AddArrow(Arrow("a", "b"));
-         arrow.AddArrow(Arrow("c", "d"));
-         arrow.AddArrow(Arrow("e", "f", "ef_arrow"));
+         arrow.EmplaceArrow("a", "b");
+         arrow.EmplaceArrow("c", "d");
+         arrow.EmplaceArrow("e", "f", "ef_arrow");
 
          arrow.Inverse();
 

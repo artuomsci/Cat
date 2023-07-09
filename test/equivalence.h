@@ -46,10 +46,8 @@ namespace cat
          Arrow arrow_left("A", "B");
          Arrow arrow_right("A", "B");
 
-         Arrow arrow_0("a0", "b0");
-
-         arrow_left.AddArrow(arrow_0);
-         arrow_right.AddArrow(arrow_0);
+         arrow_left.EmplaceArrow("a0", "b0");
+         arrow_right.EmplaceArrow("a0", "b0");
 
          assert(arrow_left.IsEquivalent(arrow_right));
       }
@@ -58,11 +56,8 @@ namespace cat
          Arrow arrow_left("A", "B");
          Arrow arrow_right("A", "B");
 
-         Arrow arrow_0("a0", "b0");
-         Arrow arrow_1("a1", "b1");
-
-         arrow_left.AddArrow(arrow_0);
-         arrow_right.AddArrow(arrow_1);
+         arrow_left.EmplaceArrow("a0", "b0");
+         arrow_right.EmplaceArrow("a1", "b1");
 
          assert(!arrow_left.IsEquivalent(arrow_right));
       }
@@ -71,11 +66,8 @@ namespace cat
          Arrow arrow_left("A", "B");
          Arrow arrow_right("A", "B");
 
-         Arrow arrow_0("a0", "b0");
-         Arrow arrow_1("a1", "b1");
-
-         arrow_left.AddArrow(arrow_0);
-         arrow_left.AddArrow(arrow_1);
+         arrow_left.EmplaceArrow("a0", "b0");
+         arrow_left.EmplaceArrow("a1", "b1");
 
          assert(!arrow_left.IsEquivalent(arrow_right));
       }
@@ -84,11 +76,8 @@ namespace cat
          Arrow arrow_left("A", "B");
          Arrow arrow_right("A", "B");
 
-         Arrow arrow_0("a0", "b0");
-         Arrow arrow_1("a1", "b1");
-
-         arrow_right.AddArrow(arrow_0);
-         arrow_right.AddArrow(arrow_1);
+         arrow_right.EmplaceArrow("a0", "b0");
+         arrow_right.EmplaceArrow("a1", "b1");
 
          assert(!arrow_left.IsEquivalent(arrow_right));
       }

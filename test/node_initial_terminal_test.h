@@ -26,17 +26,17 @@ namespace cat
 
       cat.AddArrows({Arrow(a0, a1), Arrow(a1, a0)});
 
-      cat.AddArrow(Arrow(a0, b));
-      cat.AddArrow(Arrow(a0, c));
+      cat.EmplaceArrow(a0, b);
+      cat.EmplaceArrow(a0, c);
 
-      cat.AddArrow(Arrow(a1, b));
-      cat.AddArrow(Arrow(a1, c));
+      cat.EmplaceArrow(a1, b);
+      cat.EmplaceArrow(a1, c);
 
-      cat.AddArrow(Arrow(b, d0));
-      cat.AddArrow(Arrow(c, d0));
+      cat.EmplaceArrow(b, d0);
+      cat.EmplaceArrow(c, d0);
 
-      cat.AddArrow(Arrow(b, d1));
-      cat.AddArrow(Arrow(c, d1));
+      cat.EmplaceArrow(b, d1);
+      cat.EmplaceArrow(c, d1);
 
       cat.AddArrows({Arrow(d0, d1), Arrow(d1, d0)});
 

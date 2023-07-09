@@ -38,10 +38,11 @@ namespace cat
 
       Node S("S", Node::EType::eSCategory);
 
-      Node a("a", Node::EType::eObject), b("b", Node::EType::eObject);
-      Node c("c", Node::EType::eObject), d("d", Node::EType::eObject);
+      S.EmplaceNode("a", S.InternalNode());
+      S.EmplaceNode("b", S.InternalNode());
+      S.EmplaceNode("c", S.InternalNode());
+      S.EmplaceNode("d", S.InternalNode());
 
-      S.AddNodes({a, b, c, d});
 
       assert(S.QueryNodes("()").size() == 0);
       assert(match_nodes(S.QueryNodes("*"), {"a", "b", "c", "d"}));

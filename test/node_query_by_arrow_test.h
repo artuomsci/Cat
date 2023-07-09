@@ -18,9 +18,9 @@ namespace cat
       Node c("c", Node::EType::eObject), d("d", Node::EType::eObject);
 
       S.AddNodes({a, b, c, d});
-      S.AddArrow(Arrow(a, b));
-      S.AddArrow(Arrow(a, c));
-      S.AddArrow(Arrow(c, d));
+      S.EmplaceArrow(a, b);
+      S.EmplaceArrow(a, c);
+      S.EmplaceArrow(c, d);
 
       Node ret = S.Query(Arrow("*", "*").AsQuery());
       assert(ret.QueryNodes("*").size() == 4);

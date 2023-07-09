@@ -108,6 +108,16 @@ namespace cat
       void AddArrow(const Arrow& arrow_);
 
       /**
+       * @brief Adds arrow
+       * @param args_ - arrow arguments
+       */
+      template <typename... Args>
+      void EmplaceArrow(Args&&... args_)
+      {
+         AddArrow(Arrow(std::forward<Args>(args_)...));
+      }
+
+      /**
        * @brief Erases arrow
        * @param arrow_ - arrow name
        */
@@ -245,6 +255,17 @@ namespace cat
       bool AddArrow(const Arrow& arrow_);
 
       /**
+       * @brief Adds arrow
+       * @param args_ - arrow arguments
+       * @return True if successful
+       */
+      template <typename... Args>
+      bool EmplaceArrow(Args&&... args_)
+      {
+         return AddArrow(Arrow(std::forward<Args>(args_)...));
+      }
+
+      /**
        * @brief Adds arrows
        * @param arrows_ - arrows
        * @return True if successful
@@ -281,6 +302,17 @@ namespace cat
       * @return True if successful
       */
       bool AddNode(const Node& node_);
+
+      /**
+      * @brief Adds node
+      * @param args - node arguments
+      * @return True if successful
+      */
+      template <typename... Args>
+      bool EmplaceNode(Args&&... args_)
+      {
+         return AddNode(Node(std::forward<Args>(args_)...));
+      }
 
       /**
        * @brief Adds nodes

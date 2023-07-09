@@ -48,6 +48,17 @@ namespace cat
          assert(cat.QueryNodes("*").size() == 4);
       }
 
+      {
+         Node cat("cat", Node::EType::eSCategory);
+
+         Node a("a", Node::EType::eObject);
+
+         assert(cat.AddNode(a));
+
+         assert(cat.QueryNodes("*").size() == 1);
+
+         assert(cat.AddNode(a) == false);
+      }
 
       //============================================================
       // Testing of object deletion methods
@@ -128,6 +139,38 @@ namespace cat
          assert(cat.AddArrow(Arrow(a, b, "f0")) == false);
       }
 
+      {
+         Node cat("cat", Node::EType::eSCategory);
+
+         Node     a("a", Node::EType::eObject)
+               ,  b("b", Node::EType::eObject)
+               ,  c("c", Node::EType::eObject)
+               ,  d("d", Node::EType::eObject);
+
+         cat.AddNodes({a, b, c});
+
+         assert(!cat.QueryArrows(Arrow("a", "a").AsQuery()).empty());
+         assert(!cat.QueryArrows(Arrow("b", "b").AsQuery()).empty());
+         assert(!cat.QueryArrows(Arrow("c", "c").AsQuery()).empty());
+
+         assert(cat.QueryArrows(Arrow("*", "*").AsQuery()).size() == 3);
+
+         assert(cat.EmplaceArrow(a, b, "f0"));
+         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(a, b, "f0")));
+
+         assert(cat.EmplaceArrow(a, c, "f1"));
+         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(a, c, "f1")));
+
+         assert(cat.QueryArrows(Arrow("*", "*").AsQuery()).size() == 5);
+
+         assert(cat.EmplaceArrow(a, d, "f2") == false);
+         assert(!fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(a, d, "f2")));
+         assert(cat.QueryArrows(Arrow("*", "*").AsQuery()).size() == 5);
+
+         assert(cat.EmplaceArrow(b, c, "f0") == false);
+         assert(cat.EmplaceArrow(a, b, "f0") == false);
+      }
+
       //============================================================
       // Testing of morphism deletion methods
       //============================================================
@@ -187,8 +230,8 @@ namespace cat
 
          cat.AddNodes({a, b, c});
 
-         cat.AddArrow(Arrow(a, b, "f0"));
-         cat.AddArrow(Arrow(a, c, "f1"));
+         cat.EmplaceArrow(a, b, "f0");
+         cat.EmplaceArrow(a, c, "f1");
 
          // Erasing all arrows
          {
@@ -209,14 +252,14 @@ namespace cat
             Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject);
 
             C0.AddNodes({a0, b0});
-            C0.AddArrow(Arrow(a0, b0));
+            C0.EmplaceArrow(a0, b0);
 
             // Target category
             Node C1("C1", Node::EType::eSCategory);
             Node a1("a1", Node::EType::eObject), b1("b1", Node::EType::eObject);
 
             C1.AddNodes({a1, b1});
-            C1.AddArrow(Arrow(a1, b1));
+            C1.EmplaceArrow(a1, b1);
 
             // Category of categories
             Node ccat("Cat", Node::EType::eLCategory);
@@ -271,7 +314,7 @@ namespace cat
             Node a1("a1", Node::EType::eObject), b1("b1", Node::EType::eObject);
 
             C1.AddNodes({a1, b1});
-            C1.AddArrow(Arrow(b1, a1));
+            C1.EmplaceArrow(b1, a1);
 
             // Category of categories
             Node ccat("Cat", Node::EType::eLCategory);
@@ -279,8 +322,8 @@ namespace cat
             ccat.AddNode(C1);
 
             Arrow functor(C0, C1);
-            functor.AddArrow(Arrow(a0, a1));
-            functor.AddArrow(Arrow(b0, b1));
+            functor.EmplaceArrow(a0, a1);
+            functor.EmplaceArrow(b0, b1);
 
             assert(!ccat.AddArrow(functor));
          }
@@ -291,7 +334,7 @@ namespace cat
             Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject);
 
             C0.AddNodes({a0, b0});
-            C0.AddArrow(Arrow(a0, b0));
+            C0.EmplaceArrow(a0, b0);
 
             // Category of categories
             Node ccat("Cat", Node::EType::eLCategory);
@@ -310,14 +353,14 @@ namespace cat
             Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject), c0("c0", Node::EType::eObject);
 
             C0.AddNodes({a0, b0, c0});
-            C0.AddArrow(Arrow(a0, b0));
+            C0.EmplaceArrow(a0, b0);
 
             // Target category
             Node C1("C1", Node::EType::eSCategory);
             Node a1("a1", Node::EType::eObject), b1("b1", Node::EType::eObject);
 
             C1.AddNodes({a1, b1});
-            C1.AddArrow(Arrow(a1, b1));
+            C1.EmplaceArrow(a1, b1);
 
             // Category of categories
             Node ccat("Cat", Node::EType::eLCategory);
@@ -338,14 +381,14 @@ namespace cat
             Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject);
 
             C0.AddNodes({a0, b0});
-            C0.AddArrow(Arrow(a0, b0));
+            C0.EmplaceArrow(a0, b0);
 
             // Target category
             Node C1("C1", Node::EType::eSCategory);
             Node a1("a1", Node::EType::eObject), b1("b1", Node::EType::eObject);
 
             C1.AddNodes({a1, b1});
-            C1.AddArrow(Arrow(a1, b1));
+            C1.EmplaceArrow(a1, b1);
 
             // Category of categories
             Node ccat("Cat", Node::EType::eLCategory);
@@ -353,9 +396,9 @@ namespace cat
             ccat.AddNode(C1);
 
             Arrow functor(C0, C1);
-            functor.AddArrow(Arrow(a0, a1, "f"));
-            functor.AddArrow(Arrow(a0, b1, "f"));
-            functor.AddArrow(Arrow(b0, b1));
+            functor.EmplaceArrow(a0, a1, "f");
+            functor.EmplaceArrow(a0, b1, "f");
+            functor.EmplaceArrow(b0, b1);
 
             assert(!ccat.AddArrow(functor));
          }
@@ -397,10 +440,8 @@ namespace cat
             Arrow arrow_left("A", "B");
             Arrow arrow_right("A", "B");
 
-            Arrow arrow_0("a0", "b0");
-
-            arrow_left.AddArrow(arrow_0);
-            arrow_right.AddArrow(arrow_0);
+            arrow_left.EmplaceArrow("a0", "b0");
+            arrow_right.EmplaceArrow("a0", "b0");
 
             assert(arrow_left.IsEquivalent(arrow_right));
          }
@@ -409,11 +450,8 @@ namespace cat
             Arrow arrow_left("A", "B");
             Arrow arrow_right("A", "B");
 
-            Arrow arrow_0("a0", "b0");
-            Arrow arrow_1("a1", "b1");
-
-            arrow_left.AddArrow(arrow_0);
-            arrow_right.AddArrow(arrow_1);
+            arrow_left.EmplaceArrow("a0", "b0");
+            arrow_right.EmplaceArrow("a1", "b1");
 
             assert(!arrow_left.IsEquivalent(arrow_right));
          }
@@ -422,11 +460,8 @@ namespace cat
             Arrow arrow_left("A", "B");
             Arrow arrow_right("A", "B");
 
-            Arrow arrow_0("a0", "b0");
-            Arrow arrow_1("a1", "b1");
-
-            arrow_left.AddArrow(arrow_0);
-            arrow_left.AddArrow(arrow_1);
+            arrow_left.EmplaceArrow("a0", "b0");
+            arrow_left.EmplaceArrow("a1", "b1");
 
             assert(!arrow_left.IsEquivalent(arrow_right));
          }
@@ -435,11 +470,8 @@ namespace cat
             Arrow arrow_left("A", "B");
             Arrow arrow_right("A", "B");
 
-            Arrow arrow_0("a0", "b0");
-            Arrow arrow_1("a1", "b1");
-
-            arrow_right.AddArrow(arrow_0);
-            arrow_right.AddArrow(arrow_1);
+            arrow_right.EmplaceArrow("a0", "b0");
+            arrow_right.EmplaceArrow("a1", "b1");
 
             assert(!arrow_left.IsEquivalent(arrow_right));
          }
@@ -450,11 +482,8 @@ namespace cat
 
             Arrow arrow_0("a0", "b0");
 
-            Arrow arrow_1("x", "y", "first");
-            Arrow arrow_2("x", "y", "second");
-
-            arrow_0.AddArrow(arrow_1);
-            arrow_0.AddArrow(arrow_2);
+            arrow_0.EmplaceArrow("x", "y", "first");
+            arrow_0.EmplaceArrow("x", "y", "second");
 
             arrow_left.AddArrow(arrow_0);
             arrow_right.AddArrow(arrow_0);
@@ -467,12 +496,12 @@ namespace cat
             Arrow arrow_right("A", "B");
 
             Arrow arrow_00("a0", "b0");
-            arrow_00.AddArrow(Arrow("x", "y", "first"));
-            arrow_00.AddArrow(Arrow("x", "y", "second"));
+            arrow_00.EmplaceArrow("x", "y", "first");
+            arrow_00.EmplaceArrow("x", "y", "second");
 
             Arrow arrow_01("a0", "b0");
-            arrow_01.AddArrow(Arrow("x", "y", "first"));
-            arrow_01.AddArrow(Arrow("f", "g", "second"));
+            arrow_01.EmplaceArrow("x", "y", "first");
+            arrow_01.EmplaceArrow("f", "g", "second");
 
             arrow_left.AddArrow(arrow_00);
             arrow_right.AddArrow(arrow_01);

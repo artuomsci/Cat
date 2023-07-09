@@ -15,14 +15,14 @@ namespace cat
       Node a0("a0", Node::EType::eObject), b0("b0", Node::EType::eObject);
 
       C0.AddNodes({a0, b0});
-      C0.AddArrow(Arrow(a0, b0));
+      C0.EmplaceArrow(a0, b0);
 
       // Target category
       Node C1("C1", Node::EType::eSCategory);
       Node a1("a1", Node::EType::eObject), b1("b1", Node::EType::eObject);
 
       C1.AddNodes({a1, b1});
-      C1.AddArrow(Arrow(a1, b1));
+      C1.EmplaceArrow(a1, b1);
 
       // Category of categories
       Node ccat("Cat", Node::EType::eLCategory);
@@ -30,8 +30,8 @@ namespace cat
       ccat.AddNode(C1);
 
       Arrow functor(C0, C1);
-      functor.AddArrow(Arrow(a0, a1));
-      functor.AddArrow(Arrow(b0, b1));
+      functor.EmplaceArrow(a0, a1);
+      functor.EmplaceArrow(b0, b1);
 
       assert(ccat.AddArrow(functor));
 

@@ -15,10 +15,10 @@ namespace cat
    {
       Arrow arrow("A", "B");
 
-      arrow.AddArrow(Arrow("a", "b"));
-      arrow.AddArrow(Arrow("c", "d"));
-      arrow.AddArrow(Arrow("e", "f", "ef_arrow"));
-      arrow.AddArrow(Arrow("g", "f"));
+      arrow.EmplaceArrow("a", "b");
+      arrow.EmplaceArrow("c", "d");
+      arrow.EmplaceArrow("e", "f", "ef_arrow");
+      arrow.EmplaceArrow("g", "f");
 
       auto ret = arrow.QueryArrows(Arrow("a", "b").AsQuery());
       assert(ret.size() == 1);
