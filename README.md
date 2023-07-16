@@ -132,10 +132,43 @@ The return of the function **SolveSequences** is as follows:
 
 ## Helper functions
 
+### Function: *Node::QueryArrows*
+
+This function searches for arrows according to a query. Arrows that meet conditions of a query will be returned.
+Sample category:
+
+```
+SCAT QuerySample
+{
+   OBJ a, b, c, d;
+   a -[*]-> b -[*]-> c;
+   a -[*]-> c;
+};
+```
+Query examples:
+
+```
+QueryArrows("a-[*]->b");
+Result:
+[a_b]
+
+QueryArrows("a-[*]->*");
+Result:
+[a_a, a_b, a_c]
+
+QueryArrows("*-[*]->c");
+Result:
+[c_c, b_c, a_c]
+
+QueryArrows("*-[b_c]->*");
+Result:
+[b_c]
+
+```
+
 ### Function: *QueryNodes*
 
 This function searches for nodes according to a query. Query represents the pattern. Those nodes matching the pattern will be returned as a result. Boolean operations maybe used inside query.
-
 Sample category:
 
 ```
@@ -148,39 +181,39 @@ SCAT QuerySample
 Query examples:
 
 ```
-QueryNodes("*")
+QueryNodes("*");
 Result:
 [a, b, c, d]
 
-QueryNodes("a")
+QueryNodes("a");
 Result:
 [a]
 
-QueryNodes("a | a")
+QueryNodes("a | a");
 Result:
 [a]
 
-QueryNodes("e | f | a | m | g")
+QueryNodes("e | f | a | m | g");
 Result:
 [a]
 
-QueryNodes("e & f | a | m & g")
+QueryNodes("e & f | a | m & g");
 Result:
 [a]
 
-QueryNodes("a | b | m")
+QueryNodes("a | b | m");
 Result:
 [a, b]
 
-QueryNodes("a & b & c")
+QueryNodes("a & b & c");
 Result:
 [a, b, c]
 
-QueryNodes("(a & b) | (c & d)")
+QueryNodes("(a & b) | (c & d)");
 Result:
 [a, b, c, d]
 
-QueryNodes("~(a & b)")
+QueryNodes("~(a & b)");
 Result:
 [c, d]
 
