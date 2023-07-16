@@ -383,7 +383,6 @@ namespace cat
 
       /**
        * @brief Queries for nodes
-       * @brief Supported operations "|" as OR, "&" as AND, "(", ")"
        * @param query_ - query
        * @return Nodes
        */
