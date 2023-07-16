@@ -372,9 +372,6 @@ namespace cat
 
       /**
        * @brief Queries for arrows
-       * @brief Syntax: for morphisms "source name -[ arrow name ]-> target name"
-       * @brief Syntax: for functors "source name =[ arrow name ]=> target name"
-       * @brief Use "*" for arrow name to match any name
        * @param query_ - query
        * @param matchCount_ - match count limit
        * @return Arrows
