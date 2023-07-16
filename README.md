@@ -1,6 +1,6 @@
 # Cat's sandbox for the category theory
 
-<img src="https://github.com/artuomsci/Cat/blob/main/imgs/cat.png" width="512">
+<img src="https://github.com/artuomsci/Cat/blob/main/imgs/cat.png" width="64">
 
 ## Syntax example
 
@@ -130,16 +130,24 @@ The return of the function **SolveSequences** is as follows:
 [0, 1, 2, 3],[0, 1, 3],[0, 2, 3],[0, 3]
 ```
 
+## Helper functions
+
 ### Function: *QueryNodes*
 
-Function queries for objects in categories and small categories in large categories.
+This function searches for nodes according to a query. Query represents the pattern. Those nodes matching the pattern will be returned as a result. Boolean operations maybe used inside query.
+
+Sample category:
 
 ```
 SCAT QuerySample
 {
    OBJ a, b, c, d;
 };
+```
 
+Query examples:
+
+```
 QueryNodes("*")
 Result:
 [a, b, c, d]
