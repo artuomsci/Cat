@@ -345,7 +345,13 @@ bool Parser::Parse(const std::string& filename_)
    std::stringstream buffer;
    buffer << file.rdbuf();
 
-   auto prep = remove_comments(std::move(buffer.str()));
+   return ParseSource(buffer.str());
+}
+
+//-----------------------------------------------------------------------------------------
+bool Parser::ParseSource(const std::string& src_)
+{
+   auto prep = remove_comments(src_);
    if (!prep)
       return false;
 
@@ -379,8 +385,6 @@ bool Parser::Parse(const std::string& filename_)
 
       ++it;
    }
-
-   return true;
 }
 
 //-----------------------------------------------------------------------------------------

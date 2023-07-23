@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "../include/node.h"
+#include "parser.h"
 
 namespace cat
 {
@@ -14,20 +15,25 @@ namespace cat
    void test_arrow_generator()
    {
       {
-         // Source category
-         Node A("A", Node::EType::eSCategory);
-         A.EmplaceNode("a0", Node::EType::eObject);
-         A.EmplaceNode("a1", Node::EType::eObject);
+         auto src = R"(
+LCAT Cat
+{
+   SCAT A
+   {
+      OBJ a0, a1;
+   }
 
-         // Target category
-         Node B("B", Node::EType::eSCategory);
-         B.EmplaceNode("b0", Node::EType::eObject);
-         B.EmplaceNode("b1", Node::EType::eObject);
+   SCAT B
+   {
+      OBJ b0, b1;
+   }
+}
+         )";
 
-         // Category of categories
-         Node ccat("Cat", Node::EType::eLCategory);
-         ccat.AddNode(A);
-         ccat.AddNode(B);
+         Parser prs;
+         prs.ParseSource(src);
+
+         Node ccat = *prs.Data();
 
          Arrow::List ret = ccat.ProposeArrows("A", "B");
 
@@ -67,20 +73,25 @@ namespace cat
       }
 
       {
-         // Source category
-         Node A("A", Node::EType::eSCategory);
-         A.EmplaceNode("a", Node::EType::eObject);
+         auto src = R"(
+LCAT Cat
+{
+   SCAT A
+   {
+      OBJ a;
+   }
 
-         // Target category
-         Node B("B", Node::EType::eSCategory);
-         B.EmplaceNode("b0", Node::EType::eObject);
-         B.EmplaceNode("b1", Node::EType::eObject);
-         B.EmplaceNode("b2", Node::EType::eObject);
+   SCAT B
+   {
+      OBJ b0, b1, b2;
+   }
+}
+         )";
 
-         // Category of categories
-         Node ccat("Cat", Node::EType::eLCategory);
-         ccat.AddNode(A);
-         ccat.AddNode(B);
+         Parser prs;
+         prs.ParseSource(src);
+
+         Node ccat = *prs.Data();
 
          Arrow::List ret = ccat.ProposeArrows("A", "B");
 

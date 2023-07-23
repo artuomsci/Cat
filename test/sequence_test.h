@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "../include/node.h"
+#include "parser.h"
 
 namespace cat
 {
@@ -13,37 +14,37 @@ namespace cat
       // Testing morphism sequence
       //============================================================
       {
-         Node cat("cat", Node::EType::eSCategory);
+         auto src = R"(
+SCAT cat
+{
+   OBJ a, b, c, d, e, f;
 
-         Node     a("a", Node::EType::eObject)
-               ,  b("b", Node::EType::eObject)
-               ,  c("c", Node::EType::eObject)
-               ,  d("d", Node::EType::eObject)
-               ,  e("e", Node::EType::eObject)
-               ,  f("f", Node::EType::eObject);
+   a -[*]-> b;
+   b -[*]-> a;
+   a -[*]-> c;
+   b -[*]-> d;
+   c -[*]-> d;
+   c -[*]-> f;
+   d -[*]-> e;
+}
+         )";
 
-         cat.AddNodes({a, b, c, d, e, f});
+         Parser prs;
+         prs.ParseSource(src);
 
-         cat.AddArrows({
-                     Arrow(a, b)
-                  ,  Arrow(b, a)
-                  ,  Arrow(a, c)
-                  ,  Arrow(b, d)
-                  ,  Arrow(c, d)
-                  ,  Arrow(c, f)
-                  ,  Arrow(d, e)});
+         Node cat = *prs.Data();
 
-         std::list<Node::NName> seq = cat.SolveSequence(a.Name(), e.Name());
+         std::list<Node::NName> seq = cat.SolveSequence("a", "e");
 
          assert(seq.size() == 4);
 
          Arrow::List morphs = cat.MapNodes2Arrows(seq);
          auto it = morphs.begin();
-         assert(*(it)   == Arrow(a, b));
-         assert(*(++it) == Arrow(b, d));
-         assert(*(++it) == Arrow(d, e));
+         assert(*(it)   == Arrow("a", "b"));
+         assert(*(++it) == Arrow("b", "d"));
+         assert(*(++it) == Arrow("d", "e"));
 
-         seq = cat.SolveSequence(e.Name(), a.Name());
+         seq = cat.SolveSequence("e", "a");
 
          assert(seq.size() == 0);
       }
@@ -52,28 +53,28 @@ namespace cat
       // Testing morphism sequences
       //============================================================
       {
-         Node cat("cat", Node::EType::eSCategory);
+         auto src = R"(
+SCAT cat
+{
+   OBJ a, b, c, d, e, f;
 
-         Node     a("a", Node::EType::eObject)
-               ,  b("b", Node::EType::eObject)
-               ,  c("c", Node::EType::eObject)
-               ,  d("d", Node::EType::eObject)
-               ,  e("e", Node::EType::eObject)
-               ,  f("f", Node::EType::eObject);
+   a -[*]-> b;
+   b -[*]-> a;
+   a -[*]-> c;
+   b -[*]-> d;
+   c -[*]-> d;
+   c -[*]-> f;
+   d -[*]-> e;
+   f -[*]-> e;
+}
+         )";
 
-         cat.AddNodes({a, b, c, d, e, f});
+         Parser prs;
+         prs.ParseSource(src);
 
-         cat.AddArrows({
-                     Arrow(a, b)
-                  ,  Arrow(b, a)
-                  ,  Arrow(a, c)
-                  ,  Arrow(b, d)
-                  ,  Arrow(c, d)
-                  ,  Arrow(c, f)
-                  ,  Arrow(d, e)
-                  ,  Arrow(f, e)});
+         Node cat = *prs.Data();
 
-         std::list<std::list<Node::NName>> seqs = cat.SolveSequences(a.Name(), e.Name());
+         std::list<std::list<Node::NName>> seqs = cat.SolveSequences("a", "e");
 
          assert(seqs.size() == 3);
 
@@ -82,9 +83,9 @@ namespace cat
          {
             Arrow::List morphs = cat.MapNodes2Arrows(*it);
             auto it = morphs.begin();
-            assert(*it     == Arrow(a, b));
-            assert(*(++it) == Arrow(b, d));
-            assert(*(++it) == Arrow(d, e));
+            assert(*it     == Arrow("a", "b"));
+            assert(*(++it) == Arrow("b", "d"));
+            assert(*(++it) == Arrow("d", "e"));
          }
 
          it = std::next(it);
@@ -92,9 +93,9 @@ namespace cat
          {
             Arrow::List morphs = cat.MapNodes2Arrows(*it);
             auto it = morphs.begin();
-            assert(*(it)   == Arrow(a, c));
-            assert(*(++it) == Arrow(c, d));
-            assert(*(++it) == Arrow(d, e));
+            assert(*(it)   == Arrow("a", "c"));
+            assert(*(++it) == Arrow("c", "d"));
+            assert(*(++it) == Arrow("d", "e"));
          }
 
          it = std::next(it);
@@ -102,12 +103,12 @@ namespace cat
          {
             Arrow::List morphs = cat.MapNodes2Arrows(*it);
             auto it = morphs.begin();
-            assert(*(it)   == Arrow(a, c));
-            assert(*(++it) == Arrow(c, f));
-            assert(*(++it) == Arrow(f, e));
+            assert(*(it)   == Arrow("a", "c"));
+            assert(*(++it) == Arrow("c", "f"));
+            assert(*(++it) == Arrow("f", "e"));
          }
 
-         seqs = cat.SolveSequences(e.Name(), a.Name());
+         seqs = cat.SolveSequences("e", "a");
 
          assert(seqs.size() == 0);
       }

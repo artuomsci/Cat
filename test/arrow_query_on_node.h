@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "../include/node.h"
+#include "parser.h"
 
 namespace cat
 {
@@ -39,14 +40,21 @@ namespace cat
          return it != arrows_.end();
       };
 
-      Node C("C", Node::EType::eSCategory);
-      Node a("a", Node::EType::eObject), b("b", Node::EType::eObject), c("c", Node::EType::eObject);
+      auto src = R"(
+SCAT C
+{
+OBJ a, b, c;
 
-      C.AddNodes({a, b, c});
+a-[*]->b;
+b-[*]->c;
+a-[*]->c;
+}
+      )";
 
-      C.EmplaceArrow("a", "b");
-      C.EmplaceArrow("b", "c");
-      C.EmplaceArrow("a", "c");
+      Parser prs;
+      prs.ParseSource(src);
+
+      Node C = *prs.Data();
 
       Arrow::List ret = C.QueryArrows(Arrow("a", "b", "*").AsQuery());
       assert(ret.size() == 1);

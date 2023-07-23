@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "../include/node.h"
+#include "parser.h"
 
 namespace cat
 {
@@ -14,20 +15,23 @@ namespace cat
    void test_inversion()
    {
       {
-         Node cat("cat", Node::EType::eSCategory);
+         auto src = R"(
+SCAT cat
+{
+   OBJ a, b, c, d;
 
-         Node     a("a", Node::EType::eObject)
-               ,  b("b", Node::EType::eObject)
-               ,  c("c", Node::EType::eObject)
-               ,  d("d", Node::EType::eObject);
+   a-[f0]->b;
+   a-[f1]->c;
 
-         cat.AddNodes({a, b, c, d});
+   b-[f2]->d;
+   c-[f3]->d;
+}
+         )";
 
-         cat.EmplaceArrow(a, b, "f0");
-         cat.EmplaceArrow(a, c, "f1");
+         Parser prs;
+         prs.ParseSource(src);
 
-         cat.EmplaceArrow(b, d, "f2");
-         cat.EmplaceArrow(c, d, "f3");
+         Node cat = *prs.Data();
 
          cat.Inverse();
 

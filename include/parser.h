@@ -16,6 +16,7 @@ namespace cat
       using TKIt = std::list<TToken>::iterator;
 
       bool Parse(const std::string& filename_);
+      bool ParseSource(const std::string& src_);
       std::shared_ptr<Node> Data() const;
 
       static bool parse_arrow(TKIt& it_, TKIt end_, Arrow::List& arrows_);

@@ -5,6 +5,7 @@
 #include <algorithm>
 
 #include "../include/node.h"
+#include "parser.h"
 
 namespace cat
 {
@@ -24,37 +25,38 @@ namespace cat
             return it != morphs_.end();
          };
 
-         Node cat("cat", Node::EType::eSCategory);
+         auto src = R"(
+SCAT cat
+{
+   OBJ a, b, c, d;
+
+   a-[f0]->b;
+   b-[f1]->c;
+   c-[f2]->d;
+   d-[f3]->c;
+   c-[f4]->b;
+   b-[f5]->a;
+}
+         )";
+
+         Parser prs;
+         prs.ParseSource(src);
+
+         Node cat = *prs.Data();
 
          cat.SolveCompositions();
 
-         Node     a("a", Node::EType::eObject)
-               ,  b("b", Node::EType::eObject)
-               ,  c("c", Node::EType::eObject)
-               ,  d("d", Node::EType::eObject);
-
-         cat.AddNodes({a, b, c, d});
+         cat.SolveCompositions();
 
          cat.SolveCompositions();
 
-         cat.AddArrows({
-                              Arrow(a, b, "f0")
-                          ,   Arrow(b, c, "f1")
-                          ,   Arrow(c, d, "f2")});
-         cat.AddArrows({
-                              Arrow(d, c, "f3")
-                          ,   Arrow(c, b, "f4")
-                          ,   Arrow(b, a, "f5")});
+         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow("a", "c")));
+         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow("a", "d")));
+         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow("b", "d")));
 
-         cat.SolveCompositions();
-
-         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(a, c)));
-         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(a, d)));
-         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(b, d)));
-
-         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(d, b)));
-         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(d, a)));
-         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow(c, a)));
+         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow("d", "b")));
+         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow("d", "a")));
+         assert(fnCheckArrow(cat.QueryArrows(Arrow("*", "*").AsQuery()), Arrow("c", "a")));
 
          auto prev_count = cat.QueryArrows(Arrow("*", "*").AsQuery()).size();
          cat.SolveCompositions();
@@ -64,23 +66,30 @@ namespace cat
       }
 
       {
-         Node lcat("lcat", Node::EType::eLCategory);
+         auto src = R"(
+LCAT lcat
+{
+   SCAT scatA
+   {
+      OBJ xa, ya;
+   }
 
-         Node scatA("scatA", Node::EType::eSCategory);
-         Node scatB("scatB", Node::EType::eSCategory);
-         Node scatC("scatC", Node::EType::eSCategory);
+   SCAT scatB
+   {
+      OBJ xb, yb;
+   }
 
-         scatA.EmplaceNode("xa", Node::EType::eObject);
-         scatA.EmplaceNode("ya", Node::EType::eObject);
-         lcat.AddNode(scatA);
+   SCAT scatC
+   {
+      OBJ xc, yc;
+   }
+}
+         )";
 
-         scatB.EmplaceNode("xb", Node::EType::eObject);
-         scatB.EmplaceNode("yb", Node::EType::eObject);
-         lcat.AddNode(scatB);
+         Parser prs;
+         prs.ParseSource(src);
 
-         scatC.EmplaceNode("xc", Node::EType::eObject);
-         scatC.EmplaceNode("yc", Node::EType::eObject);
-         lcat.AddNode(scatC);
+         Node lcat = *prs.Data();
 
          Arrow AB("scatA", "scatB");
          AB.EmplaceArrow("xa", "xb");

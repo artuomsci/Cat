@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "../include/node.h"
+#include "parser.h"
 
 namespace cat
 {
@@ -35,13 +36,17 @@ namespace cat
          return true;
       };
 
-      Node S("S", Node::EType::eSCategory);
+      auto src = R"(
+SCAT cat
+{
+   OBJ a, b, c, d;
+}
+      )";
 
-      S.EmplaceNode("a", S.InternalNode());
-      S.EmplaceNode("b", S.InternalNode());
-      S.EmplaceNode("c", S.InternalNode());
-      S.EmplaceNode("d", S.InternalNode());
+      Parser prs;
+      prs.ParseSource(src);
 
+      Node S = *prs.Data();
 
       assert(S.QueryNodes("()").size() == 0);
       assert(match_nodes(S.QueryNodes("*"), {"a", "b", "c", "d"}));

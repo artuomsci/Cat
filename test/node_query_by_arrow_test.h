@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "../include/node.h"
+#include "parser.h"
 
 namespace cat
 {
@@ -12,14 +13,21 @@ namespace cat
    //============================================================
    void test_node_query_by_arrow()
    {
-      Node S("S", Node::EType::eSCategory);
-      Node a("a", Node::EType::eObject), b("b", Node::EType::eObject);
-      Node c("c", Node::EType::eObject), d("d", Node::EType::eObject);
+      auto src = R"(
+SCAT cat
+{
+   OBJ a, b, c, d;
 
-      S.AddNodes({a, b, c, d});
-      S.EmplaceArrow(a, b);
-      S.EmplaceArrow(a, c);
-      S.EmplaceArrow(c, d);
+   a-[*]->b;
+   a-[*]->c;
+   c-[*]->d;
+}
+      )";
+
+      Parser prs;
+      prs.ParseSource(src);
+
+      Node S = *prs.Data();
 
       Node ret = S.Query(Arrow("*", "*").AsQuery());
       assert(ret.QueryNodes("*").size() == 4);

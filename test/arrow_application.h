@@ -4,6 +4,7 @@
 #include <assert.h>
 
 #include "../include/node.h"
+#include "parser.h"
 
 namespace cat
 {
@@ -24,14 +25,23 @@ namespace cat
       }
 
       {
+         auto src = R"(
+SCAT A
+{
+   OBJ a0, a1;
+
+   a0-[*]->a1;
+}
+         )";
+
+         Parser prs;
+         prs.ParseSource(src);
+
+         Node A = *prs.Data();
+
          Arrow arrow("A", "B");
          arrow.EmplaceArrow("a0", "b0");
          arrow.EmplaceArrow("a1", "b1");
-
-         Node A("A", Node::EType::eSCategory);
-         A.EmplaceNode("a0", A.InternalNode());
-         A.EmplaceNode("a1", A.InternalNode());
-         A.EmplaceArrow("a0", "a1");
 
          auto ret = arrow(A);
          assert(ret->Name() == "B");
