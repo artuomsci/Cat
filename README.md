@@ -132,7 +132,7 @@ The return of the function **SolveSequences** is as follows:
 
 ## Helper functions
 
-### Function: *Node::QueryArrows*
+### Function: *QueryArrows*
 
 This function searches for arrows according to a query. Arrows that meet conditions of a query will be returned.
 Sample category:
