@@ -1,16 +1,18 @@
+#pragma once
+
 #include <assert.h>
 #include <algorithm>
 
 #include "../include/node.h"
 #include "../include/log.h"
 
-#include "node_query_test.h"
-#include "node_initial_terminal_test.h"
-#include "composition_test.h"
-#include "inversion_test.h"
-#include "arrow_query_test.h"
-#include "sequence_test.h"
-#include "node_query_by_arrow_test.h"
+#include "node_query.h"
+#include "node_initial_terminal.h"
+#include "composition.h"
+#include "inversion.h"
+#include "arrow_query.h"
+#include "sequence.h"
+#include "node_query_by_arrow.h"
 #include "arrow_query_on_node.h"
 #include "equivalence.h"
 #include "arrow_validation.h"

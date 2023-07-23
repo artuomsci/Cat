@@ -1,5 +1,4 @@
-#ifndef ARROW_APPLICATION_H
-#define ARROW_APPLICATION_H
+#pragma once
 
 #include <assert.h>
 
@@ -60,5 +59,3 @@ SCAT A
       }
    }
 }
-
-#endif // ARROW_APPLICATION_H

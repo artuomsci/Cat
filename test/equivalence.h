@@ -1,5 +1,4 @@
-#ifndef EQUIVALENCE_TEST_H
-#define EQUIVALENCE_TEST_H
+#pragma once
 
 #include <assert.h>
 #include <algorithm>
@@ -115,5 +114,3 @@ namespace cat
       }
    }
 }
-
-#endif

@@ -1,5 +1,4 @@
-#ifndef ARROW_VALIDATION_TEST_H
-#define ARROW_VALIDATION_TEST_H
+#pragma once
 
 #include <assert.h>
 
@@ -46,5 +45,3 @@ namespace cat
       }
    }
 }
-
-#endif // ARROW_VALIDATION_TEST_H

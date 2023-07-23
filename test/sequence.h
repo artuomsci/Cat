@@ -1,5 +1,4 @@
-#ifndef SEQUENCE_TEST_H
-#define SEQUENCE_TEST_H
+#pragma once
 
 #include <assert.h>
 
@@ -114,5 +113,3 @@ SCAT cat
       }
    }
 }
-
-#endif // SEQUENCE_TEST_H

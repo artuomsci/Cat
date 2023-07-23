@@ -1,5 +1,4 @@
-#ifndef INVERSION_TEST_H
-#define INVERSION_TEST_H
+#pragma once
 
 #include <assert.h>
 #include <algorithm>
@@ -79,5 +78,3 @@ SCAT cat
       }
    }
 }
-
-#endif // INVERSION_TEST_H

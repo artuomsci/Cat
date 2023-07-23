@@ -1,5 +1,4 @@
-#ifndef ARROW_QUERY_TEST_H
-#define ARROW_QUERY_TEST_H
+#pragma once
 
 #include <assert.h>
 
@@ -47,5 +46,3 @@ namespace cat
       assert(ret.size() == 1);
    }
 }
-
-#endif // ARROW_QUERY_TEST_H

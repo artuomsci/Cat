@@ -1,5 +1,4 @@
-#ifndef NODE_QUERY_BY_ARROW_TEST_H
-#define NODE_QUERY_BY_ARROW_TEST_H
+#pragma once
 
 #include <assert.h>
 
@@ -42,5 +41,3 @@ SCAT cat
       assert(ret.QueryArrows(Arrow("c", "d").AsQuery()).size() == 1);
    }
 }
-
-#endif // NODE_QUERY_BY_ARROW_TEST_H

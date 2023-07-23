@@ -1,5 +1,4 @@
-#ifndef NODE_QUERY_TEST_H
-#define NODE_QUERY_TEST_H
+#pragma once
 
 #include <assert.h>
 
@@ -66,4 +65,3 @@ SCAT cat
       assert(match_nodes(S.QueryNodes("~(a & b)"), {"c", "d"}));
    }
 }
-#endif // NODE_QUERY_TEST_H

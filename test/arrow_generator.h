@@ -1,5 +1,4 @@
-#ifndef ARROW_GENERATOR_TEST
-#define ARROW_GENERATOR_TEST
+#pragma once
 
 #include <assert.h>
 #include <algorithm>
@@ -103,5 +102,3 @@ LCAT Cat
       }
    }
 }
-
-#endif // ARROW_GENERATOR_TEST

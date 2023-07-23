@@ -1,5 +1,4 @@
-#ifndef NODE_INITIAL_TERMINAL_TEST_H
-#define NODE_INITIAL_TERMINAL_TEST_H
+#pragma once
 
 #include <assert.h>
 
@@ -68,5 +67,3 @@ SCAT cat
       assert(*initial_obj.begin() == *terminal_obj.begin());
    }
 }
-
-#endif // NODE_INITIAL_TERMINAL_TEST_H

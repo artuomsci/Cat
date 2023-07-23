@@ -1,5 +1,4 @@
-#ifndef COMPOSITION_TEST_H
-#define COMPOSITION_TEST_H
+#pragma once
 
 #include <assert.h>
 #include <algorithm>
@@ -112,5 +111,3 @@ LCAT lcat
       }
    }
 }
-
-#endif // COMPOSITION_TEST_H

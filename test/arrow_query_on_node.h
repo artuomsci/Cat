@@ -1,5 +1,4 @@
-#ifndef ARROW_QUERY_ON_NODE_H
-#define ARROW_QUERY_ON_NODE_H
+#pragma once
 
 #include <assert.h>
 #include <algorithm>
@@ -78,5 +77,3 @@ a-[*]->c;
       assert(fnCheckArrow(ret, "b", "c", {}));
    }
 }
-
-#endif // ARROW_QUERY_ON_NODE_H
