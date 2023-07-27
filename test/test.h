@@ -23,6 +23,8 @@
 #include "arrow_addition.h"
 #include "arrow_deletion.h"
 
+#include "parser.h"
+
 namespace cat
 {
    void test()
@@ -37,9 +39,9 @@ namespace cat
 
       test_object_deletion();
 
-      test_morphism_addition();
+      test_arrow_addition();
 
-      test_morphism_deletion();
+      test_arrow_deletion();
 
       test_arrow_application();
 

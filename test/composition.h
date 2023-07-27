@@ -29,12 +29,12 @@ SCAT cat
 {
    OBJ a, b, c, d;
 
-   a-[f0]->b;
-   b-[f1]->c;
-   c-[f2]->d;
-   d-[f3]->c;
-   c-[f4]->b;
-   b-[f5]->a;
+   a-[f0]->b{};
+   b-[f1]->c{};
+   c-[f2]->d{};
+   d-[f3]->c{};
+   c-[f4]->b{};
+   b-[f5]->a{};
 }
          )";
 
@@ -82,6 +82,18 @@ LCAT lcat
    {
       OBJ xc, yc;
    }
+
+   scatA -[*]-> scatB
+   {
+      xa -[*]-> xb{};
+      ya -[*]-> yb{};
+   }
+
+   scatB -[*]-> scatC
+   {
+      xb -[*]-> xc{};
+      yb -[*]-> yc{};
+   }
 }
          )";
 
@@ -89,16 +101,6 @@ LCAT lcat
          prs.ParseSource(src);
 
          Node lcat = *prs.Data();
-
-         Arrow AB("scatA", "scatB");
-         AB.EmplaceArrow("xa", "xb");
-         AB.EmplaceArrow("ya", "yb");
-         lcat.AddArrow(AB);
-
-         Arrow BC("scatB", "scatC");
-         BC.EmplaceArrow("xb", "xc");
-         BC.EmplaceArrow("yb", "yc");
-         lcat.AddArrow(BC);
 
          lcat.SolveCompositions();
 

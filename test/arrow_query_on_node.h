@@ -42,11 +42,11 @@ namespace cat
       auto src = R"(
 SCAT C
 {
-OBJ a, b, c;
+   OBJ a, b, c;
 
-a-[*]->b;
-b-[*]->c;
-a-[*]->c;
+   a-[*]->b{};
+   b-[*]->c{};
+   a-[*]->c{};
 }
       )";
 

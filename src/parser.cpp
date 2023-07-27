@@ -14,16 +14,15 @@ static const char* comment_end   = "*/";
 //-----------------------------------------------------------------------------------------
 bool Parser::parse_statement(TKIt& it_, TKIt end_, NodePtr pNode_) const
 {
-   while (it_ != end_)
+   if (it_ == end_)
    {
-      TToken& tk = *it_;
+      return false;
+   }
 
-      // End of statement
-      if (std::holds_alternative<END_CBR>(tk))
-         return true;
-
+   while (true)
+   {
       // Small category declaration
-      if (std::holds_alternative<SCAT>(tk))
+      if (std::holds_alternative<SCAT>(*it_))
       {
          if (pNode_->Type() != Node::EType::eLCategory)
          {
@@ -38,7 +37,7 @@ bool Parser::parse_statement(TKIt& it_, TKIt end_, NodePtr pNode_) const
       }
 
       // Object declaration
-      if (std::holds_alternative<OBJ>(tk))
+      if (std::holds_alternative<OBJ>(*it_))
       {
          if (pNode_->Type() != Node::EType::eSCategory)
          {
@@ -53,7 +52,7 @@ bool Parser::parse_statement(TKIt& it_, TKIt end_, NodePtr pNode_) const
       }
 
       // Word declaration
-      if (std::holds_alternative<std::string>(tk) || std::holds_alternative<ASTERISK>(tk))
+      if (std::holds_alternative<std::string>(*it_) || std::holds_alternative<ASTERISK>(*it_))
       {
          if (!parse_arrow(it_, end_, pNode_))
          {
@@ -62,10 +61,24 @@ bool Parser::parse_statement(TKIt& it_, TKIt end_, NodePtr pNode_) const
          }
       }
 
-      ++it_;
+      // End of statement
+      if (std::holds_alternative<END_CBR>(*it_))
+      {
+         ++it_;
+
+         if (std::holds_alternative<SEMICOLON>(*it_))
+         {
+            ++it_;
+            break;
+         }
+         else
+         {
+            break;
+         }
+      }
    }
 
-   return false;
+   return true;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -100,7 +113,7 @@ bool Parser::parse_CAT(TKIt& it_, TKIt end_, cat::Node::EType type_, NodePtr& pN
 
    NodePtr pNewNode(new Node(name, type_));
 
-   if (!parse_statement(it_, end_, pNewNode))
+   if (!parse_statement(++it_, end_, pNewNode))
       return false;
 
    if (!pNode_)
@@ -142,6 +155,7 @@ bool Parser::parse_OBJ(TKIt& it_, TKIt end_, NodePtr pNode_) const
 
       if (std::holds_alternative<SEMICOLON>(*it_))
       {
+         ++it_;
          break;
       }
       else if (!std::holds_alternative<COMMA>(*it_))
@@ -170,7 +184,7 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_) const
    {
       if (arrow.Name() == any)
       {
-         arrow = Arrow(arrow.Source(), arrow.Target());
+         arrow.SetDefaultName();
       }
    }
 
@@ -186,10 +200,40 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, NodePtr pNode_) const
 //-----------------------------------------------------------------------------------------
 bool Parser::parse_arrow(TKIt& it_, TKIt end_, Arrow::List& arrows_)
 {
+   if (it_ == end_)
+   {
+      return true;
+   }
+
+   if (std::holds_alternative<END_CBR>(*it_))
+   {
+      return true;
+   }
+
    while (true)
    {
       if (it_ == end_)
          return true;
+
+      if (std::holds_alternative<END_CBR>(*it_))
+      {
+         if (++it_ == end_)
+         {
+            break;
+         }
+
+         if (std::holds_alternative<SEMICOLON>(*it_))
+         {
+            ++it_;
+            break;
+         }
+         else
+         {
+            break;
+         }
+
+         break;
+      }
 
       std::string source;
 
@@ -211,22 +255,18 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, Arrow::List& arrows_)
          return false;
       }
 
-      ++it_;
-      if (it_ == end_)
+      if (++it_ == end_)
          return false;
 
-      ++it_;
-      if (it_ == end_)
+      if (++it_ == end_)
          return false;
 
       TToken name_tk = *it_;
 
-      ++it_;
-      if (it_ == end_)
+      if (++it_ == end_)
          return false;
 
-      ++it_;
-      if (it_ == end_)
+      if (++it_ == end_)
          return false;
 
       std::string target;
@@ -271,19 +311,48 @@ bool Parser::parse_arrow(TKIt& it_, TKIt end_, Arrow::List& arrows_)
 
       Arrow arrow(source, target, name);
 
-      arrows_.push_back(arrow);
-
-      ++it_;
-      if (it_ == end_)
+      if (++it_ == end_)
+      {
          return false;
-
-      if (std::holds_alternative<SEMICOLON>(*it_))
-      {
-         break;
       }
-      else if (std::holds_alternative<BEGIN_SINGLE_ARROW>(*it_))
+
+      if (std::holds_alternative<BEGIN_SINGLE_ARROW>(*it_))
       {
+         arrows_.push_back(arrow);
          --it_;
+      }
+      else if (std::holds_alternative<BEGIN_CBR>(*it_))
+      {
+         if (++it_ == end_)
+         {
+            return false;
+         }
+
+         while (it_ != end_)
+         {
+            if (std::holds_alternative<END_CBR>(*it_))
+            {
+               break;
+            }
+
+            Arrow::List arrows;
+            if (!parse_arrow(it_, end_, arrows))
+            {
+               return false;
+            }
+
+            for (const auto& it : arrows)
+            {
+               arrow.AddArrow(it);
+            }
+
+            if (std::holds_alternative<END_CBR>(*it_))
+            {
+               break;
+            }
+         }
+
+         arrows_.push_back(arrow);
       }
       else
       {
@@ -360,30 +429,37 @@ bool Parser::ParseSource(const std::string& src_)
    TKIt it = tokens.begin();
    while (it != tokens.end())
    {
-      TToken& tk = *it;
-
-      if  (std::holds_alternative<LCAT>(tk))
+      if  (std::holds_alternative<LCAT>(*it))
       {
          if (!parse_CAT(it, tokens.end(), cat::Node::EType::eLCategory, m_pNode))
             return false;
       }
-      else if (std::holds_alternative<SCAT>(tk))
+      else if (std::holds_alternative<SCAT>(*it))
       {
          if (!parse_CAT(it, tokens.end(), cat::Node::EType::eSCategory, m_pNode))
             return false;
       }
-      else if (std::holds_alternative<OBJ>(tk))
+      else if (std::holds_alternative<OBJ>(*it))
       {
          if (!parse_CAT(it, tokens.end(), cat::Node::EType::eObject, m_pNode))
             return false;
       }
-      else if (std::holds_alternative<SEMICOLON>(tk))
+      else if (std::holds_alternative<std::string>(*it) || std::holds_alternative<ASTERISK>(*it))
       {
+         if (!parse_arrow(it, tokens.end(), m_pNode))
+         {
+            print_error("Incorrect arrow declaration");
+            return false;
+         }
+      }
+      else if (std::holds_alternative<SEMICOLON>(*it))
+      {
+         ++it;
       }
       else
+      {
          return false;
-
-      ++it;
+      }
    }
 }
 

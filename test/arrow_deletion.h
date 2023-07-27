@@ -8,9 +8,9 @@
 namespace cat
 {
    //============================================================
-   // Testing of morphism deletion methods
+   // Testing of arrow deletion methods
    //============================================================
-   void test_morphism_deletion()
+   void test_arrow_deletion()
    {
       auto fnCheckArrow = [](const Arrow::List& morphs_, const Arrow& morph_)
       {

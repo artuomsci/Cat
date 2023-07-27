@@ -72,6 +72,11 @@ namespace cat
       static std::string IdArrowName(const std::string& name_);
 
       /**
+       * @brief Sets default name
+       */
+      void SetDefaultName();
+
+      /**
        * @brief Returns arrow source name
        * @return Name
        */

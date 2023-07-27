@@ -8,9 +8,9 @@
 namespace cat
 {
    //============================================================
-   // Testing of morphism addition methods
+   // Testing of arrow addition methods
    //============================================================
-   void test_morphism_addition()
+   void test_arrow_addition()
    {
       auto fnCheckArrow = [](const Arrow::List& morphs_, const Arrow& morph_)
       {

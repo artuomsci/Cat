@@ -263,6 +263,12 @@ std::string Arrow::IdArrowName(const std::string& name_)
 }
 
 //-----------------------------------------------------------------------------------------
+void Arrow::SetDefaultName()
+{
+   m_name = DefaultArrowName(m_source, m_target);
+}
+
+//-----------------------------------------------------------------------------------------
 const std::string& Arrow::Source() const
 {
    return m_source;
@@ -498,7 +504,7 @@ bool Arrow::IsInvertible() const
 //-----------------------------------------------------------------------------------------
 std::string Arrow::AsQuery() const
 {
-   return m_source + BEGIN_SINGLE_ARROW::id + m_name + END_SINGLE_ARROW::id + m_target + SEMICOLON::id;
+   return m_source + BEGIN_SINGLE_ARROW::id + m_name + END_SINGLE_ARROW::id + m_target + BEGIN_CBR::id + END_CBR::id + SEMICOLON::id;
 }
 
 //-----------------------------------------------------------------------------------------
