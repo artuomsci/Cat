@@ -1283,7 +1283,7 @@ bool Node::Verify(const Arrow& arrow_) const
       }
 
       // Checking mapping of arrows
-      if (target_cat.QueryArrows(Arrow(objs->Name(), objt->Name()).AsQuery()).empty())
+      if (target_cat.QueryArrows(Arrow(objs->Name(), objt->Name(), "*").AsQuery()).empty())
       {
          print_error("Failure to match morphism: " + objs->Name() + " to " + objt->Name());
          return false;
