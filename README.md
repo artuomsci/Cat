@@ -15,15 +15,26 @@ LCAT World
       OBJ cow, chicken;
       
       /* Morphisms */
-      chicken -[isBigger]-> cow -[isSmaller]-> chicken{};
+      chicken -[isBigger]-> cow -[isSmaller]-> chicken {};
    }
 
-   SCAT People;
-   SCAT Aliens;
+   SCAT People
+   {
+      OBJ man;
+   }
+
+   SCAT Aliens
+   {
+      OBJ thing;
+   }
    
    /* Functors */
-   People -[isSuperior]-> Aliens -[*]-> People{};
-};
+   People -[isSuperior]-> Aliens
+   {
+      /* Morphisms */
+      man-[*]->thing{};
+   }
+}
 ```
 Where:
 
