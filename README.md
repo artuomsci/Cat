@@ -15,14 +15,14 @@ LCAT World
       OBJ cow, chicken;
       
       /* Morphisms */
-      chicken -[isBigger]-> cow -[isSmaller]-> chicken;
+      chicken -[isBigger]-> cow -[isSmaller]-> chicken{};
    }
 
    SCAT People;
    SCAT Aliens;
    
    /* Functors */
-   People -[isSuperior]-> Aliens -[*]-> People;
+   People -[isSuperior]-> Aliens -[*]-> People{};
 };
 ```
 Where:
@@ -47,7 +47,7 @@ SCAT Creatures
 {
    OBJ alien, man, chicken;
    
-   chicken -[*]-> man -[*]-> alien;
+   chicken -[*]-> man -[*]-> alien{};
 }
 ```
 Directed graph is shown below.
@@ -69,9 +69,9 @@ SCAT Creatures
 {
    OBJ alien, man, chicken;
    
-   chicken  -[*]-> man;
-   man      -[*]-> alien;
-   chicken  -[*]-> alien;
+   chicken  -[*]-> man{};
+   man      -[*]-> alien{};
+   chicken  -[*]-> alien{};
 }
 ```
 <img src="https://github.com/artuomsci/Cat/blob/main/imgs/smartness_2.png" width="512">
@@ -91,10 +91,10 @@ SCAT MaslowHierarchy
 {
    OBJ PhysiologicalNeeds, SafetyNeeds, LoveAndBelonging, Esteem, SelfActualization;
    
-   PhysiologicalNeeds   -[f0]-> SafetyNeeds;
-   SafetyNeeds          -[f1]-> LoveAndBelonging;
-   LoveAndBelonging     -[f2]-> Esteem;
-   Esteem               -[f3]-> SelfActualization;
+   PhysiologicalNeeds   -[f0]-> SafetyNeeds{};
+   SafetyNeeds          -[f1]-> LoveAndBelonging{};
+   LoveAndBelonging     -[f2]-> Esteem{};
+   Esteem               -[f3]-> SelfActualization{};
 };
 ```
 
@@ -120,7 +120,7 @@ SCAT Sum
 {
    OBJ 0, 1, 2, 3;
    
-   0 -[f0]-> 1 -[f1]-> 2 -[f2]-> 3;
+   0 -[f0]-> 1 -[f1]-> 2 -[f2]-> 3{};
 };
 ```
 <img src="https://github.com/artuomsci/Cat/blob/main/imgs/0-3_sequences.png" width="512">
@@ -141,8 +141,8 @@ Sample category:
 SCAT QuerySample
 {
    OBJ a, b, c, d;
-   a -[*]-> b -[*]-> c;
-   a -[*]-> c;
+   a -[*]-> b -[*]-> c{};
+   a -[*]-> c{};
 };
 ```
 Query examples:
