@@ -1308,49 +1308,42 @@ const Node::NName& Node::Name() const
 //-----------------------------------------------------------------------------------------
 void Node::SolveCompositions()
 {
-   for (const auto & [domain, codomain] : m_nodes)
+   Arrow::List initial_arrows = QueryArrows(Arrow("*", "*").AsQuery());
+
+   for (const Arrow & init_arrow : initial_arrows)
    {
+      if (init_arrow.Source() == init_arrow.Target())
+      {
+         continue;
+      }
+
       Arrow::List compositions;
 
-      Node::Set traverse = codomain;
+      Arrow::List traverse = QueryArrows(Arrow(init_arrow.Target(), "*").AsQuery());
 
-      Node::Set new_codomain;
+      Arrow::List new_codomain;
       while (!traverse.empty())
       {
-         new_codomain.insert(traverse.begin(), traverse.end());
+         new_codomain.insert(new_codomain.end(), traverse.begin(), traverse.end());
 
-         Node::Set new_traverse;
-         for (const Node& node : traverse)
+         Arrow::List new_traverse;
+         for (const Arrow& arrow : traverse)
          {
-            if (node == domain)
-               continue;
-
-            const auto& sub_codomain = m_nodes.at(node);
-
-            for (const Node& sub_node : sub_codomain)
+            if (arrow.Source() == arrow.Target())
             {
-               if (new_codomain.find(sub_node) != new_codomain.end())
-                  continue;
-
-               new_traverse.insert(sub_node);
-
-               auto first = QueryArrows(Arrow(domain.Name(), node.Name(), "*").AsQuery());
-               auto second = QueryArrows(Arrow(node.Name(), sub_node.Name(), "*").AsQuery());
-
-               const auto& first_arrow = first.front();
-               const auto& second_arrow = second.front();
-
-               Arrow composition(domain, sub_node);
-
-               for (const auto& source : domain.QueryNodes("*"))
-               {
-                  auto target = second_arrow.SingleMap(first_arrow.SingleMap(source));
-
-                  composition.EmplaceArrow(source.Name(), target->Name());
-               }
-
-               compositions.push_back(composition);
+               continue;
             }
+
+            Arrow composition(init_arrow.Source(), arrow.Target(), init_arrow.Source() + init_arrow.Target() + arrow.Target());
+
+            for (const Arrow& internal_arrow : init_arrow.QueryArrows(Arrow("*", "*").AsQuery()))
+            {
+               auto internal_target = arrow.SingleMap(internal_arrow.Target());
+
+               composition.EmplaceArrow(internal_arrow.Source(), internal_target->Name());
+            }
+
+            compositions.push_back(composition);
          }
 
          traverse = new_traverse;
