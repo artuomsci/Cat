@@ -50,8 +50,6 @@ namespace cat
       Arrow& operator = (Arrow&&) = default;
       Arrow& operator = (const Arrow&) = default;
 
-      std::optional<Node> operator()(const std::optional<Node>& node_) const;
-
       using Vec   = std::vector<Arrow>;
       using List  = std::list<Arrow>;
       using AName = std::string;
@@ -150,18 +148,25 @@ namespace cat
       bool IsEmpty() const;
 
       /**
-      * @brief Maps node with arrow
+      * @brief Maps internal node
       * @param node_ - node for mapping
       * @return Mapped node
       */
       std::optional<Node> SingleMap(const std::optional<Node>& node_) const;
 
       /**
-      * @brief Maps node with arrow
+      * @brief Maps internal node
       * @param name_ - node name for mapping
       * @return Mapped node
       */
       std::optional<Node> SingleMap(const std::string& name_) const;
+
+      /**
+      * @brief Maps node
+      * @param name_ - node name for mapping
+      * @return Mapped node
+      */
+      std::optional<Node> Map(const std::optional<Node>& node_) const;
 
       /**
        * @brief Inverses arrow
@@ -200,6 +205,8 @@ namespace cat
       bool IsValid() const;
 
    private:
+
+      std::optional<Node> singleMapImpl(const std::string& name_) const;
 
       std::string m_source;
       std::string m_target;

@@ -17,7 +17,7 @@ namespace cat
 
          Node A("A", Node::EType::eObject);
 
-         auto ret = arrow(A);
+         auto ret = arrow.Map(A);
          assert(ret.has_value());
 
          assert(ret->Name() == "B");
@@ -42,7 +42,7 @@ SCAT A
          arrow.EmplaceArrow("a0", "b0");
          arrow.EmplaceArrow("a1", "b1");
 
-         auto ret = arrow(A);
+         auto ret = arrow.Map(A);
          assert(ret->Name() == "B");
          assert(ret->QueryNodes("*").size() == 2);
 

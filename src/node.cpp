@@ -209,7 +209,7 @@ bool Arrow::operator!=(const Arrow& arrow_) const
 }
 
 //-----------------------------------------------------------------------------------------
-std::optional<Node> Arrow::operator()(const std::optional<Node>& node_) const
+std::optional<Node> Arrow::Map(const std::optional<Node>& node_) const
 {
    if (!node_.has_value() || node_->Name() != m_source)
    {
@@ -438,24 +438,7 @@ bool Arrow::IsEmpty() const
 }
 
 //-----------------------------------------------------------------------------------------
-std::optional<Node> Arrow::SingleMap(const std::optional<Node>& node_) const
-{
-   if (!node_)
-      return std::optional<Node>();
-
-   for (const Arrow& arrow : m_arrows)
-   {
-      if (arrow.Source() == node_->Name())
-      {
-         return Node(arrow.Target(), Node::EType::eObject);
-      }
-   }
-
-   return std::optional<Node>();
-}
-
-//-----------------------------------------------------------------------------------------
-std::optional<Node> Arrow::SingleMap(const std::string& name_) const
+std::optional<Node> Arrow::singleMapImpl(const std::string& name_) const
 {
    for (const Arrow& arrow : m_arrows)
    {
@@ -465,7 +448,19 @@ std::optional<Node> Arrow::SingleMap(const std::string& name_) const
       }
    }
 
-   return std::optional<Node>();
+   return {};
+}
+
+//-----------------------------------------------------------------------------------------
+std::optional<Node> Arrow::SingleMap(const std::optional<Node>& node_) const
+{
+   return node_ ? singleMapImpl(node_->Name()) : std::optional<Node>();
+}
+
+//-----------------------------------------------------------------------------------------
+std::optional<Node> Arrow::SingleMap(const std::string& name_) const
+{
+   return singleMapImpl(name_);
 }
 
 //-----------------------------------------------------------------------------------------
