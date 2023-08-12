@@ -8,18 +8,18 @@
 
 #include "node_query.h"
 #include "node_initial_terminal.h"
-#include "composition.h"
-#include "inversion.h"
+#include "arrow_composition.h"
+#include "arrow_inversion.h"
 #include "arrow_query.h"
-#include "sequence.h"
+#include "arrow_sequence.h"
 #include "node_query_by_arrow.h"
 #include "arrow_query_on_node.h"
-#include "equivalence.h"
+#include "arrow_associativity.h"
 #include "arrow_validation.h"
 #include "arrow_generator.h"
 #include "arrow_application.h"
-#include "object_addition.h"
-#include "object_deletion.h"
+#include "node_addition.h"
+#include "node_deletion.h"
 #include "arrow_addition.h"
 #include "arrow_deletion.h"
 
@@ -63,7 +63,7 @@ namespace cat
 
       test_node_query();
 
-      test_equivalence();
+      test_associativity();
 
       test_arrow_validation();
 

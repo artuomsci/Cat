@@ -503,7 +503,7 @@ std::string Arrow::AsQuery() const
 }
 
 //-----------------------------------------------------------------------------------------
-bool Arrow::IsEquivalent(const Arrow& arrow) const
+bool Arrow::IsAssociative(const Arrow& arrow) const
 {
    if (arrow.Source() != Source() || arrow.Target() != Target())
       return false;
@@ -520,7 +520,7 @@ bool Arrow::IsEquivalent(const Arrow& arrow) const
       bool isFound{};
       for (auto & left : result)
       {
-         if (left.IsEquivalent(right))
+         if (left.IsAssociative(right))
          {
             isFound = true;
             break;

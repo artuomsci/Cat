@@ -186,11 +186,11 @@ namespace cat
       std::string AsQuery() const;
 
       /**
-       * @brief Checks equivalence of arrows
-       * @param arrow - arrow for equivalence check
-       * @return True if equivalent
+       * @brief Checks associativity of arrows
+       * @param arrow - arrow for associativity check
+       * @return True if associative
        */
-      bool IsEquivalent(const Arrow& arrow) const;
+      bool IsAssociative(const Arrow& arrow) const;
 
       /**
        * @brief Counts the number of arrows
