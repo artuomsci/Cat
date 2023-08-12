@@ -4,44 +4,42 @@
 
 #include "../include/node.h"
 
-namespace cat
-{
-   //============================================================
-   // Testing of arrow validation
-   //============================================================
-   void test_arrow_validation()
-   {
-      {
-         Arrow arrow("A", "B");
-         assert(arrow.IsValid());
-      }
+namespace cat {
+//============================================================
+// Testing of arrow validation
+//============================================================
+void test_arrow_validation() {
+  {
+    Arrow arrow("A", "B");
+    assert(arrow.IsValid());
+  }
 
-      {
-         Arrow arrow("A", "B");
+  {
+    Arrow arrow("A", "B");
 
-         arrow.EmplaceArrow("a", "b");
-         arrow.EmplaceArrow("c", "d");
+    arrow.EmplaceArrow("a", "b");
+    arrow.EmplaceArrow("c", "d");
 
-         assert(arrow.IsValid());
-      }
+    assert(arrow.IsValid());
+  }
 
-      {
-         Arrow arrow("A", "B");
+  {
+    Arrow arrow("A", "B");
 
-         arrow.EmplaceArrow("a", "b");
-         arrow.EmplaceArrow("a", "d");
-         arrow.EmplaceArrow("a", "c");
+    arrow.EmplaceArrow("a", "b");
+    arrow.EmplaceArrow("a", "d");
+    arrow.EmplaceArrow("a", "c");
 
-         assert(!arrow.IsValid());
-      }
+    assert(!arrow.IsValid());
+  }
 
-      {
-         Arrow arrow("A", "B");
+  {
+    Arrow arrow("A", "B");
 
-         arrow.EmplaceArrow("a", "b");
-         arrow.EmplaceArrow("c", "b");
+    arrow.EmplaceArrow("a", "b");
+    arrow.EmplaceArrow("c", "b");
 
-         assert(arrow.IsValid());
-      }
-   }
+    assert(arrow.IsValid());
+  }
 }
+} // namespace cat

@@ -1,20 +1,18 @@
 #pragma once
 
-#include <assert.h>
 #include <algorithm>
+#include <assert.h>
 
 #include "../include/node.h"
 #include "parser.h"
 
-namespace cat
-{
-   //============================================================
-   // Testing of inversion
-   //============================================================
-   void test_inversion()
-   {
-      {
-         auto src = R"(
+namespace cat {
+//============================================================
+// Testing of inversion
+//============================================================
+void test_inversion() {
+  {
+    auto src = R"(
 SCAT cat
 {
    OBJ a, b, c, d;
@@ -27,54 +25,55 @@ SCAT cat
 }
          )";
 
-         Parser prs;
-         prs.ParseSource(src);
+    Parser prs;
+    prs.ParseSource(src);
 
-         Node cat = *prs.Data();
+    Node cat = *prs.Data();
 
-         cat.Inverse();
+    cat.Inverse();
 
-         assert(cat.QueryArrows(Arrow("b", "a", "f0").AsQuery()).size() == 1);
-         assert(cat.QueryArrows(Arrow("c", "a", "f1").AsQuery()).size() == 1);
+    assert(cat.QueryArrows(Arrow("b", "a", "f0").AsQuery()).size() == 1);
+    assert(cat.QueryArrows(Arrow("c", "a", "f1").AsQuery()).size() == 1);
 
-         assert(cat.QueryArrows(Arrow("d", "b", "f2").AsQuery()).size() == 1);
-         assert(cat.QueryArrows(Arrow("d", "c", "f3").AsQuery()).size() == 1);
-      }
+    assert(cat.QueryArrows(Arrow("d", "b", "f2").AsQuery()).size() == 1);
+    assert(cat.QueryArrows(Arrow("d", "c", "f3").AsQuery()).size() == 1);
+  }
 
-      {
-         Arrow arrow("A", "B");
+  {
+    Arrow arrow("A", "B");
 
-         arrow.EmplaceArrow("a", "b");
-         arrow.EmplaceArrow("c", "d");
-         arrow.EmplaceArrow("e", "f", "ef_arrow");
+    arrow.EmplaceArrow("a", "b");
+    arrow.EmplaceArrow("c", "d");
+    arrow.EmplaceArrow("e", "f", "ef_arrow");
 
-         assert(arrow.IsInvertible());
+    assert(arrow.IsInvertible());
 
-         arrow.Inverse();
+    arrow.Inverse();
 
-         assert(arrow.QueryArrows(Arrow("b", "a").AsQuery()).size() == 1);
-         assert(arrow.QueryArrows(Arrow("d", "c").AsQuery()).size() == 1);
-         assert(arrow.QueryArrows(Arrow("*", "*", "ef_arrow").AsQuery()).size() == 1);
-      }
+    assert(arrow.QueryArrows(Arrow("b", "a").AsQuery()).size() == 1);
+    assert(arrow.QueryArrows(Arrow("d", "c").AsQuery()).size() == 1);
+    assert(arrow.QueryArrows(Arrow("*", "*", "ef_arrow").AsQuery()).size() ==
+           1);
+  }
 
-      {
-         Arrow arrow("A", "B");
+  {
+    Arrow arrow("A", "B");
 
-         arrow.EmplaceArrow("a", "b");
-         arrow.EmplaceArrow("c", "b");
-         arrow.EmplaceArrow("e", "b");
+    arrow.EmplaceArrow("a", "b");
+    arrow.EmplaceArrow("c", "b");
+    arrow.EmplaceArrow("e", "b");
 
-         assert(!arrow.IsInvertible());
-      }
+    assert(!arrow.IsInvertible());
+  }
 
-      {
-         Arrow arrow("A", "B");
+  {
+    Arrow arrow("A", "B");
 
-         arrow.EmplaceArrow("a", "b");
-         arrow.EmplaceArrow("a", "d");
-         arrow.EmplaceArrow("a", "f");
+    arrow.EmplaceArrow("a", "b");
+    arrow.EmplaceArrow("a", "d");
+    arrow.EmplaceArrow("a", "f");
 
-         assert(arrow.IsInvertible());
-      }
-   }
+    assert(arrow.IsInvertible());
+  }
 }
+} // namespace cat

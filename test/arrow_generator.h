@@ -1,20 +1,18 @@
 #pragma once
 
-#include <assert.h>
 #include <algorithm>
+#include <assert.h>
 
 #include "../include/node.h"
 #include "parser.h"
 
-namespace cat
-{
-   //============================================================
-   // Testing of mapping generator
-   //============================================================
-   void test_arrow_generator()
-   {
-      {
-         auto src = R"(
+namespace cat {
+//============================================================
+// Testing of mapping generator
+//============================================================
+void test_arrow_generator() {
+  {
+    auto src = R"(
 LCAT Cat
 {
    SCAT A
@@ -29,50 +27,50 @@ LCAT Cat
 }
          )";
 
-         Parser prs;
-         prs.ParseSource(src);
+    Parser prs;
+    prs.ParseSource(src);
 
-         Node ccat = *prs.Data();
+    Node ccat = *prs.Data();
 
-         Arrow::List ret = ccat.ProposeArrows("A", "B");
+    Arrow::List ret = ccat.ProposeArrows("A", "B");
 
-         assert(ret.size() == 4);
+    assert(ret.size() == 4);
 
-         auto fnFindArrow = [&](Arrow arrow_, const std::string& source_, const std::string& target_)
-         {
-            auto morphisms = arrow_.QueryArrows(Arrow("*", "*").AsQuery());
+    auto fnFindArrow = [&](Arrow arrow_, const std::string &source_,
+                           const std::string &target_) {
+      auto morphisms = arrow_.QueryArrows(Arrow("*", "*").AsQuery());
 
-            auto it = std::find_if(morphisms.begin(), morphisms.end(), [&](const Arrow& arrow)
-            {
-               return arrow.Source() == source_ && arrow.Target() == target_;
-            });
+      auto it = std::find_if(
+          morphisms.begin(), morphisms.end(), [&](const Arrow &arrow) {
+            return arrow.Source() == source_ && arrow.Target() == target_;
+          });
 
-            return it != ret.end();
-         };
+      return it != ret.end();
+    };
 
-         auto head = ret.begin();
+    auto head = ret.begin();
 
-         assert(fnFindArrow(*head, "a0", "b0"));
-         assert(fnFindArrow(*head, "a1", "b0"));
+    assert(fnFindArrow(*head, "a0", "b0"));
+    assert(fnFindArrow(*head, "a1", "b0"));
 
-         head++;
+    head++;
 
-         assert(fnFindArrow(*head, "a0", "b1"));
-         assert(fnFindArrow(*head, "a1", "b0"));
+    assert(fnFindArrow(*head, "a0", "b1"));
+    assert(fnFindArrow(*head, "a1", "b0"));
 
-         head++;
+    head++;
 
-         assert(fnFindArrow(*head, "a0", "b0"));
-         assert(fnFindArrow(*head, "a1", "b1"));
+    assert(fnFindArrow(*head, "a0", "b0"));
+    assert(fnFindArrow(*head, "a1", "b1"));
 
-         head++;
+    head++;
 
-         assert(fnFindArrow(*head, "a0", "b1"));
-         assert(fnFindArrow(*head, "a1", "b1"));
-      }
+    assert(fnFindArrow(*head, "a0", "b1"));
+    assert(fnFindArrow(*head, "a1", "b1"));
+  }
 
-      {
-         auto src = R"(
+  {
+    auto src = R"(
 LCAT Cat
 {
    SCAT A
@@ -87,18 +85,18 @@ LCAT Cat
 }
          )";
 
-         Parser prs;
-         prs.ParseSource(src);
+    Parser prs;
+    prs.ParseSource(src);
 
-         Node ccat = *prs.Data();
+    Node ccat = *prs.Data();
 
-         Arrow::List ret = ccat.ProposeArrows("A", "B");
+    Arrow::List ret = ccat.ProposeArrows("A", "B");
 
-         assert(ret.size() == 3);
+    assert(ret.size() == 3);
 
-         ret = ccat.ProposeArrows("B", "A");
+    ret = ccat.ProposeArrows("B", "A");
 
-         assert(ret.size() == 1);
-      }
-   }
+    assert(ret.size() == 1);
+  }
 }
+} // namespace cat
