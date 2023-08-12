@@ -32,7 +32,7 @@ LCAT World
    People -[isSuperior]-> Aliens
    {
       /* Morphisms */
-      man-[*]->thing{};
+      man -[*]-> thing {};
    }
 }
 ```
@@ -58,7 +58,7 @@ SCAT Creatures
 {
    OBJ alien, man, chicken;
    
-   chicken -[*]-> man -[*]-> alien{};
+   chicken -[*]-> man -[*]-> alien {};
 }
 ```
 Directed graph is shown below.
@@ -80,9 +80,9 @@ SCAT Creatures
 {
    OBJ alien, man, chicken;
    
-   chicken  -[*]-> man{};
-   man      -[*]-> alien{};
-   chicken  -[*]-> alien{};
+   chicken  -[*]-> man {};
+   man      -[*]-> alien {};
+   chicken  -[*]-> alien {};
 }
 ```
 <img src="https://github.com/artuomsci/Cat/blob/main/imgs/smartness_2.png" width="512">
@@ -102,10 +102,10 @@ SCAT MaslowHierarchy
 {
    OBJ PhysiologicalNeeds, SafetyNeeds, LoveAndBelonging, Esteem, SelfActualization;
    
-   PhysiologicalNeeds   -[f0]-> SafetyNeeds{};
-   SafetyNeeds          -[f1]-> LoveAndBelonging{};
-   LoveAndBelonging     -[f2]-> Esteem{};
-   Esteem               -[f3]-> SelfActualization{};
+   PhysiologicalNeeds   -[f0]-> SafetyNeeds {};
+   SafetyNeeds          -[f1]-> LoveAndBelonging {};
+   LoveAndBelonging     -[f2]-> Esteem {};
+   Esteem               -[f3]-> SelfActualization {};
 };
 ```
 
@@ -131,7 +131,7 @@ SCAT Sum
 {
    OBJ 0, 1, 2, 3;
    
-   0 -[f0]-> 1 -[f1]-> 2 -[f2]-> 3{};
+   0 -[f0]-> 1 -[f1]-> 2 -[f2]-> 3 {};
 };
 ```
 <img src="https://github.com/artuomsci/Cat/blob/main/imgs/0-3_sequences.png" width="512">
@@ -140,6 +140,49 @@ The return of the function **SolveSequences** is as follows:
 ```
 [0, 1, 2, 3],[0, 1, 3],[0, 2, 3],[0, 3]
 ```
+
+### Function: *Map*
+
+Given a category or an object we can do mapping using functor or morphism accordingly.
+
+Sample source category:
+
+```
+LCAT LargeCategory
+{
+   SCAT Source
+   {
+      OBJ a, b;
+      a -[f]-> b {};
+   };
+}
+```
+
+Sample functor:
+
+```
+LCAT LargeCategory
+{
+   Source -[F]-> Target
+   {
+      a -[]-> Fa {};
+      b -[]-> Fb {};
+   }
+}
+```
+Calling function **Map** will result in new the **Target** category while preserving the structure i.e. objects and morphisms between objects:
+
+```
+LCAT LargeCategory
+{
+   SCAT Target
+   {
+      OBJ Fa, Fb;
+      Fa -[FaFb]-> Fb {};
+   };
+}
+```
+
 
 ## Helper functions
 
@@ -152,8 +195,8 @@ Sample category:
 SCAT QuerySample
 {
    OBJ a, b, c, d;
-   a -[*]-> b -[*]-> c{};
-   a -[*]-> c{};
+   a -[*]-> b -[*]-> c {};
+   a -[*]-> c {};
 };
 ```
 Query examples:
