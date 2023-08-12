@@ -182,7 +182,59 @@ LCAT LargeCategory
    };
 }
 ```
+### Function: *IsAssociative*
 
+This function checks for associativity. In the example given below, two functors following paths **A -> B -> D** and **A -> C -> D** respectively are not associative.
+
+```
+   LCAT LCat
+   {
+      SCAT A
+      {
+         OBJ a0, a1;
+      }
+
+      SCAT B
+      {
+         OBJ b0, b1;
+      }
+
+      SCAT C
+      {
+         OBJ c0, c1;
+      }
+
+      SCAT D
+      {
+         OBJ d0, d1;
+      }
+
+      A -[*]-> B
+      {
+         a0 -[*]-> b0 {};
+         a1 -[*]-> b1 {};
+      }
+
+      B -[*]-> D
+      {
+         b0 -[*]-> d0 {};
+         b1 -[*]-> d1 {};
+      }
+
+      A -[*]-> C
+      {
+         a0 -[*]-> c0 {};
+         a1 -[*]-> c1 {};
+      }
+
+      C -[*]-> D
+      {
+         c0 -[*]-> d1 {};
+         c1 -[*]-> d0 {};
+      }
+   }
+```
+Calling **IsAssociative** on a pair **A -> B -> D** and **A -> C -> D** will return **false**.
 
 ## Helper functions
 
