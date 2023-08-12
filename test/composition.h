@@ -56,33 +56,29 @@ SCAT cat
 
       {
          auto src = R"(
-LCAT lcat
+LCAT cat
 {
-   SCAT scatA
+   SCAT A
    {
-      OBJ xa, ya;
+      OBJ a0, a1, a2;
    }
 
-   SCAT scatB
+   SCAT B
    {
-      OBJ xb, yb;
+      OBJ b0, b1;
    }
 
-   SCAT scatC
+   A -[*]-> B
    {
-      OBJ xc, yc;
+      a0 -[*]-> b0 {};
+      a1 -[*]-> b1 {};
+      a2 -[*]-> b1 {};
    }
 
-   scatA -[*]-> scatB
+   B -[*]-> A
    {
-      xa -[*]-> xb{};
-      ya -[*]-> yb{};
-   }
-
-   scatB -[*]-> scatC
-   {
-      xb -[*]-> xc{};
-      yb -[*]-> yc{};
+      b0 -[*]-> a0 {};
+      b1 -[*]-> a1 {};
    }
 }
          )";
@@ -90,16 +86,18 @@ LCAT lcat
          Parser prs;
          prs.ParseSource(src);
 
-         Node lcat = *prs.Data();
+         Node cat = *prs.Data();
 
-         lcat.SolveCompositions();
+         cat.SolveCompositions();
 
-         auto ret = lcat.QueryArrows(Arrow("*", "*").AsQuery());
-         assert(ret.size() == 6);
-         auto retAC = lcat.QueryArrows(Arrow("scatA", "scatC", "*").AsQuery());
-         assert(!retAC.empty());
-         assert(!retAC.front().QueryArrows(Arrow("xa", "xc", "*").AsQuery()).empty());
-         assert(!retAC.front().QueryArrows(Arrow("ya", "yc", "*").AsQuery()).empty());
+         Arrow::List arrows = cat.QueryArrows(Arrow("*", "*").AsQuery());
+         assert(arrows.size() == 6);
+
+         Arrow::List arrowsAA = cat.QueryArrows(Arrow("A", "A", "*").AsQuery());
+         assert(arrowsAA.size() == 2);
+
+         Arrow::List arrowsBB = cat.QueryArrows(Arrow("B", "B", "*").AsQuery());
+         assert(arrowsBB.size() == 2);
       }
    }
 }
