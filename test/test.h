@@ -22,6 +22,7 @@
 #include "node_initial_terminal.h"
 #include "node_query.h"
 #include "node_query_by_arrow.h"
+#include "parsing.h"
 
 #include "parser.h"
 
@@ -32,6 +33,8 @@ void test() {
   set_log_mode(ELogMode::eQuiet);
 
   print_info("Start test");
+
+  test_parsing();
 
   test_object_addition();
 
