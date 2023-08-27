@@ -20,7 +20,11 @@ LCAT Cat
   {
     OBJ a0, a1;
 
-    a0 -[*]-> a1 {};
+    a0 -[*]-> a1
+    {
+      0 -[*]-> 2 {};
+      1 -[*]-> 4 {};
+    };
   }
 
   SCAT B
@@ -43,8 +47,10 @@ LCAT Cat
 
     Node node = *prs.Data();
 
+    // Checking functor
     Arrow::List functors = node.QueryArrows(Arrow("A", "B", "*").AsQuery());
     assert(functors.size() == 1);
+    // Checking morphisms inside functor
     assert(
         functors.front().QueryArrows(Arrow("a0", "b0", "*").AsQuery()).size() ==
         1);
@@ -54,13 +60,28 @@ LCAT Cat
 
     assert(node.Name() == "Cat");
 
+    // Checking categories
     Node::List categories = node.QueryNodes("*");
     assert(categories.size() == 2);
 
+    // Checking category A
     auto itA = std::find_if(categories.begin(), categories.end(),
                             [](auto element) { return element.Name() == "A"; });
     assert(itA != categories.end());
 
+    // Checking morphisms inside category
+    Arrow::List morphismsA = itA->QueryArrows(Arrow("a0", "a1", "*").AsQuery());
+    assert(morphismsA.size() == 1);
+
+    // Checking functions inside morphism
+    assert(
+        morphismsA.front().QueryArrows(Arrow("0", "2", "*").AsQuery()).size() ==
+        1);
+    assert(
+        morphismsA.front().QueryArrows(Arrow("1", "4", "*").AsQuery()).size() ==
+        1);
+
+    // Checking objects inside category
     Node::List objectsA = itA->QueryNodes("*");
 
     assert(std::find_if(objectsA.begin(), objectsA.end(), [](auto element) {
@@ -71,10 +92,16 @@ LCAT Cat
              return element.Name() == "a1";
            }) != objectsA.end());
 
+    // Checking category B
     auto itB = std::find_if(categories.begin(), categories.end(),
                             [](auto element) { return element.Name() == "B"; });
     assert(itB != categories.end());
 
+    // Checking morphisms inside category
+    Arrow::List morphismsB = itB->QueryArrows(Arrow("b0", "b1", "*").AsQuery());
+    assert(morphismsB.size() == 1);
+
+    // Checking objects inside category
     Node::List objectsB = itB->QueryNodes("*");
 
     assert(std::find_if(objectsB.begin(), objectsB.end(), [](auto element) {

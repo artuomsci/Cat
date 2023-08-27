@@ -208,6 +208,12 @@ std::optional<Node> Arrow::Map(const std::optional<Node> &node_) const {
     auto target = SingleMap(Node(arrow.m_target, Node::EType::eObject));
 
     Arrow mapped_arrow(*source, *target);
+
+    Arrow::List internalArrows = arrow.QueryArrows(Arrow("*", "*").AsQuery());
+    for (auto &it : internalArrows) {
+      mapped_arrow.AddArrow(it);
+    }
+
     if (ret.QueryArrows(mapped_arrow.AsQuery()).empty())
       ret.AddArrow(mapped_arrow);
   }
@@ -1011,25 +1017,27 @@ bool Node::Verify(const Arrow &arrow_) const {
 
     auto itv = visited.find(head);
     if (itv != visited.end()) {
-      auto msg = "Functor: " + arrow_.Name() + " : ";
-      msg += "Mapping the same object " + arrow.Source() +
-             " multiple times with morphism " + arrow.Name();
+      auto msg = "Arrow: " + arrow_.Name() + " : ";
+      msg += "Mapping the same source " + arrow.Source() +
+             " multiple times with arrow " + arrow.Name();
       print_error(msg);
       return false;
     }
 
     visited.insert(head);
 
-    if (source_cat.QueryNodes(arrow.Source()).empty()) {
-      print_error("Missing object for " + arrow.Source() + " to " +
-                  arrow.Target());
-      return false;
+    if (InternalNode() != EType::eObject) {
+      if (source_cat.QueryNodes(arrow.Source()).empty()) {
+        print_error("Missing source for " + arrow.Source() + " to " +
+                    arrow.Target());
+        return false;
+      }
     }
   }
 
   std::string sAny(1, ASTERISK::id);
 
-  // Checking mapping of objects
+  // Checking mapping
   for (const auto &obj : source_cat.QueryNodes(sAny)) {
     if (!arrow_.SingleMap(obj)) {
       print_error("Failure to map " + Node::Type2Name(obj.Type()) + ": " +

@@ -11,23 +11,34 @@ namespace cat {
 //============================================================
 void test_arrow_application() {
   {
-    Arrow arrow("A", "B");
-
-    Node A("A", Node::EType::eObject);
-
-    auto ret = arrow.Map(A);
+    auto ret = Arrow("A", "B").Map(Node("A", Node::EType::eSCategory));
     assert(ret.has_value());
-
     assert(ret->Name() == "B");
+  }
+
+  {
+    auto ret = Arrow("a", "b").Map(Node("a", Node::EType::eObject));
+    assert(ret.has_value());
+    assert(ret->Name() == "b");
+  }
+
+  {
+    auto ret = Arrow("0", "2").Map(Node("0", Node::EType::eSet));
+    assert(ret.has_value());
+    assert(ret->Name() == "2");
   }
 
   {
     auto src = R"(
 SCAT A
 {
-   OBJ a0, a1;
+  OBJ a0, a1;
 
-   a0-[*]->a1{};
+  a0-[*]->a1
+  {
+    0 -[*]-> 2 {};
+    1 -[*]-> 4 {};
+  };
 }
          )";
 
@@ -51,9 +62,13 @@ SCAT A
     assert(ret->QueryNodes("b1").front().Name() == "b1");
 
     auto arrows = ret->QueryArrows(Arrow("b0", "b1", "*").AsQuery());
-    assert(!arrows.empty());
+    assert(arrows.size() == 1);
     assert(arrows.front().Source() == "b0");
     assert(arrows.front().Target() == "b1");
+    assert(arrows.front().QueryArrows(Arrow("0", "2", "*").AsQuery()).size() ==
+           1);
+    assert(arrows.front().QueryArrows(Arrow("1", "4", "*").AsQuery()).size() ==
+           1);
   }
 }
 } // namespace cat
