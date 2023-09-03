@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <list>
 #include <map>
 #include <optional>
@@ -527,5 +528,22 @@ private:
 
 struct CAT_EXPORT NodeKeyHasher {
   std::size_t operator()(const Node &n_) const;
+};
+
+class Register {
+
+public:
+  static Register &Inst();
+
+  using TFn = std::function<TSetValue(TSetValue)>;
+
+  void reg(const Arrow &arrow_, const TFn &fn_);
+  void unreg(const Arrow &arrow_);
+  const TFn &get(const Arrow &arrow_);
+
+private:
+  Register() = default;
+
+  std::map<Arrow, TFn> m_functions;
 };
 } // namespace cat

@@ -22,6 +22,30 @@ static const char *sNLCategory = "large category";
 static const char *sVoid = "void";
 
 //-----------------------------------------------------------------------------------------
+Register &Register::Inst() {
+  static Register reg;
+  return reg;
+}
+
+//-----------------------------------------------------------------------------------------
+void Register::reg(const Arrow &arrow_, const TFn &fn_) {
+  m_functions[arrow_] = fn_;
+}
+
+//-----------------------------------------------------------------------------------------
+void Register::unreg(const Arrow &arrow_) { m_functions.erase(arrow_); }
+
+//-----------------------------------------------------------------------------------------
+auto Register::get(const Arrow &arrow_) -> const TFn & {
+  static TFn stub = [](auto arg_) { return arg_; };
+  auto it = m_functions.find(arrow_);
+  if (it != m_functions.end()) {
+    return it->second;
+  }
+  return stub;
+}
+
+//-----------------------------------------------------------------------------------------
 static std::vector<Arrow> resolve_arrows(const std::string &name_,
                                          const std::string &source_,
                                          const std::string &target_,
@@ -190,6 +214,9 @@ std::optional<Node> Arrow::Map(const std::optional<Node> &node_) const {
   }
 
   Node ret(m_target, node_->Type());
+
+  const Register::TFn &fn = Register::Inst().get(*this);
+  ret.SetValue(fn(node_->GetValue()));
 
   // Mapping of nodes
   for (const auto &node : node_->QueryNodes("*")) {

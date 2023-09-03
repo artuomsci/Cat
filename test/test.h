@@ -8,6 +8,7 @@
 
 #include "arrow_addition.h"
 #include "arrow_application.h"
+#include "arrow_application_native.h"
 #include "arrow_associativity.h"
 #include "arrow_composition.h"
 #include "arrow_deletion.h"
@@ -45,6 +46,8 @@ void test() {
   test_arrow_deletion();
 
   test_arrow_application();
+
+  test_arrow_application_native();
 
   test_arrow_generator();
 
