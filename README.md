@@ -15,7 +15,12 @@ LCAT World
       OBJ cow, chicken;
       
       /* Morphisms */
-      chicken -[isBigger]-> cow -[isSmaller]-> chicken {};
+      chicken -[isBigger]-> cow {};
+      cow -[isSmaller]-> chicken
+      {
+         /* Functions */
+         1 -[*]-> 10 {};
+      };
    }
 
    SCAT People
@@ -87,7 +92,7 @@ SCAT Creatures
 ```
 <img src="https://github.com/artuomsci/Cat/blob/main/imgs/smartness_2.png" width="512">
 
-Function **Inverse** does what its name implies.
+Function **Inverse** does what its name implies i.e. inverses arrows.
 
 <img src="https://github.com/artuomsci/Cat/blob/main/imgs/smartness_3.png" width="512">
 
