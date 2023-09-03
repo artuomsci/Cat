@@ -5,6 +5,8 @@
 #include <string>
 #include <variant>
 
+#include "cat_export.h"
+
 namespace cat {
 // Keywords
 struct LCAT {
@@ -108,7 +110,7 @@ using TToken = std::variant<
     // Basic types
     int, float, double, std::string>;
 
-class Tokenizer {
+class CAT_EXPORT Tokenizer {
 public:
   static std::list<TToken> Process(const std::string &string_);
   static std::string TokenLog(const TToken &tk_, bool append_value_ = false);

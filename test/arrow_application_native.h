@@ -4,6 +4,7 @@
 
 #include "../include/node.h"
 #include "parser.h"
+#include "register.h"
 
 namespace cat {
 //============================================================

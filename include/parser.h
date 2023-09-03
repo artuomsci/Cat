@@ -4,11 +4,12 @@
 #include <memory>
 #include <string>
 
+#include "cat_export.h"
 #include "node.h"
 #include "tokenizer.h"
 
 namespace cat {
-class Parser {
+class CAT_EXPORT Parser {
 public:
   using TKIt = std::list<TToken>::iterator;
 
