@@ -60,7 +60,7 @@ std::optional<Node> Arrow::Map(const std::optional<Node> &node_) const {
 
   Node ret(m_target, node_->Type());
 
-  const Register::TFn &fn = Register::Inst().get(*this);
+  const Register::TFn &fn = Register::Inst().Get(*this);
   ret.SetValue(fn(node_->GetValue()));
 
   // Mapping of nodes

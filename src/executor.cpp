@@ -11,7 +11,7 @@ Executor &Executor::Inst() {
 }
 
 //-----------------------------------------------------------------------------------------
-bool Executor::exec(Node &node_) {
+bool Executor::Exec(Node &node_) {
   Node::List beginNodes = node_.Initial();
   Node::List endNodes = node_.Terminal();
 

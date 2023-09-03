@@ -15,9 +15,9 @@ public:
 
   using TFn = std::function<TSetValue(TSetValue)>;
 
-  void reg(const Arrow &arrow_, const TFn &fn_);
-  void unreg(const Arrow &arrow_);
-  const TFn &get(const Arrow &arrow_);
+  void Reg(const Arrow &arrow_, const TFn &fn_);
+  void Unreg(const Arrow &arrow_);
+  const TFn &Get(const Arrow &arrow_);
 
 private:
   Register() = default;

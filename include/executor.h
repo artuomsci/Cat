@@ -10,7 +10,7 @@ class CAT_EXPORT Executor {
 public:
   static Executor &Inst();
 
-  bool exec(Node &node_);
+  bool Exec(Node &node_);
 
 private:
   Executor() = default;

@@ -29,14 +29,14 @@ void test_executor() {
 
   cat.SolveCompositions();
 
-  Register::Inst().reg(ab, [](TSetValue val) {
+  Register::Inst().Reg(ab, [](TSetValue val) {
     return std::get<(int)ESetTypes::eInt>(val) + 4;
   });
-  Register::Inst().reg(bc, [](TSetValue val) {
+  Register::Inst().Reg(bc, [](TSetValue val) {
     return std::get<(int)ESetTypes::eInt>(val) * 2;
   });
 
-  assert(Executor::Inst().exec(cat));
+  assert(Executor::Inst().Exec(cat));
 
   Node::List retList = cat.QueryNodes("c");
   auto control = std::get<(int)ESetTypes::eInt>(retList.front().GetValue());

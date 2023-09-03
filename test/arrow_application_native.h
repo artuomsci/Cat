@@ -17,7 +17,7 @@ void test_arrow_application_native() {
 
   Arrow apply("int", "int", "inc");
 
-  Register::Inst().reg(apply, [](TSetValue arg_) {
+  Register::Inst().Reg(apply, [](TSetValue arg_) {
     return std::get<(int)ESetTypes::eInt>(arg_) + 1;
   });
 
