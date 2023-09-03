@@ -17,7 +17,14 @@ public:
   bool ParseSource(const std::string &src_);
   std::shared_ptr<Node> Data() const;
 
-  static bool parse_arrow(TKIt &it_, TKIt end_, Arrow::List &arrows_);
+  static bool ParseArrow(TKIt &it_, TKIt end_, Arrow::List &arrows_);
+  static std::vector<Arrow> GetArrows(const std::string &line_,
+                                      const Node::List &domain_,
+                                      const Node::List &codomain_,
+                                      bool resolve_);
+  static Arrow::List QueryArrows(const std::string &query_,
+                                 const Arrow::List &arrows_,
+                                 std::optional<size_t> matchCount_);
 
 private:
   using NodePtr = std::shared_ptr<Node>;

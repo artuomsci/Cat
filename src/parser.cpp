@@ -1,5 +1,6 @@
 #include "parser.h"
 
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 #include <string.h>
@@ -147,7 +148,7 @@ bool Parser::parse_arrow(TKIt &it_, TKIt end_, NodePtr pNode_) const {
     return false;
 
   Arrow::List arrows;
-  if (!parse_arrow(it_, end_, arrows))
+  if (!ParseArrow(it_, end_, arrows))
     return false;
 
   std::string any(1, ASTERISK::id);
@@ -167,7 +168,7 @@ bool Parser::parse_arrow(TKIt &it_, TKIt end_, NodePtr pNode_) const {
 }
 
 //-----------------------------------------------------------------------------------------
-bool Parser::parse_arrow(TKIt &it_, TKIt end_, Arrow::List &arrows_) {
+bool Parser::ParseArrow(TKIt &it_, TKIt end_, Arrow::List &arrows_) {
   if (it_ == end_) {
     return true;
   }
@@ -268,7 +269,7 @@ bool Parser::parse_arrow(TKIt &it_, TKIt end_, Arrow::List &arrows_) {
         }
 
         Arrow::List arrows;
-        if (!parse_arrow(it_, end_, arrows)) {
+        if (!ParseArrow(it_, end_, arrows)) {
           return false;
         }
 
@@ -289,6 +290,206 @@ bool Parser::parse_arrow(TKIt &it_, TKIt end_, Arrow::List &arrows_) {
   }
 
   return true;
+}
+
+//-----------------------------------------------------------------------------------------
+static std::vector<Arrow> resolve_arrows(const std::string &name_,
+                                         const std::string &source_,
+                                         const std::string &target_,
+                                         const Node::List &domain_,
+                                         const Node::List &codomain_) {
+  std::vector<Arrow> ret;
+
+  auto fnCheckSource = [&]() {
+    auto it_d =
+        std::find_if(domain_.begin(), domain_.end(), [&](const Node &element_) {
+          return element_.Name() == source_;
+        });
+
+    if (it_d == domain_.end()) {
+      print_error("No such source: " + source_);
+      return false;
+    }
+    return true;
+  };
+
+  auto fnCheckTarget = [&]() {
+    auto it_c = std::find_if(
+        codomain_.begin(), codomain_.end(),
+        [&](const Node &element_) { return element_.Name() == target_; });
+
+    if (it_c == codomain_.end()) {
+      print_error("No such target: " + target_);
+      return false;
+    }
+
+    return true;
+  };
+
+  std::string sAny(1, ASTERISK::id);
+
+  // f :: a -> b
+  if (name_ != sAny && source_ != sAny && target_ != sAny) {
+    if (!fnCheckSource())
+      return ret;
+    if (!fnCheckTarget())
+      return ret;
+
+    ret.push_back(Arrow(source_, target_, name_));
+  }
+  // * :: a -> b
+  else if (name_ == sAny && source_ != sAny && target_ != sAny) {
+    if (!fnCheckSource())
+      return ret;
+    if (!fnCheckTarget())
+      return ret;
+
+    ret.push_back(Arrow(source_, target_));
+  }
+  // * :: * -> *
+  else if (name_ == sAny && source_ == sAny && target_ == sAny) {
+    for (const Node &dnode : domain_) {
+      for (const auto &cnode : codomain_) {
+        ret.push_back(Arrow(dnode, cnode));
+      }
+    }
+  }
+  // * :: * -> b
+  else if (name_ == sAny && source_ == sAny && target_ != sAny) {
+    if (!fnCheckTarget())
+      return ret;
+
+    for (const auto &dnode : domain_)
+      ret.push_back(Arrow(dnode.Name(), target_));
+  }
+  // * :: a -> *
+  else if (name_ == sAny && source_ != sAny && target_ == sAny) {
+    if (!fnCheckSource())
+      return ret;
+
+    for (const auto &cnode : codomain_)
+      ret.push_back(Arrow(source_, cnode.Name()));
+  }
+  // f :: a -> *
+  else if (name_ != sAny && source_ != sAny && target_ == sAny) {
+    print_error("Incorrect definition");
+  }
+  // f :: * -> b
+  else if (name_ != sAny && source_ == sAny && target_ != sAny) {
+    if (!fnCheckTarget())
+      return ret;
+
+    for (const auto &dnode : domain_)
+      ret.push_back(Arrow(dnode.Name(), target_, name_));
+  }
+  // f :: * -> *
+  else if (name_ != sAny && source_ == sAny && target_ == sAny) {
+    print_error("Incorrect definition");
+  }
+
+  return ret;
+}
+
+//-----------------------------------------------------------------------------------------
+std::vector<Arrow> Parser::GetArrows(const std::string &line_,
+                                     const Node::List &domain_,
+                                     const Node::List &codomain_,
+                                     bool resolve_) {
+  std::list<TToken> tks = Tokenizer::Process(line_);
+
+  Arrow::List arrows;
+  auto start_tk = tks.begin();
+  Parser::ParseArrow(start_tk, tks.end(), arrows);
+
+  std::vector<Arrow> ret;
+  ret.reserve(arrows.size());
+  for (const auto &arrow : arrows) {
+    if (resolve_) {
+      for (const auto &it : resolve_arrows(arrow.Name(), arrow.Source(),
+                                           arrow.Target(), domain_, codomain_))
+        ret.push_back(it);
+    } else
+      ret.push_back(arrow);
+  }
+
+  return ret;
+}
+
+//-----------------------------------------------------------------------------------------
+Arrow::List Parser::QueryArrows(const std::string &query_,
+                                const Arrow::List &arrows_,
+                                std::optional<size_t> matchCount_) {
+  if (matchCount_ && matchCount_ == 0)
+    return Arrow::List();
+
+  auto qarrow = Parser::GetArrows(query_, Node::List(), Node::List(), false);
+  if (qarrow.size() != 1)
+    return Arrow::List();
+
+  const auto &source = qarrow[0].Source();
+  const auto &target = qarrow[0].Target();
+  const auto &name = qarrow[0].Name();
+
+  Arrow::List ret;
+
+  std::string sAny(1, ASTERISK::id);
+
+  bool name_check = name != sAny;
+
+  if (source == sAny && target == sAny) {
+    if (!name_check && !matchCount_)
+      return arrows_;
+
+    for (const auto &arrow : arrows_) {
+      if (name_check && arrow.Name() != name)
+        continue;
+
+      if (arrow.Name() == name) {
+        ret.push_back(arrow);
+
+        if (matchCount_ && ret.size() == matchCount_)
+          break;
+      }
+    }
+  } else if (source != sAny && target == sAny) {
+    for (const auto &arrow : arrows_) {
+      if (name_check && arrow.Name() != name)
+        continue;
+
+      if (arrow.Source() == source) {
+        ret.push_back(arrow);
+
+        if (matchCount_ && ret.size() == matchCount_)
+          break;
+      }
+    }
+  } else if (source == sAny && target != sAny) {
+    for (const auto &arrow : arrows_) {
+      if (name_check && arrow.Name() != name)
+        continue;
+
+      if (arrow.Target() == target) {
+        ret.push_back(arrow);
+
+        if (matchCount_ && ret.size() == matchCount_)
+          break;
+      }
+    }
+  } else if (source != sAny && target != sAny) {
+    for (const auto &arrow : arrows_) {
+      if (name_check && arrow.Name() != name)
+        continue;
+
+      if (arrow.Source() == source && arrow.Target() == target) {
+        ret.push_back(arrow);
+
+        if (matchCount_ && ret.size() == matchCount_)
+          break;
+      }
+    }
+  }
+
+  return ret;
 }
 
 //-----------------------------------------------------------------------------------------
