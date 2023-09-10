@@ -97,5 +97,24 @@ LCAT cat
     Arrow::List arrowsBB = cat.QueryArrows(Arrow("B", "B", "*").AsQuery());
     assert(arrowsBB.size() == 2);
   }
+
+  {
+    Arrow f0("A", "B");
+    f0.AddArrow(Arrow("a0", "b0"));
+    f0.AddArrow(Arrow("a1", "b1"));
+
+    Arrow f1("B", "C");
+    f1.AddArrow(Arrow("b0", "c0"));
+    f1.AddArrow(Arrow("b1", "c1"));
+
+    std::optional<Arrow> cmp = f1.Compose(f0);
+    assert(cmp.has_value());
+    assert(cmp.value().Source() == "A");
+    assert(cmp.value().Target() == "C");
+    assert(cmp.value().QueryArrows(Arrow("a0", "c0", "*").AsQuery()).size() ==
+           1);
+    assert(cmp.value().QueryArrows(Arrow("a1", "c1", "*").AsQuery()).size() ==
+           1);
+  }
 }
 } // namespace cat

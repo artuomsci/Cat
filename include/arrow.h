@@ -188,6 +188,12 @@ public:
    */
   bool IsValid() const;
 
+  /**
+   * @brief Creates composition of two arrows
+   * @return Composition
+   */
+  std::optional<Arrow> Compose(const Arrow &arrow_) const;
+
 private:
   std::optional<Node> singleMapImpl(const std::string &name_) const;
 

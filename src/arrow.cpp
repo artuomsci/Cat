@@ -8,6 +8,7 @@
 #include <sstream>
 #include <stack>
 
+#include "node.h"
 #include "parser.h"
 #include "register.h"
 
@@ -268,4 +269,37 @@ bool Arrow::IsValid() const {
   }
 
   return true;
+}
+
+//-----------------------------------------------------------------------------------------
+std::optional<Arrow> Arrow::Compose(const Arrow &arrow_) const {
+
+  Node slv("slv", Node::EType::eLCategory);
+
+  Node A(arrow_.Source(), Node::EType::eSCategory);
+  Node B(arrow_.Target(), Node::EType::eSCategory);
+  for (const auto &arrow : arrow_.QueryArrows(Arrow("*", "*").AsQuery())) {
+    A.AddNode(Node(arrow.Source(), Node::EType::eSCategory));
+    B.AddNode(Node(arrow.Target(), Node::EType::eSCategory));
+  }
+
+  slv.AddNode(A);
+  slv.AddNode(B);
+
+  Node C(Target(), Node::EType::eSCategory);
+  for (const auto &arrow : QueryArrows(Arrow("*", "*").AsQuery())) {
+    C.AddNode(Node(arrow.Target(), Node::EType::eSCategory));
+  }
+
+  slv.AddNode(C);
+
+  slv.AddArrow(*this);
+  slv.AddArrow(arrow_);
+
+  slv.SolveCompositions();
+
+  Arrow::List ret =
+      slv.QueryArrows(Arrow(arrow_.Source(), Target(), "*").AsQuery());
+
+  return ret.empty() ? std::optional<Arrow>() : ret.front();
 }
