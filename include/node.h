@@ -305,6 +305,14 @@ public:
                                  const Arrow::AName &AC);
 
   /**
+   * @brief Solves choice problem
+   * @param BC - arrow from B to C
+   * @param AC - arrow from A to C
+   * @return Arrow from A to B
+   */
+  Arrow::List SolveChoice(const Arrow::AName &BC, const Arrow::AName &AC);
+
+  /**
    * @brief Returns node type
    * @return Node type
    */

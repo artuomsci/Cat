@@ -18,6 +18,7 @@
 #include "arrow_query_on_node.h"
 #include "arrow_sequence.h"
 #include "arrow_validation.h"
+#include "choice.h"
 #include "determination.h"
 #include "exe_run.h"
 #include "node_addition.h"
@@ -76,6 +77,8 @@ void test() {
   test_executor();
 
   test_determination();
+
+  test_choice();
 
   print_info("End test");
 

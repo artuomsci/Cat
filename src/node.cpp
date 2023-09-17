@@ -978,11 +978,44 @@ Arrow::List Node::SolveDetermination(const Arrow::AName &AB,
 
   Arrow::List ret;
   for (const auto &BC : bcList) {
-    auto detArrow = BC.Compose(abArrow);
-    if (detArrow.has_value()) {
+    auto detComposeArrow = BC.Compose(abArrow);
+    if (detComposeArrow.has_value()) {
 
-      if (detArrow->IsAssociative(acArrow)) {
+      if (detComposeArrow->IsAssociative(acArrow)) {
         ret.push_back(BC);
+      }
+    }
+  }
+
+  return ret;
+}
+
+//-----------------------------------------------------------------------------------------
+Arrow::List Node::SolveChoice(const Arrow::AName &BC, const Arrow::AName &AC) {
+
+  Arrow::List BClist = QueryArrows(Arrow("*", "*", BC).AsQuery());
+  if (BClist.empty()) {
+    return {};
+  }
+
+  Arrow &bcArrow = BClist.front();
+
+  Arrow::List AClist = QueryArrows(Arrow("*", "*", AC).AsQuery());
+  if (AClist.empty()) {
+    return {};
+  }
+
+  Arrow &acArrow = AClist.front();
+
+  Arrow::List abList = ProposeArrows(acArrow.Source(), bcArrow.Source());
+
+  Arrow::List ret;
+  for (const auto &AB : abList) {
+    auto choiceComposeArrow = bcArrow.Compose(AB);
+    if (choiceComposeArrow.has_value()) {
+
+      if (choiceComposeArrow->IsAssociative(acArrow)) {
+        ret.push_back(AB);
       }
     }
   }
