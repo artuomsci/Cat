@@ -296,6 +296,15 @@ public:
   Arrow::List ProposeArrows(const Node::NName &from_, const Node::NName &to_);
 
   /**
+   * @brief Solves determination problem
+   * @param AB - arrow from A to B
+   * @param AC - arrow from A to C
+   * @return Arrow from B to C
+   */
+  Arrow::List SolveDetermination(const Arrow::AName &AB,
+                                 const Arrow::AName &AC);
+
+  /**
    * @brief Returns node type
    * @return Node type
    */

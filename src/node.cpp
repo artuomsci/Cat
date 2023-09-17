@@ -957,6 +957,40 @@ Arrow::List Node::ProposeArrows(const Node::NName &from_,
 }
 
 //-----------------------------------------------------------------------------------------
+Arrow::List Node::SolveDetermination(const Arrow::AName &AB,
+                                     const Arrow::AName &AC) {
+
+  Arrow::List ABlist = QueryArrows(Arrow("*", "*", AB).AsQuery());
+  if (ABlist.empty()) {
+    return {};
+  }
+
+  Arrow &abArrow = ABlist.front();
+
+  Arrow::List AClist = QueryArrows(Arrow("*", "*", AC).AsQuery());
+  if (AClist.empty()) {
+    return {};
+  }
+
+  Arrow &acArrow = AClist.front();
+
+  Arrow::List bcList = ProposeArrows(abArrow.Target(), acArrow.Target());
+
+  Arrow::List ret;
+  for (const auto &BC : bcList) {
+    auto detArrow = BC.Compose(abArrow);
+    if (detArrow.has_value()) {
+
+      if (detArrow->IsAssociative(acArrow)) {
+        ret.push_back(BC);
+      }
+    }
+  }
+
+  return ret;
+}
+
+//-----------------------------------------------------------------------------------------
 Node::EType Node::Type() const { return m_type; }
 
 //-----------------------------------------------------------------------------------------
