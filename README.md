@@ -241,9 +241,56 @@ This function checks for associativity. In the example given below, two functors
 ```
 Calling **IsAssociative** on a pair **A -> B -> D** and **A -> C -> D** will return **false**.
 
+### Function: *SolveChoice*
+
+Choice problem can be solved by function **SolveChoice**. Given the following category:
+
+```
+LCAT cat
+{
+   SCAT A
+   {
+      OBJ a0, a1, a2;
+   }
+
+   SCAT B
+   {
+      OBJ b0, b1;
+   }
+
+   SCAT C
+   {
+      OBJ c0, c1;
+   }
+
+   A -[*]-> C
+   {
+      a0 -[*]-> c0 {};
+      a1 -[*]-> c1 {};
+      a2 -[*]-> c1 {};
+   }
+
+   B -[*]-> C
+   {
+      b0 -[*]-> c0 {};
+      b1 -[*]-> c1 {};
+   }
+}
+```
+The result of the function call:
+
+```
+   A -[*]-> B
+   {
+      a0 -[*]-> b0 {};
+      a1 -[*]-> b1 {};
+      a2 -[*]-> b1 {};
+   }
+```
+
 ### Function: *SolveDetermination*
 
-Determination problem can be solved by function "SolveDetermination". Given the following category:
+Determination problem can be solved by function **SolveDetermination**. Given the following category:
 
 ```
 LCAT cat
