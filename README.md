@@ -280,11 +280,11 @@ LCAT cat
 The result of the function call:
 
 ```
-   A -[*]-> B
+   A -[A_B]-> B
    {
-      a0 -[*]-> b0 {};
-      a1 -[*]-> b1 {};
-      a2 -[*]-> b1 {};
+      a0 -[a0_b0]-> b0 {};
+      a1 -[a1_b1]-> b1 {};
+      a2 -[a2_b1]-> b1 {};
    }
 ```
 
@@ -331,8 +331,8 @@ The result of the function call:
 ```
    B -[B_C]-> C
    {
-      b0 -[*]-> c0 {};
-      b1 -[*]-> c1 {};
+      b0 -[b0_c0]-> c0 {};
+      b1 -[b1_c1]-> c1 {};
    }
 }
 ```
